@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body style="background:#0d1f5c;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;">
+
+  <div class="auth-card" style="max-width:420px;">
+    <div class="auth-icon">⚙️</div>
+    <h2 class="auth-title">Admin Access</h2>
+    <p class="auth-subtitle">
+      Inside My Campus — Admin Panel
+    </p>
+
+    <div class="auth-error" id="adminError" style="display:none;">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="adminErrorMsg">Incorrect password.</span>
+    </div>
+
+    <div class="auth-form">
+      <div class="form-group">
+        <label>Admin Email</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope input-icon"></i>
+          <input type="email" id="adminEmail"
+            placeholder="admin@insidemycampus.com"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Admin Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" id="adminPassword"
+            placeholder="Enter admin password"/>
+          <button class="toggle-password"
+            id="toggleAdminPwd" type="button">
+            <i class="fas fa-eye" id="toggleAdminIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-auth-submit"
+        id="adminLoginBtn"
+        style="background:#0d1f5c;">
+        <span id="adminBtnText">
+          <i class="fas fa-shield-alt"></i> Access Admin Panel
+        </span>
+        <span id="adminSpinner" style="display:none;">
+          <i class="fas fa-spinner fa-spin"></i> Verifying...
+        </span>
+      </button>
+
+      <div style="text-align:center;margin-top:16px;">
+        <a href="index.html"
+          style="font-size:13px;color:#888;">
+          ← Back to Homepage
+        </a>
+      </div>
+    </div>
+
+    <div style="background:#f4f6fb;border-radius:10px;
+      padding:12px 16px;margin-top:20px;font-size:12px;
+      color:#888;text-align:center;line-height:1.6;">
+      <strong>Default credentials:</strong><br/>
+      Email: admin@imc.com<br/>
+      Password: admin123
+    </div>
+  </div>
+
+  <script>
+    // ---- Toggle password visibility ----
+    var toggleBtn  = document.getElementById('toggleAdminPwd');
+    var pwdInput   = document.getElementById('adminPassword');
+    var toggleIcon = document.getElementById('toggleAdminIcon');
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function () {
+        if (pwdInput.type === 'password') {
+          pwdInput.type  = 'text';
+          toggleIcon.className = 'fas fa-eye-slash';
+        } else {
+          pwdInput.type  = 'password';
+          toggleIcon.className = 'fas fa-eye';
+        }
+      });
+    }
+
+    // ---- Admin login ----
+    var ADMIN_EMAIL    = 'admin@imc.com';
+    var ADMIN_PASSWORD = 'admin123';
+
+    document.getElementById('adminLoginBtn')
+      .addEventListener('click', function () {
+        var email = (document.getElementById('adminEmail').value || '').trim();
+        var pwd   = (document.getElementById('adminPassword').value || '').trim();
+
+        var errBox = document.getElementById('adminError');
+        var errMsg = document.getElementById('adminErrorMsg');
+        errBox.style.display = 'none';
+
+        if (!email || !pwd) {
+          errMsg.textContent = 'Please enter email and password.';
+          errBox.style.display = 'flex'; return;
+        }
+
+        if (email !== ADMIN_EMAIL || pwd !== ADMIN_PASSWORD) {
+          errMsg.textContent = 'Incorrect email or password.';
+          errBox.style.display = 'flex'; return;
+        }
+
+        // Show spinner
+        document.getElementById('adminBtnText').style.display = 'none';
+        document.getElementById('adminSpinner').style.display = 'inline';
+        document.getElementById('adminLoginBtn').disabled     = true;
+
+        localStorage.setItem('imc_admin', 'true');
+
+        setTimeout(function () {
+          window.location.href = 'admin-dashboard.html';
+        }, 1000);
+      });
+
+    // Enter key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        document.getElementById('adminLoginBtn').click();
+      }
+    });
+  </script>
+
+</body>
+</html>

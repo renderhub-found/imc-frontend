@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment Processing – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body style="display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:#f4f6fb;font-family:Inter,sans-serif;">
+
+  <div style="text-align:center;padding:40px 24px;max-width:440px;
+    background:white;border-radius:20px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.1);">
+
+    <div id="loadingState">
+      <div style="font-size:48px;margin-bottom:16px;">⏳</div>
+      <h2 style="font-size:20px;color:#1a1a2e;margin-bottom:8px;">
+        Verifying Payment...
+      </h2>
+      <p style="font-size:14px;color:#888;">
+        Please wait while we confirm your payment.
+      </p>
+    </div>
+
+    <div id="successState" style="display:none;">
+      <div style="font-size:56px;margin-bottom:16px;">✅</div>
+      <h2 style="font-size:22px;color:#2d8653;margin-bottom:8px;">
+        Payment Successful!
+      </h2>
+      <p style="font-size:14px;color:#555;margin-bottom:8px;"
+        id="successMessage">
+        Your payment has been confirmed.
+      </p>
+      <p style="font-size:13px;color:#aaa;margin-bottom:24px;"
+        id="successRef"></p>
+      <a href="index.html"
+        style="display:inline-block;background:#1a3c8f;color:white;
+        padding:12px 28px;border-radius:8px;font-weight:700;
+        text-decoration:none;">
+        Back to Home
+      </a>
+    </div>
+
+    <div id="errorState" style="display:none;">
+      <div style="font-size:56px;margin-bottom:16px;">❌</div>
+      <h2 style="font-size:22px;color:#c62828;margin-bottom:8px;">
+        Payment Issue
+      </h2>
+      <p style="font-size:14px;color:#555;margin-bottom:24px;"
+        id="errorMessage">
+        We could not verify your payment.
+      </p>
+      <a href="index.html"
+        style="display:inline-block;background:#e85d04;color:white;
+        padding:12px 28px;border-radius:8px;font-weight:700;
+        text-decoration:none;">
+        Go Back
+      </a>
+    </div>
+
+  </div>
+
+  <script src="api.js"></script>
+  <script src="paystack.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+
+      var result = await IMCPaystack.handleRedirectReturn();
+
+      var loadingEl = document.getElementById('loadingState');
+      var successEl = document.getElementById('successState');
+      var errorEl   = document.getElementById('errorState');
+
+      loadingEl.style.display = 'none';
+
+      if (!result) {
+        // No reference in URL — just go home
+        window.location.href = 'index.html';
+        return;
+      }
+
+      if (result.success) {
+        successEl.style.display = 'block';
+
+        var msgEl = document.getElementById('successMessage');
+        var refEl = document.getElementById('successRef');
+
+        if (result.updateResult && result.updateResult.updated === 'vendor') {
+          msgEl.textContent = 'Vendor registration payment confirmed!';
+          setTimeout(function () {
+            window.location.href = 'vendor-dashboard.html';
+          }, 3000);
+        } else if (result.updateResult && result.updateResult.updated === 'course') {
+          msgEl.textContent = 'Course purchased! Redirecting...';
+          setTimeout(function () {
+            window.location.href = 'online-courses.html';
+          }, 3000);
+        } else if (result.updateResult && result.updateResult.updated === 'ad') {
+          msgEl.textContent = 'Ad submitted! Pending admin approval.';
+          setTimeout(function () {
+            window.location.href = 'post-ad.html';
+          }, 3000);
+        } else {
+          msgEl.textContent = 'Payment confirmed! Redirecting...';
+          setTimeout(function () {
+            window.location.href = 'index.html';
+          }, 3000);
+        }
+
+        if (refEl && result.reference) {
+          refEl.textContent = 'Reference: ' + result.reference;
+        }
+
+      } else {
+        errorEl.style.display = 'block';
+        var errMsgEl = document.getElementById('errorMessage');
+        if (errMsgEl) {
+          errMsgEl.textContent = result.message ||
+            'Payment could not be verified. Please contact support.';
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

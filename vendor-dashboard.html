@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vendor Dashboard – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="dashboard-body">
+
+  <!-- SIDEBAR -->
+  <div class="dashboard-sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span>🎓</span>
+      <span class="sidebar-logo-text">Inside My Campus</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="sidebar-link active" data-tab="overview">
+        <i class="fas fa-chart-pie"></i> Overview
+      </a>
+      <a href="#" class="sidebar-link" data-tab="products">
+        <i class="fas fa-box"></i> My Products
+      </a>
+      <a href="#" class="sidebar-link" data-tab="post-product">
+        <i class="fas fa-plus-circle"></i> Post Product
+      </a>
+      <a href="#" class="sidebar-link" data-tab="orders">
+        <i class="fas fa-shopping-bag"></i> Orders
+      </a>
+      <a href="#" class="sidebar-link" data-tab="profile">
+        <i class="fas fa-user"></i> Vendor Profile
+      </a>
+      <a href="#" class="sidebar-link" data-tab="payments">
+        <i class="fas fa-wallet"></i> Payments
+      </a>
+      <a href="index.html" class="sidebar-link sidebar-logout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- MOBILE TOP BAR -->
+  <div class="dashboard-topbar">
+    <button class="sidebar-toggle-btn" id="sidebarToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    <span class="topbar-title">Vendor Dashboard</span>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="dashboard-main" id="dashboardMain">
+
+    <!-- PENDING APPROVAL BANNER -->
+    <div class="pending-banner" id="pendingBanner" style="display:none;">
+      <i class="fas fa-clock"></i>
+      <span>Your vendor account is <strong>pending admin approval</strong>. 
+        You can set up your profile while you wait.</span>
+    </div>
+
+    <!-- ===== TAB: OVERVIEW ===== -->
+    <div class="dash-tab active" id="tab-overview">
+      <h2 class="dash-title">Welcome back, <span id="vendorWelcomeName">Vendor</span>! 👋</h2>
+      <p class="dash-subtitle">Here's a summary of your store activity.</p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f0fe;">
+            <i class="fas fa-box" style="color:#1a3c8f;"></i>
+          </div>
+          <div>
+            <p class="stat-label">Total Products</p>
+            <h3 class="stat-value" id="statProducts">0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff3e0;">
+            <i class="fas fa-shopping-bag" style="color:#e85d04;"></i>
+          </div>
+          <div>
+            <p class="stat-label">Total Orders</p>
+            <h3 class="stat-value" id="statOrders">0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f5e9;">
+            <i class="fas fa-eye" style="color:#2d8653;"></i>
+          </div>
+          <div>
+            <p class="stat-label">Profile Views</p>
+            <h3 class="stat-value">—</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fce4ec;">
+            <i class="fas fa-star" style="color:#c62828;"></i>
+          </div>
+          <div>
+            <p class="stat-label">Rating</p>
+            <h3 class="stat-value">—</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Store Status -->
+      <div class="dash-section">
+        <h3>Store Status</h3>
+        <div class="status-row" id="storeStatusRow">
+          <span class="status-badge pending">⏳ Pending Approval</span>
+          <p style="font-size:13px;color:#888;margin-top:8px;">
+            Your store will go live once an admin approves your registration.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: POST PRODUCT ===== -->
+<div class="dash-tab" id="tab-post-product">
+  <h2 class="dash-title">Post a Product</h2>
+  <p class="dash-subtitle">Add a new product to your store.</p>
+
+  <div class="dash-form-card">
+    <div class="auth-error" id="productError" style="display:none;">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="productErrorMsg"></span>
+    </div>
+    <div class="auth-success" id="productSuccess" style="display:none;">
+      <i class="fas fa-check-circle"></i>
+      <span>Product posted successfully!</span>
+    </div>
+
+    <!-- Product Name -->
+    <div class="form-group">
+      <label>Product Name</label>
+      <div class="input-wrapper">
+        <i class="fas fa-tag input-icon"></i>
+        <input type="text" id="productName"
+          placeholder="e.g. Nike Air Force 1"/>
+      </div>
+    </div>
+
+<!-- Product Category -->
+<div class="form-group">
+  <label>Product Category</label>
+  <div class="input-wrapper">
+    <i class="fas fa-tag input-icon"></i>
+    <select id="productCategory" class="form-select">
+      <option value="">-- Select category --</option>
+      <option value="Food">Food</option>
+      <option value="Fashion">Fashion</option>
+      <option value="Gadgets">Gadgets</option>
+      <option value="Beauty">Beauty</option>
+      <option value="Services">Services</option>
+      <option value="Lodge">Lodge</option>
+      <option value="Printing">Printing</option>
+      <option value="Accessories">Accessories</option>
+      <option value="Others">Others (specify below)</option>
+    </select>
+  </div>
+</div>
+
+<!-- Custom Category (shows only when Others selected) -->
+<div class="form-group" id="customProductCatGroup"
+  style="display:none;">
+  <label>Specify Your Category</label>
+  <div class="input-wrapper">
+    <i class="fas fa-pen input-icon"></i>
+    <input type="text" id="productCustomCategory"
+      placeholder="Type your product category"/>
+  </div>
+</div>
+
+    <!-- Price -->
+    <div class="form-group">
+      <label>Price (₦)</label>
+      <div class="input-wrapper">
+        <i class="fas fa-money-bill input-icon"></i>
+        <input type="number" id="productPrice"
+          placeholder="e.g. 15000"/>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label>Product Description</label>
+      <textarea class="form-textarea" id="productDesc"
+        placeholder="Describe your product..."
+        rows="3"></textarea>
+    </div>
+
+    <!-- Image Upload -->
+    <div class="form-group">
+      <label>Product Image
+        <span style="color:#aaa;font-weight:400;">
+          (JPG, PNG, WEBP)
+        </span>
+      </label>
+      <div class="file-upload-area" id="imageUploadArea">
+        <input type="file" id="productImageFile"
+          accept="image/*"
+          style="display:none;"/>
+        <div class="file-upload-placeholder"
+          id="imagePlaceholder"
+          onclick="document.getElementById('productImageFile').click()">
+          <i class="fas fa-image"></i>
+          <p>Click to upload product image</p>
+          <span>JPG, PNG, WEBP — Max 5MB</span>
+        </div>
+        <div id="imagePreviewWrap" style="display:none;">
+          <img id="productImagePreview" src="" alt="Preview"
+            class="upload-preview-img"/>
+          <button class="btn-remove-upload"
+            onclick="removeUpload('image')">
+            <i class="fas fa-times"></i> Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Upload -->
+    <div class="form-group">
+      <label>Product Video
+        <span style="color:#aaa;font-weight:400;">
+          (MP4, MOV — optional)
+        </span>
+      </label>
+      <div class="file-upload-area" id="videoUploadArea">
+        <input type="file" id="productVideoFile"
+          accept="video/*"
+          style="display:none;"/>
+        <div class="file-upload-placeholder"
+          id="videoPlaceholder"
+          onclick="document.getElementById('productVideoFile').click()">
+          <i class="fas fa-video"></i>
+          <p>Click to upload product video</p>
+          <span>MP4, MOV — Max 50MB (optional)</span>
+        </div>
+        <div id="videoPreviewWrap" style="display:none;">
+          <video id="productVideoPreview"
+            controls class="upload-preview-video"></video>
+          <button class="btn-remove-upload"
+            onclick="removeUpload('video')">
+            <i class="fas fa-times"></i> Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-auth-submit" id="postProductBtn">
+      <i class="fas fa-upload"></i> Post Product
+    </button>
+  </div>
+</div>
+
+    <!-- ===== TAB: MY PRODUCTS ===== -->
+    <div class="dash-tab" id="tab-products">
+      <h2 class="dash-title">My Products</h2>
+      <p class="dash-subtitle">All your listed products appear here.</p>
+      <div id="myProductsList" class="products-grid">
+        <p class="empty-state">No products posted yet. Go to "Post Product" to add one.</p>
+      </div>
+    </div>
+
+    <!-- ===== TAB: ORDERS ===== -->
+    <div class="dash-tab" id="tab-orders">
+      <h2 class="dash-title">Orders</h2>
+      <p class="dash-subtitle">Customer orders will appear here.</p>
+      <div class="empty-state-card">
+        <div style="font-size:48px;">📦</div>
+        <p>No orders yet. Orders will appear here when customers contact you.</p>
+      </div>
+    </div>
+
+    <!-- ===== TAB: PROFILE ===== -->
+    <div class="dash-tab" id="tab-profile">
+      <h2 class="dash-title">Vendor Profile</h2>
+      <p class="dash-subtitle">Your registered business information.</p>
+      <div class="profile-card" id="vendorProfileCard">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ===== TAB: PAYMENTS ===== -->
+    <div class="dash-tab" id="tab-payments">
+      <h2 class="dash-title">Payments</h2>
+      <p class="dash-subtitle">Your payment history.</p>
+      <div class="payment-table-wrap" id="paymentsTable">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+  </div><!-- end dashboard-main -->
+
+  <script src="app.js"></script>
+  <script src="vendor-dashboard.js"></script>
+  <script src="api.js"></script>
+
+</body>
+</html>

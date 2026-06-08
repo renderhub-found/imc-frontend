@@ -1,0 +1,436 @@
+[4:03 AM, 5/16/2026] school: <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ambassador Dashboard – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="dashboard-body">
+
+  <!-- SIDEBAR -->
+  <div class="dashboard-sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span>🏫</span>
+      <span class="sidebar-logo-text">Inside My Campus</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="sidebar-link active" data-tab="overview">
+        <i class="fas fa-chart-pie"></i> Overview
+      </a>
+      <a href="#" class="sidebar-link" data-tab="referrals">
+        <i class="fas fa-users"></i> My Referrals
+      </a>
+      <a href="#" class="sidebar-link" data-tab="earnings">
+        <i class="fas fa-wallet"></i> Earnings
+      </a>
+      <a href="#" class="sidebar-link" data-tab="tasks">
+        <i class="fas fa-tasks"></i> Campus Tasks
+      </a>
+      <a href="#" class="sidebar-link" data-tab="news">
+        <i class="fas fa-newspaper"></i> Submit News
+      </a>
+      <a href="#" class="sidebar-link" data-tab="performance">
+        <i class="fas fa-chart-line"></i> Performance
+      </a>
+      <a href="#" class="sidebar-link" data-tab="profile">
+        <i class="fas fa-user"></i> My Profile
+      </a>
+      <a href="#" class="sidebar-link sidebar-logout" id="ambLogout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </nav>
+  </div>
+
+  <!-- MOBILE TOPBAR -->
+  <div class="dashboard-topbar">
+    <button class="sidebar-toggle-btn" id="sidebarToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    <span class="topbar-title">Ambassador Dashboard</span>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="dashboard-main">
+
+    <!-- ===== TAB: OVERVIEW ===== -->
+    <div class="dash-tab active" id="tab-overview">
+      <h2 class="dash-title">
+        Welcome, <span id="ambWelcomeName">Ambassador</span>! 🎓
+      </h2>
+      <p class="dash-subtitle">Here's your ambassador activity summary.</p>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f5e9;">
+            <i class="fas fa-users" style="color:#2d8653;"></i>
+          </div>
+          <div>
+            <p class="stat-label">Total Referrals</p>
+            <h3 class="stat-value" id="statReferrals">0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff8e1;">
+            <i class="fas fa-coins" style="color:#f59f00;"></i>
+          </div>
+          <div>
+            <p class="stat-label">Total Earnings</p>
+            <h3 class="stat-value" id="statEarnings">₦0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f0fe;">
+            <i class="fas fa-tasks" style="color:#1a3c8f;"></i>
+          </div>
+          <div>
+            <p class="stat-label">Tasks Done</p>
+            <h3 class="stat-value" id="statTasks">0</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fce4ec;">
+            <i class="fas fa-newspaper" style="color:#c62828;"></i>
+          </div>
+          <div>
+            <p class="stat-label">News Submitted</p>
+            <h3 class="stat-value" id="statNews">0</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Referral Link Box -->
+      <div class="dash-section">
+        <h3>🔗 Your Referral Link</h3>
+        <p style="font-size:13px;color:#888;margin-bottom:12px;">
+          Share this link to earn ₦2000 for every vendor that registers through it.
+        </p>
+        <div class="referral-link-box">
+          <span id="referralLinkText" class="referral-link-url">
+            Loading...
+          </span>
+          <button class="btn-copy-link" id="copyReferralBtn">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+        </div>
+        <p style="font-size:12px;color:#aaa;margin-top:8px;">
+          Your referral code: <strong id="referralCodeDisplay">—</strong>
+        </p>
+      </div>
+
+      <!-- Quick Tips -->
+      <div class="dash-section">
+        <h3>💡 Quick Tips to Earn More</h3>
+        <ul class="tips-list">
+          <li>
+            <i class="fas fa-check-circle" style="color:#2d8653;"></i>
+            Share your referral link with campus business owners
+          </li>
+          <li>
+            <i class="fas fa-check-circle" style="color:#2d8653;"></i>
+            Post on your WhatsApp status and Instagram story
+          </li>
+          <li>
+            <i class="fas fa-check-circle" style="color:#2d8653;"></i>
+            Complete campus tasks to earn bonus rewards
+          </li>
+          <li>
+            <i class="fas fa-check-circle" style="color:#2d8653;"></i>
+            Submit campus news to build your reputation
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== TAB: REFERRALS ===== -->
+    <div class="dash-tab" id="tab-referrals">
+      <h2 class="dash-title">My Referrals</h2>
+      <p class="dash-subtitle">Vendors who registered using your referral link.</p>
+
+      <div class="payment-table-wrap" id="referralsTable">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ===== TAB: EARNINGS ===== -->
+    <div class="dash-tab" id="tab-earnings">
+      <h2 class="dash-title">Commission Earnings</h2>
+      <p class="dash-subtitle">Your total earned commissions from referrals.</p>
+
+      <div class="earnings-summary-card" id="earningsSummary">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="payment-table-wrap" style="margin-top:20px;"
+        id="earningsTable">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ===== TAB: TASKS ===== -->
+    <div class="dash-tab" id="tab-tasks">
+      <h2 class="dash-title">Campus Tasks</h2>
+      <p class="dash-subtitle">Complete tasks to earn extra rewards and points.</p>
+
+      <div class="tasks-grid" id="tasksGrid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ===== TAB: SUBMIT NEWS ===== -->
+    <div class="dash-tab" id="tab-news">
+      <h2 class="dash-title">Submit Campus News</h2>
+      <p class="dash-subtitle">Share news from your university campus.</p>
+
+      <div class="dash-form-card">
+
+        <div class="auth-error" id="newsError" style="display:none;">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="newsErrorMsg"></span>
+        </div>
+        <div class="auth-success" id="newsSuccess" style="display:none;">
+          <i class="fas fa-check-circle"></i>
+          <span>News submitted! It will appear after admin review.</span>
+        </div>
+
+        <div class="form-group">
+          <label>News Title</label>
+          <div class="input-wrapper">
+            <i class="fas fa-heading input-icon"></i>
+            <input type="text" id="newsTitle"
+              placeholder="e.g. UNILAG Announces New Exam Timetable" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>University</label>
+          <div class="input-wrapper">
+            <i class="fas fa-university input-icon"></i>
+            <input type="text" id="newsUniversity"
+              placeholder="Which university is this about?" />
+          </div>
+        </div>
+
+          <!-- News Image Upload -->
+<div class="form-group">
+  <label>News Image
+    <span style="color:#aaa;font-weight:400;">
+      (required)
+    </span>
+  </label>
+  <div class="file-upload-area" id="newsImageUploadArea">
+    <input type="file" id="newsImageFile"
+      accept="image/*" style="display:none;"/>
+    <div class="file-upload-placeholder"
+      id="newsImagePlaceholder"
+      onclick="document.getElementById('newsImageFile').click()">
+      <i class="fas fa-image"></i>
+      <p>Click to upload news image</p>
+      <span>JPG, PNG, WEBP — Max 5MB</span>
+    </div>
+    <div id="newsImagePreviewWrap" style="display:none;">
+      <img id="newsImagePreview" src="" alt="Preview"
+        class="upload-preview-img"/>
+      <button class="btn-remove-upload"
+        onclick="removeNewsUpload('image')" type="button">
+        <i class="fas fa-times"></i> Remove
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- News Video Upload (optional) -->
+<div class="form-group">
+  <label>News Video
+    <span style="color:#aaa;font-weight:400;">
+      (optional — MP4, MOV)
+    </span>
+  </label>
+  <div class="file-upload-area" id="newsVideoUploadArea">
+    <input type="file" id="newsVideoFile"
+      accept="video/*" style="display:none;"/>
+    <div class="file-upload-placeholder"
+      id="newsVideoPlaceholder"
+      onclick="document.getElementById('newsVideoFile').click()">
+      <i class="fas fa-video"></i>
+      <p>Click to upload news video</p>
+      <span>MP4, MOV — Max 50MB</span>
+    </div>
+    <div id="newsVideoPreviewWrap" style="display:none;">
+      <video id="newsVideoPreview" controls
+        class="upload-preview-video"></video>
+      <button class="btn-remove-upload"
+        onclick="removeNewsUpload('video')" type="button">
+        <i class="fas fa-times"></i> Remove
+      </button>
+    </div>
+  </div>
+</div>
+            <span style="color:#aaa;font-weight:400;">(optional)</span>
+          </label>
+          <div class="input-wrapper">
+            <i class="fas fa-image input-icon"></i>
+            <input type="url" id="newsImage"
+              placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>News Content</label>
+          <textarea class="form-textarea" id="newsContent"
+            placeholder="Write the full news story here..."
+            rows="6"></textarea>
+        </div>
+
+        <button class="btn-auth-submit" id="submitNewsBtn"
+          style="background:#2d8653;">
+          <i class="fas fa-paper-plane"></i> Submit News
+        </button>
+
+      </div>
+    </div>
+
+    <!-- ===== TAB: PERFORMANCE ===== -->
+    <div class="dash-tab" id="tab-performance">
+      <h2 class="dash-title">Performance</h2>
+      <p class="dash-subtitle">Track your ambassador activity and ranking.</p>
+
+      <div class="performance-cards" id="performanceCards">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+<a href="#" class="sidebar-link" data-tab="withdraw">
+  <i class="fas fa-money-bill-wave"></i> Withdraw
+</a>
+
+    <!-- ===== TAB: PROFILE ===== -->
+    <div class="dash-tab" id="tab-profile">
+      <h2 class="dash-title">My Profile</h2>
+      <p class="dash-subtitle">Your ambassador profile information.</p>
+      <div class="profile-card" id="ambProfileCard">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+<!-- ===== TAB: WITHDRAW ===== -->
+<div class="dash-tab" id="tab-withdraw">
+  <h2 class="dash-title">Withdraw Earnings</h2>
+  <p class="dash-subtitle">
+    Request a withdrawal of your commission earnings.
+  </p>
+
+  <!-- Balance Card -->
+  <div class="withdraw-balance-card">
+    <div>
+      <p style="font-size:13px;color:#b0c4f8;margin-bottom:4px;">
+        Available Balance
+      </p>
+      <h2 id="withdrawBalanceDisplay"
+        style="font-size:32px;font-weight:800;color:white;">
+        ₦0
+      </h2>
+    </div>
+    <div style="font-size:40px;opacity:0.3;">💰</div>
+  </div>
+
+  <!-- Withdrawal Form -->
+  <div class="dash-form-card" style="margin-top:20px;">
+    <h3 style="font-size:15px;font-weight:700;
+      color:#1a1a2e;margin-bottom:18px;">
+      Bank Details
+    </h3>
+
+    <div class="auth-error" id="withdrawError"
+      style="display:none;">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="withdrawErrorMsg"></span>
+    </div>
+
+    <div class="auth-success" id="withdrawSuccess"
+      style="display:none;">
+      <i class="fas fa-check-circle"></i>
+      <span>Withdrawal request submitted successfully!</span>
+    </div>
+
+    <div class="name-row">
+      <div class="form-group">
+        <label>Account Name</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user input-icon"></i>
+          <input type="text" id="withdrawAccName"
+            placeholder="Your full account name"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Bank Name</label>
+        <div class="input-wrapper">
+          <i class="fas fa-university input-icon"></i>
+          <select id="withdrawBank" class="form-select">
+            <option value="">Select your bank</option>
+            <option value="Access Bank">Access Bank</option>
+            <option value="GTBank">GTBank</option>
+            <option value="First Bank">First Bank</option>
+            <option value="Zenith Bank">Zenith Bank</option>
+            <option value="UBA">UBA</option>
+            <option value="Opay">Opay</option>
+            <option value="Palmpay">Palmpay</option>
+            <option value="Kuda Bank">Kuda Bank</option>
+            <option value="Moniepoint">Moniepoint</option>
+            <option value="Sterling Bank">Sterling Bank</option>
+            <option value="FCMB">FCMB</option>
+            <option value="Fidelity Bank">Fidelity Bank</option>
+            <option value="Wema Bank">Wema Bank</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="name-row">
+      <div class="form-group">
+        <label>Account Number</label>
+        <div class="input-wrapper">
+          <i class="fas fa-hashtag input-icon"></i>
+          <input type="text" id="withdrawAccNum"
+            maxlength="10"
+            placeholder="10-digit account number"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Amount (₦)</label>
+        <div class="input-wrapper">
+          <i class="fas fa-money-bill input-icon"></i>
+          <input type="number" id="withdrawAmount"
+            placeholder="Amount to withdraw"/>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-auth-submit" id="withdrawSubmitBtn"
+      style="background:#2d8653;">
+      <i class="fas fa-paper-plane"></i>
+      Submit Withdrawal Request
+    </button>
+  </div>
+
+  <!-- Withdrawal History -->
+  <div style="margin-top:28px;">
+    <h3 style="font-size:16px;font-weight:700;
+      color:#1a1a2e;margin-bottom:16px;">
+      Withdrawal History
+    </h3>
+    <div id="withdrawHistoryList"></div>
+  </div>
+
+</div>
+
+  </div><!-- end dashboard-main -->
+
+  <script src="app.js"></script>
+  <script src="ambassador-dashboard.js"></script>
+</body>
+</html>

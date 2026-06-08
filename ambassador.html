@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Become an Ambassador – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <div class="auth-buttons" id="authButtons">
+        <a href="login.html" class="btn-login">Login</a>
+        <a href="signup.html" class="btn-signup">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero" style="background: linear-gradient(135deg, #2d8653, #1a5c38);">
+    <div class="page-hero-content">
+      <h1>🎓 Become a Campus Ambassador</h1>
+      <p>Represent Inside My Campus at your university, earn commissions, and grow your network.</p>
+    </div>
+  </div>
+
+  <!-- BENEFITS STRIP -->
+  <div class="ambassador-benefits">
+    <div class="benefit-item">
+      <span>💰</span>
+      <p>Earn ₦2000 per vendor referral</p>
+    </div>
+    <div class="benefit-item">
+      <span>🏆</span>
+      <p>Exclusive ambassador badge</p>
+    </div>
+    <div class="benefit-item">
+      <span>📢</span>
+      <p>Submit campus news</p>
+    </div>
+    <div class="benefit-item">
+      <span>🎯</span>
+      <p>Campus tasks & rewards</p>
+    </div>
+  </div>
+
+  <!-- MAIN FORM SECTION -->
+  <section class="auth-section" style="background:#f4f6fb; padding:40px 20px;">
+    <div class="auth-card" style="max-width:560px;">
+
+      <!-- Already an ambassador -->
+      <div id="alreadyAmbassadorBox" style="display:none;" class="auth-success">
+        <i class="fas fa-check-circle"></i>
+        <span>You are already an ambassador!
+          <a href="ambassador-dashboard.html" style="color:#1a7a3f;font-weight:700;">
+            Go to Dashboard →
+          </a>
+        </span>
+      </div>
+
+      <!-- Not logged in -->
+      <div id="notLoggedInBox" style="display:none;" class="auth-error">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>You must
+          <a href="login.html" style="color:#cc0000;font-weight:700;">login</a> or
+          <a href="signup.html" style="color:#cc0000;font-weight:700;">sign up</a>
+          before becoming an ambassador.
+        </span>
+      </div>
+
+      <!-- THE FORM -->
+      <div id="ambassadorFormBox">
+        <div class="auth-icon">🎓</div>
+        <h2 class="auth-title">Ambassador Registration</h2>
+        <p class="auth-subtitle">Fill in your details to join the ambassador programme</p>
+
+        <!-- Error Box -->
+        <div class="auth-error" id="ambError" style="display:none;">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="ambErrorMsg"></span>
+        </div>
+
+        <div class="auth-form">
+
+          <!-- Full Name -->
+          <div class="form-group">
+            <label>Full Name</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user input-icon"></i>
+              <input type="text" id="ambFullName" placeholder="Your full name" />
+            </div>
+          </div>
+
+          <!-- University -->
+          <div class="form-group">
+            <label>University Name</label>
+            <div class="input-wrapper">
+              <i class="fas fa-university input-icon"></i>
+              <input type="text" id="ambUniversity"
+                placeholder="e.g. UNILAG, UNN, UI..." />
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div class="form-group">
+            <label>Username
+              <span style="color:#aaa;font-weight:400;">(used in your referral link)</span>
+            </label>
+            <div class="input-wrapper">
+              <i class="fas fa-at input-icon"></i>
+              <input type="text" id="ambUsername"
+                placeholder="e.g. john_unilag (no spaces)" />
+            </div>
+          </div>
+
+          <!-- WhatsApp -->
+          <div class="form-group">
+            <label>WhatsApp Number</label>
+            <div class="input-wrapper">
+              <i class="fab fa-whatsapp input-icon"></i>
+              <input type="tel" id="ambWhatsApp"
+                placeholder="e.g. 08012345678" />
+            </div>
+          </div>
+
+          <!-- Social Media -->
+          <div class="form-group">
+            <label>Social Media Handle
+              <span style="color:#aaa;font-weight:400;">(Instagram, Twitter, TikTok, etc.)</span>
+            </label>
+            <div class="input-wrapper">
+              <i class="fas fa-share-alt input-icon"></i>
+              <input type="text" id="ambSocial"
+                placeholder="e.g. @johndoe_official" />
+            </div>
+          </div>
+
+          <!-- Reason -->
+          <div class="form-group">
+            <label>Why do you want to be an ambassador?</label>
+            <textarea
+              id="ambReason"
+              class="form-textarea"
+              placeholder="Tell us why you'd make a great campus ambassador..."
+              rows="4"
+            ></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <button class="btn-auth-submit" id="ambSubmitBtn"
+            style="background:#2d8653;">
+            <span id="ambBtnText">
+              <i class="fas fa-paper-plane"></i> Submit Application
+            </span>
+            <span id="ambSpinner" style="display:none;">
+              <i class="fas fa-spinner fa-spin"></i> Submitting...
+            </span>
+          </button>
+
+          <p style="text-align:center;font-size:12px;
+            color:#aaa;margin-top:10px;">
+            ✅ Free to join — No payment required
+          </p>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="auth-footer">
+    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="auth.js"></script>
+  <script src="ambassador.js"></script>
+<script src="navbar.js"></script>
+</body>
+</html>

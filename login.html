@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" style="display:flex; align-items:center; gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <div class="auth-buttons">
+        <a href="login.html" class="btn-login">Login</a>
+        <a href="signup.html" class="btn-signup">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== LOGIN SECTION ========== -->
+  <section class="auth-section">
+
+    <div class="auth-card">
+
+      <!-- Top Icon -->
+      <div class="auth-icon">🏫</div>
+      <h2 class="auth-title">Welcome Back!</h2>
+      <p class="auth-subtitle">Login to your Inside My Campus account</p>
+
+      <!-- Error Message Box (hidden by default) -->
+      <div class="auth-error" id="loginError" style="display:none;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="loginErrorMsg">Invalid email or password.</span>
+      </div>
+
+      <!-- Success Message Box (hidden by default) -->
+      <div class="auth-success" id="loginSuccess" style="display:none;">
+        <i class="fas fa-check-circle"></i>
+        <span>Login successful! Redirecting...</span>
+      </div>
+
+      <!-- Login Form -->
+      <div class="auth-form">
+
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <div class="input-wrapper">
+            <i class="fas fa-envelope input-icon"></i>
+            <input
+              type="email"
+              id="loginEmail"
+              placeholder="Enter your email"
+              autocomplete="email"
+            />
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock input-icon"></i>
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+            />
+            <button class="toggle-password" id="toggleLoginPassword" type="button">
+              <i class="fas fa-eye" id="toggleLoginIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Forgot Password -->
+        <div class="form-options">
+          <a href="#" class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <!-- Submit Button -->
+        <button class="btn-auth-submit" id="loginBtn">
+          <span id="loginBtnText">Login</span>
+          <span id="loginSpinner" style="display:none;">
+            <i class="fas fa-spinner fa-spin"></i> Logging in...
+          </span>
+        </button>
+
+        <!-- Divider -->
+        <div class="auth-divider">
+          <span>Don't have an account?</span>
+        </div>
+
+        <!-- Switch to Signup -->
+        <a href="signup.html" class="btn-auth-switch">
+          Create a Free Account
+        </a>
+
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="auth-footer">
+    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="auth.js"></script>
+  <script src="api.js"></script>
+
+</body>
+</html>

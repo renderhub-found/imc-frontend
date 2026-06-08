@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Find Vendors – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html"
+          style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="vendors-page.html"
+          style="color:#fff;font-weight:700;">Vendors</a></li>
+        <li><a href="campus-news.html">Campus News</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="online-courses.html">Courses</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="auth-buttons" id="authButtons">
+          <a href="login.html" class="btn-login">Login</a>
+          <a href="signup.html" class="btn-signup">Sign Up</a>
+        </div>
+        <div class="user-menu" id="userMenu" style="display:none;">
+          <button class="hamburger-btn" id="hamburgerBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <a href="vendor.html">
+              <i class="fas fa-store"></i> Become Vendor
+            </a>
+            <a href="ambassador.html">
+              <i class="fas fa-user-tie"></i> Become Ambassador
+            </a>
+            <a href="campus-news.html">
+              <i class="fas fa-newspaper"></i> Campus News
+            </a>
+            <a href="post-ad.html">
+              <i class="fas fa-ad"></i> Post Ad
+            </a>
+            <a href="online-courses.html">
+              <i class="fas fa-graduation-cap"></i> Online Courses
+            </a>
+            <a href="contact.html">
+              <i class="fas fa-envelope"></i> Contact
+            </a>
+            <a href="#" id="logoutBtn" class="logout-link">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="page-hero"
+    style="background:linear-gradient(135deg,#1a3c8f,#2d5fd4);">
+    <div class="page-hero-content">
+      <h1>🏪 Find Campus Vendors</h1>
+      <p>Discover trusted vendors across Nigerian universities.</p>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="news-filter-bar">
+    <div class="news-filter-inner">
+      <div class="news-search-wrap" style="flex:1;">
+        <i class="fas fa-search"></i>
+        <input type="text" id="vendorSearchInput"
+          placeholder="Search vendors, categories, universities..."/>
+      </div>
+      <select id="vendorCatFilter" class="filter-select">
+        <option value="">All Categories</option>
+        <option value="Food">Food</option>
+        <option value="Fashion">Fashion</option>
+        <option value="Gadgets">Gadgets</option>
+        <option value="Beauty">Beauty</option>
+        <option value="Barbing Salon">Barbing Salon</option>
+        <option value="Services">Services</option>
+        <option value="Printing">Printing</option>
+      </select>
+      <select id="vendorUniFilter" class="filter-select">
+        <option value="">All Universities</option>
+        <option value="UNILAG">UNILAG</option>
+        <option value="UNN">UNN</option>
+        <option value="UI">UI</option>
+        <option value="DELSU">DELSU</option>
+        <option value="LASU">LASU</option>
+        <option value="OAU">OAU</option>
+        <option value="UNIBEN">UNIBEN</option>
+        <option value="ABU">ABU</option>
+      </select>
+      <button id="clearVendorFilter" class="btn-clear-filter">
+        <i class="fas fa-times"></i> Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- VENDORS GRID -->
+  <div style="max-width:1200px;margin:30px auto;padding:0 20px;">
+    <div class="section-header">
+      <h2>All Vendors</h2>
+      <span id="vendorResultCount"
+        style="font-size:13px;color:#aaa;"></span>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="vendorsLoadingSpinner"
+      style="display:none;align-items:center;gap:10px;
+      color:#aaa;font-size:14px;padding:30px 0;">
+      <i class="fas fa-spinner fa-spin"></i> Loading vendors...
+    </div>
+
+    <!-- Vendors grid -->
+    <div id="allVendorsGrid"
+      style="display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+        gap:20px;">
+    </div>
+
+    <!-- Empty state -->
+    <div id="vendorsEmptyState"
+      style="display:none;background:white;border-radius:14px;
+      padding:48px 20px;text-align:center;color:#aaa;font-size:14px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+      <div style="font-size:48px;margin-bottom:12px;">🏪</div>
+      <p>No vendors found. Try a different filter.</p>
+    </div>
+  </div>
+
+  <footer class="auth-footer" style="margin-top:40px;">
+    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <!-- Load app.js for navbar -->
+  <script src="app.js"></script>
+
+  <script>
+
+    var SAMPLE_VENDORS = [
+      {
+        id: 'VND-SAMPLE-1',
+        email: 'jay@sample.com',
+        fullName: 'Jay Adewale',
+        bizName: 'Jay Sneakers Hub',
+        university: 'UNILAG',
+        category: 'Fashion',
+        description: 'Premium sneakers and streetwear for campus students. Quality guaranteed.',
+        whatsApp: '08012345678',
+        status: 'approved',
+        joinedDate: 'April 1, 2024',
+        image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop'
+      },
+      {
+        id: 'VND-SAMPLE-2',
+        email: 'tasty@sample.com',
+        fullName: 'Ngozi Eze',
+        bizName: 'Tasty Bites Kitchen',
+        university: 'UNN',
+        category: 'Food',
+        description: 'Delicious homemade meals on campus. Jollof rice specialist.',
+        whatsApp: '08023456789',
+        status: 'approved',
+        joinedDate: 'April 3, 2024',
+        image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=300&h=200&fit=crop'
+      },
+      {
+        id: 'VND-SAMPLE-3',
+        email: 'grace@sample.com',
+        fullName: 'Grace Okafor',
+        bizName: 'Grace Villa Lodge',
+        university: 'DELSU',
+        category: 'Services',
+        description: 'Comfortable student accommodation near campus.',
+        whatsApp: '08034567890',
+        status: 'approved',
+        joinedDate: 'April 5, 2024',
+        image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=300&h=200&fit=crop'
+      },
+      {
+        id: 'VND-SAMPLE-4',
+        email: 'glitz@sample.com',
+        fullName: 'Amaka Obi',
+        bizName: 'Glitz Jewelry',
+        university: 'LASU',
+        category: 'Fashion',
+        description: 'Fine jewelry and accessories for the modern campus woman.',
+        whatsApp: '08045678901',
+        status: 'approved',
+        joinedDate: 'April 7, 2024',
+        image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=200&fit=crop'
+      },
+      {
+        id: 'VND-SAMPLE-5',
+        email: 'cuts@sample.com',
+        fullName: 'Emeka Nwoke',
+        bizName: 'Campus Cuts Barber',
+        university: 'UI',
+        category: 'Barbing Salon',
+        description: 'Professional haircuts and grooming. Walk-ins welcome.',
+        whatsApp: '08056789012',
+        status: 'approved',
+        joinedDate: 'April 9, 2024',
+        image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&h=200&fit=crop'
+      },
+      {
+        id: 'VND-SAMPLE-6',
+        email: 'glow@sample.com',
+        fullName: 'Fatima Bello',
+        bizName: 'Glow Beauty Studio',
+        university: 'OAU',
+        category: 'Beauty',
+        description: 'Makeup and beauty services for campus events.',
+        whatsApp: '08067890123',
+        status: 'approved',
+        joinedDate: 'April 11, 2024',
+        image: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&h=200&fit=crop'
+      },
+      {
+        id: 'VND-SAMPLE-7',
+        email: 'print@sample.com',
+        fullName: 'Chidi Okonkwo',
+        bizName: 'QuickPrint Hub',
+        university: 'UNIBEN',
+        category: 'Printing',
+        description: 'Fast printing, binding and scanning for students.',
+        whatsApp: '08078901234',
+        status: 'approved',
+        joinedDate: 'April 13, 2024',
+        image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=300&h=200&fit=crop'
+      },
+      {
+        id: 'VND-SAMPLE-8',
+        email: 'gadget@sample.com',
+        fullName: 'Tunde Bakare',
+        bizName: 'CampusTech Gadgets',
+        university: 'ABU',
+        category: 'Gadgets',
+        description: 'Phones, laptops and accessories at student prices.',
+        whatsApp: '08089012345',
+        status: 'approved',
+        joinedDate: 'April 15, 2024',
+        image: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=300&h=200&fit=crop'
+      }
+    ];
+
+    function getAllVendors() {
+      var stored = [];
+      try {
+        stored = JSON.parse(localStorage.getItem('imc_vendors') || '[]');
+      } catch (e) {
+        stored = [];
+      }
+
+      var combined = SAMPLE_VENDORS.slice();
+      var storedIds = {};
+
+      for (var s = 0; s < SAMPLE_VENDORS.length; s++) {
+        storedIds[SAMPLE_VENDORS[s].id] = true;
+      }
+
+      for (var i = 0; i < stored.length; i++) {
+        if (!storedIds[stored[i].id]) {
+          combined.push(stored[i]);
+        }
+      }
+
+      return combined.filter(function (v) {
+        return v.status === 'approved';
+      });
+    }
+
+    function loadAllVendors(search, cat, uni) {
+      var grid    = document.getElementById('allVendorsGrid');
+      var empty   = document.getElementById('vendorsEmptyState');
+      var counter = document.getElementById('vendorResultCount');
+
+      if (!grid) return;
+
+      var vendors = getAllVendors();
+
+      if (search) {
+        var q = search.toLowerCase();
+        vendors = vendors.filter(function (v) {
+          return (
+            (v.bizName || '').toLowerCase().indexOf(q) > -1 ||
+            (v.category || '').toLowerCase().indexOf(q) > -1 ||
+            (v.university || '').toLowerCase().indexOf(q) > -1 ||
+            (v.description || '').toLowerCase().indexOf(q) > -1
+          );
+        });
+      }
+
+      if (cat) {
+        vendors = vendors.filter(function (v) {
+          return v.category === cat;
+        });
+      }
+
+      if (uni) {
+        vendors = vendors.filter(function (v) {
+          return (v.university || '').toUpperCase() === uni.toUpperCase();
+        });
+      }
+
+      if (counter) {
+        counter.textContent = vendors.length + ' vendor' +
+          (vendors.length !== 1 ? 's' : '') + ' found';
+      }
+
+      if (vendors.length === 0) {
+        grid.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        return;
+      }
+
+      if (empty) empty.style.display = 'none';
+
+      grid.innerHTML = vendors.map(function (v) {
+        var img = v.image ||
+          'https://via.placeholder.com/300x200?text=Vendor';
+        var desc = (v.description || '').substring(0, 65);
+        if ((v.description || '').length > 65) { desc = desc + '...'; }
+
+        return '<div class="vendor-card">' +
+          '<div class="vendor-img">' +
+          '<img src="' + img + '" alt="' + v.bizName + '" ' +
+          'onerror="this.src=\'https://via.placeholder.com/300x200?text=Vendor\'"/>' +
+          '</div>' +
+          '<div class="vendor-info">' +
+          '<h3>' + v.bizName + '</h3>' +
+          '<p class="vendor-uni">' +
+          '<i class="fas fa-map-marker-alt" style="color:#1a3c8f;"></i> ' +
+          v.university + '</p>' +
+          '<p class="vendor-desc">' + v.category + '</p>' +
+          '<p style="font-size:11px;color:#888;margin-bottom:10px;line-height:1.5;">' +
+          desc + '</p>' +
+          '<a href="vendor-profile.html?id=' + v.id + '" ' +
+          'class="btn-view-profile">View Profile</a>' +
+          '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    function getUrlParam(name) {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        return params.get(name) || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var urlCat = getUrlParam('cat');
+      var urlUni = getUrlParam('uni');
+
+      var searchInput = document.getElementById('vendorSearchInput');
+      var catFilter   = document.getElementById('vendorCatFilter');
+      var uniFilter   = document.getElementById('vendorUniFilter');
+      var clearBtn    = document.getElementById('clearVendorFilter');
+
+      if (catFilter && urlCat) { catFilter.value = urlCat; }
+      if (uniFilter && urlUni) { uniFilter.value = urlUni; }
+
+      loadAllVendors('', urlCat, urlUni);
+
+      if (searchInput) {
+        searchInput.addEventListener('input', function () {
+          loadAllVendors(
+            this.value,
+            catFilter ? catFilter.value : '',
+            uniFilter ? uniFilter.value : ''
+          );
+        });
+      }
+
+      if (catFilter) {
+        catFilter.addEventListener('change', function () {
+          loadAllVendors(
+            searchInput ? searchInput.value : '',
+            this.value,
+            uniFilter ? uniFilter.value : ''
+          );
+        });
+      }
+
+      if (uniFilter) {
+        uniFilter.addEventListener('change', function () {
+          loadAllVendors(
+            searchInput ? searchInput.value : '',
+            catFilter ? catFilter.value : '',
+            this.value
+          );
+        });
+      }
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+          if (searchInput) { searchInput.value = ''; }
+          if (catFilter)   { catFilter.value = ''; }
+          if (uniFilter)   { uniFilter.value = ''; }
+          loadAllVendors('', '', '');
+        });
+      }
+    });
+
+  </script>
+
+</body>
+</html>

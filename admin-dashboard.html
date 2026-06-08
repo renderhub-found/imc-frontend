@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="dashboard-body">
+
+  <!-- SIDEBAR -->
+  <div class="dashboard-sidebar admin-sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span>⚙️</span>
+      <span class="sidebar-logo-text">Admin Panel</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="sidebar-link active" data-tab="overview">
+        <i class="fas fa-chart-pie"></i> Overview
+      </a>
+      <a href="#" class="sidebar-link" data-tab="vendors">
+        <i class="fas fa-store"></i> Vendors
+      </a>
+      <a href="#" class="sidebar-link" data-tab="ambassadors">
+        <i class="fas fa-user-tie"></i> Ambassadors
+      </a>
+      <a href="#" class="sidebar-link" data-tab="users">
+        <i class="fas fa-users"></i> Users
+      </a>
+      <a href="#" class="sidebar-link" data-tab="ads">
+        <i class="fas fa-ad"></i> Ads
+      </a>
+      <a href="#" class="sidebar-link" data-tab="news">
+        <i class="fas fa-newspaper"></i> News
+      </a>
+      <a href="#" class="sidebar-link" data-tab="courses">
+        <i class="fas fa-graduation-cap"></i> Courses
+      </a>
+      <a href="#" class="sidebar-link" data-tab="payments">
+        <i class="fas fa-wallet"></i> Payments
+      </a>
+      <a href="#" class="sidebar-link" data-tab="referrals">
+        <i class="fas fa-share-alt"></i> Referrals
+      </a>
+      <a href="index.html" class="sidebar-link sidebar-logout">
+        <i class="fas fa-sign-out-alt"></i> Exit Admin
+      </a>
+    </nav>
+  </div>
+
+  <!-- MOBILE TOPBAR -->
+  <div class="dashboard-topbar">
+    <button class="sidebar-toggle-btn" id="sidebarToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    <span class="topbar-title">⚙️ Admin Dashboard</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="dashboard-main">
+
+    <!-- ===== OVERVIEW ===== -->
+    <div class="dash-tab active" id="tab-overview">
+      <h2 class="dash-title">Platform Overview</h2>
+      <p class="dash-subtitle">
+        All activity across Inside My Campus.
+      </p>
+      <div class="stats-grid" id="overviewStats"></div>
+      <div class="admin-charts-row" id="recentActivity"></div>
+    </div>
+
+    <!-- ===== VENDORS ===== -->
+    <div class="dash-tab" id="tab-vendors">
+      <div class="admin-tab-header">
+        <div>
+          <h2 class="dash-title">Vendor Management</h2>
+          <p class="dash-subtitle">Approve, reject or manage vendors.</p>
+        </div>
+        <div class="admin-filter-row">
+          <select id="vendorStatusFilter" class="filter-select">
+            <option value="">All Vendors</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="payment-table-wrap" id="vendorsTable"></div>
+    </div>
+
+    <!-- ===== AMBASSADORS ===== -->
+    <div class="dash-tab" id="tab-ambassadors">
+      <h2 class="dash-title">Ambassador Management</h2>
+      <p class="dash-subtitle">View all campus ambassadors.</p>
+      <div class="payment-table-wrap" id="ambassadorsTable"></div>
+    </div>
+
+    <!-- ===== USERS ===== -->
+    <div class="dash-tab" id="tab-users">
+      <div class="admin-tab-header">
+        <div>
+          <h2 class="dash-title">User Management</h2>
+          <p class="dash-subtitle">
+            Block, unblock and manage user roles.
+          </p>
+        </div>
+        <input type="text" id="userSearch"
+          class="admin-search-input"
+          placeholder="🔍 Search users..."/>
+      </div>
+      <div class="payment-table-wrap" id="usersTable"></div>
+    </div>
+
+    <!-- ===== ADS ===== -->
+    <div class="dash-tab" id="tab-ads">
+      <div class="admin-tab-header">
+        <div>
+          <h2 class="dash-title">Ad Management</h2>
+          <p class="dash-subtitle">
+            Review and approve submitted ads.
+          </p>
+        </div>
+        <select id="adStatusFilter" class="filter-select">
+          <option value="">All Ads</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div id="adsAdminList"></div>
+    </div>
+
+    <!-- ===== NEWS ===== -->
+<div class="dash-tab" id="tab-news">
+  <div class="admin-tab-header">
+    <div>
+      <h2 class="dash-title">News Management</h2>
+      <p class="dash-subtitle">
+        Post, approve, reject and pin campus news.
+      </p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <select id="newsStatusFilter" class="filter-select">
+        <option value="">All News</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <button class="btn-admin-add" id="showPostNewsForm">
+        <i class="fas fa-plus"></i> Post News
+      </button>
+    </div>
+  </div>
+
+  <!-- Admin Post News Form -->
+  <div id="adminPostNewsForm" class="dash-form-card"
+    style="display:none;margin-bottom:24px;">
+    <h3 style="font-size:16px;font-weight:700;
+      margin-bottom:18px;">
+      📰 Post Campus News
+    </h3>
+
+    <div class="auth-error" id="adminNewsError"
+      style="display:none;">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="adminNewsErrorMsg"></span>
+    </div>
+
+    <div class="form-group">
+      <label>News Title</label>
+      <div class="input-wrapper">
+        <i class="fas fa-heading input-icon"></i>
+        <input type="text" id="adminNewsTitle"
+          placeholder="e.g. UNILAG Announces New Policy"/>
+      </div>
+    </div>
+
+    <div class="name-row">
+      <div class="form-group">
+        <label>University</label>
+        <div class="input-wrapper">
+          <i class="fas fa-university input-icon"></i>
+          <input type="text" id="adminNewsUni"
+            placeholder="e.g. UNILAG, UNN..."/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Pin this news?</label>
+        <div class="input-wrapper">
+          <i class="fas fa-thumbtack input-icon"></i>
+          <select id="adminNewsPin" class="form-select">
+            <option value="no">No — Regular post</option>
+            <option value="yes">Yes — Pin to top</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Upload -->
+    <div class="form-group">
+      <label>News Image</label>
+      <div class="file-upload-area">
+        <input type="file" id="adminNewsImageFile"
+          accept="image/*" style="display:none;"/>
+        <div class="file-upload-placeholder"
+          id="adminNewsImgPlaceholder"
+          onclick="document.getElementById('adminNewsImageFile').click()">
+          <i class="fas fa-image"></i>
+          <p>Click to upload image</p>
+          <span>JPG, PNG, WEBP — Max 5MB</span>
+        </div>
+        <div id="adminNewsImgPreviewWrap" style="display:none;">
+          <img id="adminNewsImgPreview" src=""
+            class="upload-preview-img" alt="Preview"/>
+          <button class="btn-remove-upload" type="button"
+            onclick="removeAdminNewsUpload()">
+            <i class="fas fa-times"></i> Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Upload (optional) -->
+    <div class="form-group">
+      <label>News Video
+        <span style="color:#aaa;font-weight:400;">(optional)</span>
+      </label>
+      <div class="file-upload-area">
+        <input type="file" id="adminNewsVideoFile"
+          accept="video/*" style="display:none;"/>
+        <div class="file-upload-placeholder"
+          id="adminNewsVidPlaceholder"
+          onclick="document.getElementById('adminNewsVideoFile').click()">
+          <i class="fas fa-video"></i>
+          <p>Click to upload video</p>
+          <span>MP4, MOV — Max 50MB</span>
+        </div>
+        <div id="adminNewsVidPreviewWrap" style="display:none;">
+          <video id="adminNewsVidPreview" controls
+            class="upload-preview-video"></video>
+          <button class="btn-remove-upload" type="button"
+            onclick="removeAdminNewsVideoUpload()">
+            <i class="fas fa-times"></i> Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>News Content</label>
+      <textarea class="form-textarea" id="adminNewsContent"
+        rows="5"
+        placeholder="Write the full news story here...">
+      </textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn-auth-submit"
+        id="saveAdminNewsBtn"
+        style="background:#1a3c8f;margin-bottom:0;">
+        <i class="fas fa-save"></i> Publish News
+      </button>
+      <button class="btn-auth-switch"
+        id="cancelAdminNewsForm"
+        style="padding:12px 20px;font-size:14px;">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- News list -->
+  <div id="newsAdminList"></div>
+</div>
+    
+    <!-- ===== COURSES ===== -->
+    <div class="dash-tab" id="tab-courses">
+      <div class="admin-tab-header">
+        <div>
+          <h2 class="dash-title">Course Management</h2>
+          <p class="dash-subtitle">Add and manage online courses.</p>
+        </div>
+        <button class="btn-admin-add" id="showAddCourseForm">
+          <i class="fas fa-plus"></i> Add Course
+        </button>
+      </div>
+
+      <!-- Add Course Form -->
+      <div id="addCourseForm"
+        class="dash-form-card" style="display:none;margin-bottom:24px;">
+        <h3 style="font-size:16px;font-weight:700;
+          margin-bottom:18px;">➕ Add New Course</h3>
+
+        <div class="auth-error" id="courseFormError"
+          style="display:none;">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="courseFormErrorMsg"></span>
+        </div>
+
+        <div class="name-row">
+          <div class="form-group">
+            <label>Course Title</label>
+            <div class="input-wrapper">
+              <i class="fas fa-book input-icon"></i>
+              <input type="text" id="newCourseTitle"
+                placeholder="Course title"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <div class="input-wrapper">
+              <i class="fas fa-tag input-icon"></i>
+              <select id="newCourseCategory" class="form-select">
+                <option value="">Select...</option>
+                <option value="Business">Business</option>
+                <option value="Technology">Technology</option>
+                <option value="Design">Design</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Finance">Finance</option>
+                <option value="Personal Development">
+                  Personal Development
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="name-row">
+          <div class="form-group">
+            <label>Price (₦) — enter 0 for free</label>
+            <div class="input-wrapper">
+              <i class="fas fa-tag input-icon"></i>
+              <input type="number" id="newCoursePrice"
+                placeholder="e.g. 1000"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Level</label>
+            <div class="input-wrapper">
+              <i class="fas fa-signal input-icon"></i>
+              <select id="newCourseLevel" class="form-select">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="All Levels">All Levels</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="name-row">
+          <div class="form-group">
+            <label>Duration</label>
+            <div class="input-wrapper">
+              <i class="fas fa-clock input-icon"></i>
+              <input type="text" id="newCourseDuration"
+                placeholder="e.g. 3 hours"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Number of Lessons</label>
+            <div class="input-wrapper">
+              <i class="fas fa-list input-icon"></i>
+              <input type="number" id="newCourseLessons"
+                placeholder="e.g. 12"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Course Image URL</label>
+          <div class="input-wrapper">
+            <i class="fas fa-image input-icon"></i>
+            <input type="url" id="newCourseImage"
+              placeholder="https://..."/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Course File / Download URL</label>
+          <div class="input-wrapper">
+            <i class="fas fa-file-pdf input-icon"></i>
+            <input type="url" id="newCourseFile"
+              placeholder="https://... (PDF or download link)"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Course Description</label>
+          <textarea class="form-textarea" id="newCourseDesc"
+            rows="3"
+            placeholder="Describe what students will learn...">
+          </textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn-auth-submit"
+            id="saveCourseBtn"
+            style="background:#1a3c8f;margin-bottom:0;">
+            <i class="fas fa-save"></i> Save Course
+          </button>
+          <button class="btn-auth-switch"
+            id="cancelCourseForm"
+            style="padding:12px 20px;font-size:14px;">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- Courses Table -->
+      <div class="payment-table-wrap" id="coursesAdminTable"></div>
+    </div>
+
+    <!-- ===== PAYMENTS ===== -->
+    <div class="dash-tab" id="tab-payments">
+      <h2 class="dash-title">Payment Records</h2>
+      <p class="dash-subtitle">
+        All platform payments in one place.
+      </p>
+      <div class="payment-table-wrap" id="paymentsAdminTable"></div>
+    </div>
+
+    <!-- ===== REFERRALS ===== -->
+    <div class="dash-tab" id="tab-referrals">
+      <h2 class="dash-title">Referral Tracking</h2>
+      <p class="dash-subtitle">
+        Track ambassador referrals and commissions.
+      </p>
+      <div class="payment-table-wrap" id="referralsAdminTable"></div>
+    </div>
+
+<a href="#" class="sidebar-link" data-tab="withdrawals">
+  <i class="fas fa-money-bill-wave"></i> Withdrawals
+</a>
+<a href="#" class="sidebar-link" data-tab="notifications">
+  <i class="fas fa-bell"></i> Notifications
+  <span class="notif-badge" id="adminNotifBadge"
+    style="display:none;">0</span>
+</a>
+<a href="#" class="sidebar-link" data-tab="settings">
+  <i class="fas fa-cog"></i> Settings
+</a>
+
+<!-- ===== WITHDRAWALS ===== -->
+<div class="dash-tab" id="tab-withdrawals">
+  <h2 class="dash-title">Withdrawal Requests</h2>
+  <p class="dash-subtitle">
+    Review and process ambassador withdrawal requests.
+  </p>
+  <div id="withdrawalRequestsList"></div>
+</div>
+
+<!-- ===== NOTIFICATIONS ===== -->
+<div class="dash-tab" id="tab-notifications">
+  <div style="display:flex;justify-content:space-between;
+    align-items:center;margin-bottom:20px;">
+    <div>
+      <h2 class="dash-title">Notifications</h2>
+      <p class="dash-subtitle">
+        Platform activity and alerts.
+      </p>
+    </div>
+    <button class="btn-view-detail"
+      onclick="clearAllNotifications()">
+      <i class="fas fa-check-double"></i>
+      Mark All Read
+    </button>
+  </div>
+  <div id="adminNotificationsList"></div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div class="dash-tab" id="tab-settings">
+  <h2 class="dash-title">Platform Settings</h2>
+  <p class="dash-subtitle">
+    Configure your platform information and preferences.
+  </p>
+
+  <div class="dash-form-card" style="max-width:600px;">
+    <h3 style="font-size:15px;font-weight:700;
+      margin-bottom:20px;">
+      🌐 Platform Information
+    </h3>
+
+    <div class="form-group">
+      <label>Platform Name</label>
+      <div class="input-wrapper">
+        <i class="fas fa-globe input-icon"></i>
+        <input type="text" id="settingsPlatformName"
+          placeholder="Inside My Campus"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Contact Email</label>
+      <div class="input-wrapper">
+        <i class="fas fa-envelope input-icon"></i>
+        <input type="email" id="settingsEmail"
+          placeholder="hello@insidemycampus.com"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>WhatsApp Number</label>
+      <div class="input-wrapper">
+        <i class="fab fa-whatsapp input-icon"></i>
+        <input type="tel" id="settingsWhatsApp"
+          placeholder="+2348012345678"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Instagram Handle</label>
+      <div class="input-wrapper">
+        <i class="fab fa-instagram input-icon"></i>
+        <input type="text" id="settingsInstagram"
+          placeholder="@insidemycampus"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Twitter / X Handle</label>
+      <div class="input-wrapper">
+        <i class="fab fa-twitter input-icon"></i>
+        <input type="text" id="settingsTwitter"
+          placeholder="@insidemycampus"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Vendor Registration Fee (₦)</label>
+      <div class="input-wrapper">
+        <i class="fas fa-money-bill input-icon"></i>
+        <input type="number" id="settingsVendorFee"
+          placeholder="5000"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Ambassador Commission Per Referral (₦)</label>
+      <div class="input-wrapper">
+        <i class="fas fa-coins input-icon"></i>
+        <input type="number" id="settingsAmbComm"
+          placeholder="500"/>
+      </div>
+    </div>
+
+    <div class="auth-success" id="settingsSuccess"
+      style="display:none;">
+      <i class="fas fa-check-circle"></i>
+      <span>Settings saved successfully!</span>
+    </div>
+
+    <button class="btn-auth-submit"
+      id="saveSettingsBtn"
+      style="background:#1a3c8f;">
+      <i class="fas fa-save"></i> Save Settings
+    </button>
+  </div>
+</div>
+
+  </div><!-- end dashboard-main -->
+
+  <script src="script.js"></script>
+  <script src="navbar.js"></script>
+<script src="admin-dashboard.js"></script>
+
+</body>
+</html>

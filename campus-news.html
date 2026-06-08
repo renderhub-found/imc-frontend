@@ -1,0 +1,234 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campus News – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html"
+          style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="#">Vendors</a></li>
+        <li><a href="#">Lodges</a></li>
+        <li>
+          <a href="campus-news.html"
+            style="color:#fff;font-weight:700;">
+            Campus News
+          </a>
+        </li>
+        <li><a href="#">Events</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="auth-buttons" id="authButtons">
+          <a href="login.html" class="btn-login">Login</a>
+          <a href="signup.html" class="btn-signup">Sign Up</a>
+        </div>
+        <div class="user-menu" id="userMenu" style="display:none;">
+          <button class="hamburger-btn" id="hamburgerBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <a href="vendor.html">
+              <i class="fas fa-store"></i> Become Vendor
+            </a>
+            <a href="ambassador.html">
+              <i class="fas fa-user-tie"></i> Become Ambassador
+            </a>
+            <a href="campus-news.html">
+              <i class="fas fa-newspaper"></i> Campus News
+            </a>
+            <a href="post-ad.html">
+              <i class="fas fa-ad"></i> Post Ad
+            </a>
+            <a href="online-courses.html">
+              <i class="fas fa-graduation-cap"></i> Online Courses
+            </a>
+            <a href="#">
+              <i class="fas fa-envelope"></i> Contact
+            </a>
+            <a href="#" id="logoutBtn" class="logout-link">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero news-hero">
+    <div class="page-hero-content">
+      <h1>📰 Campus News & Updates</h1>
+      <p>
+        Stay updated with the latest news from universities
+        across Nigeria.
+      </p>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="news-filter-bar">
+    <div class="news-filter-inner">
+
+      <!-- Search -->
+      <div class="news-search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" id="newsSearchInput"
+          placeholder="Search news by title or university..." />
+      </div>
+
+      <!-- University Filter -->
+      <div class="filter-group">
+        <select id="newsUniFilter" class="filter-select">
+          <option value="">All Universities</option>
+          <option value="UNILAG">UNILAG</option>
+          <option value="UNN">UNN</option>
+          <option value="UI">UI</option>
+          <option value="DELSU">DELSU</option>
+          <option value="LASU">LASU</option>
+          <option value="OAU">OAU</option>
+          <option value="UNIBEN">UNIBEN</option>
+          <option value="ABU">ABU</option>
+          <option value="FUTO">FUTO</option>
+          <option value="UNIPORT">UNIPORT</option>
+        </select>
+      </div>
+
+      <!-- Clear filter -->
+      <button id="clearNewsFilter" class="btn-clear-filter">
+        <i class="fas fa-times"></i> Clear
+      </button>
+
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="news-layout">
+
+    <!-- LEFT: NEWS FEED -->
+    <div class="news-feed-col">
+
+      <!-- Pinned News -->
+      <div id="pinnedNewsSection" style="display:none;">
+        <h3 class="news-section-label">
+          <i class="fas fa-thumbtack"
+            style="color:#e85d04;"></i> Pinned News
+        </h3>
+        <div id="pinnedNewsList"></div>
+      </div>
+
+      <!-- Latest News -->
+      <h3 class="news-section-label">
+        <i class="fas fa-clock" style="color:#1a3c8f;"></i>
+        Latest News
+      </h3>
+
+      <!-- Loading spinner -->
+      <div id="newsLoading" class="news-loading">
+        <i class="fas fa-spinner fa-spin"></i>
+        Loading news...
+      </div>
+
+      <!-- News list -->
+      <div id="newsFeed"></div>
+
+      <!-- Empty state -->
+      <div id="newsEmpty" class="empty-state-card"
+        style="display:none;">
+        <div style="font-size:48px;">📭</div>
+        <p>No news found. Try a different search or filter.</p>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: SIDEBAR -->
+    <div class="news-sidebar-col">
+
+      <!-- Submit news CTA -->
+      <div class="news-sidebar-card news-cta-card">
+        <h4>📢 Submit Campus News</h4>
+        <p>
+          Are you a campus ambassador? Share news from
+          your university!
+        </p>
+        <a href="ambassador.html" class="btn-news-cta">
+          Become an Ambassador
+        </a>
+      </div>
+
+      <!-- Universities List -->
+      <div class="news-sidebar-card">
+        <h4>🏫 Filter by University</h4>
+        <div class="uni-filter-list" id="uniFilterList">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Trending Tags -->
+      <div class="news-sidebar-card">
+        <h4>🔥 Trending Topics</h4>
+        <div class="trending-tags">
+          <span class="news-tag"
+            onclick="filterByTag('Exam')">Exams</span>
+          <span class="news-tag"
+            onclick="filterByTag('Hostel')">Hostel</span>
+          <span class="news-tag"
+            onclick="filterByTag('Event')">Events</span>
+          <span class="news-tag"
+            onclick="filterByTag('Scholarship')">Scholarships</span>
+          <span class="news-tag"
+            onclick="filterByTag('Strike')">ASUU</span>
+          <span class="news-tag"
+            onclick="filterByTag('Graduation')">Graduation</span>
+          <span class="news-tag"
+            onclick="filterByTag('Sport')">Sports</span>
+          <span class="news-tag"
+            onclick="filterByTag('Tech')">Tech</span>
+        </div>
+      </div>
+
+      <!-- Ads sidebar -->
+      <div class="news-sidebar-card sidebar-ad-card" id="sidebarAds">
+        <h4>📣 Sponsored</h4>
+        <div id="sidebarAdsList"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- NEWS MODAL (for full article view) -->
+  <div id="newsModal" class="news-modal-overlay" style="display:none;">
+    <div class="news-modal-box">
+      <button id="closeNewsModal" class="news-modal-close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div id="newsModalContent"></div>
+    </div>
+  </div>
+
+  <footer class="auth-footer" style="margin-top:40px;">
+    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="campus-news.js"></script>
+</body>
+</html>

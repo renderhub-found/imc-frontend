@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Us – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html"
+          style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="vendors-page.html">Vendors</a></li>
+        <li><a href="campus-news.html">Campus News</a></li>
+        <li><a href="online-courses.html">Courses</a></li>
+        <li><a href="contact.html"
+          style="color:#fff;font-weight:700;">Contact</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="auth-buttons" id="authButtons">
+          <a href="login.html" class="btn-login">Login</a>
+          <a href="signup.html" class="btn-signup">Sign Up</a>
+        </div>
+        <div class="user-menu" id="userMenu" style="display:none;">
+          <button class="hamburger-btn" id="hamburgerBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <a href="vendor.html">
+              <i class="fas fa-store"></i> Become Vendor
+            </a>
+            <a href="ambassador.html">
+              <i class="fas fa-user-tie"></i> Become Ambassador
+            </a>
+            <a href="campus-news.html">
+              <i class="fas fa-newspaper"></i> Campus News
+            </a>
+            <a href="post-ad.html">
+              <i class="fas fa-ad"></i> Post Ad
+            </a>
+            <a href="online-courses.html">
+              <i class="fas fa-graduation-cap"></i> Online Courses
+            </a>
+            <a href="contact.html">
+              <i class="fas fa-envelope"></i> Contact
+            </a>
+            <a href="#" id="logoutBtn" class="logout-link">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero"
+    style="background:linear-gradient(135deg,#1a1a2e,#1a3c8f);">
+    <div class="page-hero-content">
+      <h1>📬 Contact Us</h1>
+      <p>Reach us through any of our social platforms.
+        We respond within 24 hours.</p>
+    </div>
+  </div>
+
+  <!-- CONTACT SECTION -->
+  <section class="contact-section">
+
+    <div class="contact-intro">
+      <h2>Get In Touch With Us</h2>
+      <p>We are available across all major platforms.
+        Click any link below to connect with us directly.</p>
+    </div>
+
+    <!-- Social Media Grid -->
+    <div class="contact-grid">
+
+      <!-- WhatsApp -->
+      <a href="https://wa.me/2348012345678"
+        target="_blank" class="contact-card whatsapp-card">
+        <div class="contact-card-icon">
+          <i class="fab fa-whatsapp"></i>
+        </div>
+        <div class="contact-card-info">
+          <h3>WhatsApp</h3>
+          <p>+234 801 234 5678</p>
+          <span>Chat with us directly</span>
+        </div>
+        <i class="fas fa-arrow-right contact-arrow"></i>
+      </a>
+
+      <!-- Instagram -->
+      <a href="https://instagram.com/insidemycampus"
+        target="_blank" class="contact-card instagram-card">
+        <div class="contact-card-icon">
+          <i class="fab fa-instagram"></i>
+        </div>
+        <div class="contact-card-info">
+          <h3>Instagram</h3>
+          <p>@insidemycampus</p>
+          <span>Follow us for updates</span>
+        </div>
+        <i class="fas fa-arrow-right contact-arrow"></i>
+      </a>
+
+      <!-- TikTok -->
+      <a href="https://tiktok.com/@insidemycampus"
+        target="_blank" class="contact-card tiktok-card">
+        <div class="contact-card-icon">
+          <i class="fab fa-tiktok"></i>
+        </div>
+        <div class="contact-card-info">
+          <h3>TikTok</h3>
+          <p>@insidemycampus</p>
+          <span>Watch our campus videos</span>
+        </div>
+        <i class="fas fa-arrow-right contact-arrow"></i>
+      </a>
+
+      <!-- Facebook -->
+      <a href="https://facebook.com/insidemycampus"
+        target="_blank" class="contact-card facebook-card">
+        <div class="contact-card-icon">
+          <i class="fab fa-facebook-f"></i>
+        </div>
+        <div class="contact-card-info">
+          <h3>Facebook</h3>
+          <p>Inside My Campus</p>
+          <span>Join our community</span>
+        </div>
+        <i class="fas fa-arrow-right contact-arrow"></i>
+      </a>
+
+      <!-- YouTube -->
+      <a href="https://youtube.com/@insidemycampus"
+        target="_blank" class="contact-card youtube-card">
+        <div class="contact-card-icon">
+          <i class="fab fa-youtube"></i>
+        </div>
+        <div class="contact-card-info">
+          <h3>YouTube</h3>
+          <p>@insidemycampus</p>
+          <span>Watch tutorials & guides</span>
+        </div>
+        <i class="fas fa-arrow-right contact-arrow"></i>
+      </a>
+
+      <!-- Twitter/X -->
+      <a href="https://twitter.com/insidemycampus"
+        target="_blank" class="contact-card twitter-card">
+        <div class="contact-card-icon">
+          <i class="fab fa-x-twitter"></i>
+        </div>
+        <div class="contact-card-info">
+          <h3>Twitter / X</h3>
+          <p>@insidemycampus</p>
+          <span>Follow for news & updates</span>
+        </div>
+        <i class="fas fa-arrow-right contact-arrow"></i>
+      </a>
+
+      <!-- Telegram -->
+      <a href="https://t.me/insidemycampus"
+        target="_blank" class="contact-card telegram-card">
+        <div class="contact-card-icon">
+          <i class="fab fa-telegram"></i>
+        </div>
+        <div class="contact-card-info">
+          <h3>Telegram</h3>
+          <p>@insidemycampus</p>
+          <span>Join our Telegram group</span>
+        </div>
+        <i class="fas fa-arrow-right contact-arrow"></i>
+      </a>
+
+      <!-- Email -->
+      <a href="mailto:hello@insidemycampus.com"
+        class="contact-card email-card">
+        <div class="contact-card-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <div class="contact-card-info">
+          <h3>Email</h3>
+          <p>hello@insidemycampus.com</p>
+          <span>Send us a message</span>
+        </div>
+        <i class="fas fa-arrow-right contact-arrow"></i>
+      </a>
+
+    </div>
+
+    <!-- Quick Contact Form -->
+    <div class="contact-form-section">
+      <h2>Send Us a Message</h2>
+      <p>Fill the form below and we'll respond within 24 hours.</p>
+
+      <div class="contact-form-card">
+        <div class="auth-success" id="contactSuccess"
+          style="display:none;">
+          <i class="fas fa-check-circle"></i>
+          <span>Message sent! We'll get back to you soon.</span>
+        </div>
+
+        <div class="name-row">
+          <div class="form-group">
+            <label>Your Name</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user input-icon"></i>
+              <input type="text" id="contactName"
+                placeholder="Your full name"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <div class="input-wrapper">
+              <i class="fas fa-envelope input-icon"></i>
+              <input type="email" id="contactEmail"
+                placeholder="your@email.com"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Subject</label>
+          <div class="input-wrapper">
+            <i class="fas fa-heading input-icon"></i>
+            <input type="text" id="contactSubject"
+              placeholder="What is this about?"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Message</label>
+          <textarea class="form-textarea" id="contactMessage"
+            rows="5"
+            placeholder="Type your message here..."></textarea>
+        </div>
+
+        <button class="btn-auth-submit" id="sendContactBtn">
+          <i class="fas fa-paper-plane"></i> Send Message
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="auth-footer" style="margin-top:0;">
+    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="navbar.js"></script>
+  <script>
+    document.getElementById('sendContactBtn')
+      .addEventListener('click', function () {
+        const name    = document.getElementById('contactName').value.trim();
+        const email   = document.getElementById('contactEmail').value.trim();
+        const subject = document.getElementById('contactSubject').value.trim();
+        const message = document.getElementById('contactMessage').value.trim();
+
+        if (!name || !email || !subject || !message) {
+          alert('Please fill in all fields before sending.');
+          return;
+        }
+
+        // Save to localStorage (will connect to backend later)
+        const messages = JSON.parse(
+          localStorage.getItem('imc_contact_messages') || '[]'
+        );
+        messages.push({
+          id: 'MSG-' + Date.now(),
+          name, email, subject, message,
+          date: new Date().toLocaleDateString()
+        });
+        localStorage.setItem(
+          'imc_contact_messages', JSON.stringify(messages)
+        );
+
+        // Clear form
+        document.getElementById('contactName').value    = '';
+        document.getElementById('contactEmail').value   = '';
+        document.getElementById('contactSubject').value = '';
+        document.getElementById('contactMessage').value = '';
+
+        document.getElementById('contactSuccess').style.display = 'flex';
+        setTimeout(function () {
+          document.getElementById('contactSuccess').style.display = 'none';
+        }, 4000);
+      });
+  </script>
+
+</body>
+</html>

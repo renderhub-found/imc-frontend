@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Become a Vendor – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🎓</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <div class="nav-right" id="navRight">
+        <!-- Filled by script.js -->
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero vendor-hero">
+    <div class="page-hero-content">
+      <h1>🏪 Become a Campus Vendor</h1>
+      <p>List your business and connect with thousands of students across Nigeria.</p>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <section class="auth-section" style="background:#f4f6fb; padding: 40px 20px;">
+    <div class="auth-card" style="max-width:560px;">
+
+      <!-- Already a vendor notice -->
+      <div id="alreadyVendorBox" style="display:none;" class="auth-success">
+        <i class="fas fa-check-circle"></i>
+        <span>You are already registered as a vendor. 
+          <a href="vendor-dashboard.html" style="color:#1a3c8f;font-weight:700;">Go to Dashboard →</a>
+        </span>
+      </div>
+
+      <!-- Not logged in notice -->
+      <div id="notLoggedInBox" style="display:none;" class="auth-error">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>You must <a href="login.html" style="color:#cc0000;font-weight:700;">login</a> or 
+          <a href="signup.html" style="color:#cc0000;font-weight:700;">sign up</a> before becoming a vendor.
+        </span>
+      </div>
+
+      <!-- THE FORM -->
+      <div id="vendorFormBox">
+        <div class="auth-icon">🏪</div>
+        <h2 class="auth-title">Vendor Registration</h2>
+        <p class="auth-subtitle">Fill in your business details below</p>
+
+        <!-- Error / Success -->
+        <div class="auth-error" id="vendorError" style="display:none;">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="vendorErrorMsg"></span>
+        </div>
+
+        <div class="auth-form">
+
+          <!-- Full Name -->
+          <div class="form-group">
+            <label>Full Name</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user input-icon"></i>
+              <input type="text" id="vendorFullName" placeholder="Your full name" />
+            </div>
+          </div>
+
+          <!-- University -->
+          <div class="form-group">
+            <label>University Name</label>
+            <div class="input-wrapper">
+              <i class="fas fa-university input-icon"></i>
+              <input type="text" id="vendorUniversity" placeholder="e.g. UNILAG, UNN, UI..." />
+            </div>
+          </div>
+
+          <!-- Business Name -->
+          <div class="form-group">
+            <label>Business Name</label>
+            <div class="input-wrapper">
+              <i class="fas fa-store input-icon"></i>
+              <input type="text" id="vendorBizName" placeholder="Your business name" />
+            </div>
+          </div>
+
+          <!-- WhatsApp -->
+          <div class="form-group">
+            <label>WhatsApp Number</label>
+            <div class="input-wrapper">
+              <i class="fab fa-whatsapp input-icon"></i>
+              <input type="tel" id="vendorWhatsApp" placeholder="e.g. 08012345678" />
+            </div>
+          </div>
+
+         <!-- Referral Code -->
+         <div class="form-group">
+         <label>Referral Code
+         <span style="color:#aaa;font-weight:400;">
+         (optional — from ambassador link)
+        </span>
+       </label>
+       <div class="input-wrapper">
+       <i class="fas fa-gift input-icon"></i>
+       <input type="text" id="vendorRefCodeInput"
+      placeholder="e.g. AMB-JOHN123"
+      style="background:#f0fff4;"/>
+      </div>
+     <p style="font-size:11px;color:#2d8653;margin-top:5px;
+      display:none;" id="refCodeNote">
+     <i class="fas fa-check-circle"></i>
+      Referral code auto-filled from ambassador link!
+    </p>
+    </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label>Business Category</label>
+            <div class="input-wrapper">
+              <i class="fas fa-tag input-icon"></i>
+              <select id="vendorCategory" class="form-select">
+                <option value="">-- Select a category --</option>
+                <option value="Food">Food</option>
+                <option value="Fashion">Fashion</option>
+                <option value="Gadgets">Gadgets</option>
+                <option value="Barbing Salon">Barbing Salon</option>
+                <option value="Services">Services</option>
+                <option value="Beauty">Beauty</option>
+                <option value="Printing">Printing</option>
+                <option value="Others">Others (specify below)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Custom Category (shown only when Others is selected) -->
+          <div class="form-group" id="customCategoryGroup" style="display:none;">
+            <label>Specify Your Category</label>
+            <div class="input-wrapper">
+              <i class="fas fa-pen input-icon"></i>
+              <input type="text" id="vendorCustomCategory" placeholder="Type your category" />
+            </div>
+          </div>
+
+          <!-- Business Description -->
+          <div class="form-group">
+            <label>Business Description</label>
+            <textarea
+              id="vendorDescription"
+              class="form-textarea"
+              placeholder="Describe your business, products, and services..."
+              rows="4"
+            ></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <button class="btn-auth-submit" id="vendorSubmitBtn" style="background:#e85d04;">
+            <span id="vendorBtnText">
+              <i class="fas fa-credit-card"></i> Submit & Pay ₦5,000
+            </span>
+            <span id="vendorSpinner" style="display:none;">
+              <i class="fas fa-spinner fa-spin"></i> Processing...
+            </span>
+          </button>
+
+          <p style="text-align:center;font-size:12px;color:#aaa;margin-top:10px;">
+            🔒 Secure payment powered by Paystack
+          </p>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="auth-footer">
+    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="app.js"></script>
+<script src="paystack.js"></script>
+<script src="auth.js"></script>
+<script src="vendor.js"></script>
+<script src="api.js"></script>
+</body>
+</html>

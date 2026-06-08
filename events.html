@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campus Events – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="vendors-page.html">Vendors</a></li>
+        <li><a href="campus-news.html">Campus News</a></li>
+        <li><a href="events.html" style="color:#fff;font-weight:700;">Events</a></li>
+        <li><a href="online-courses.html">Courses</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="auth-buttons" id="authButtons">
+          <a href="login.html" class="btn-login">Login</a>
+          <a href="signup.html" class="btn-signup">Sign Up</a>
+        </div>
+        <div class="user-menu" id="userMenu" style="display:none;">
+          <button class="hamburger-btn" id="hamburgerBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <a href="vendor.html"><i class="fas fa-store"></i> Become Vendor</a>
+            <a href="ambassador.html"><i class="fas fa-user-tie"></i> Become Ambassador</a>
+            <a href="campus-news.html"><i class="fas fa-newspaper"></i> Campus News</a>
+            <a href="post-ad.html"><i class="fas fa-ad"></i> Post Ad</a>
+            <a href="online-courses.html"><i class="fas fa-graduation-cap"></i> Online Courses</a>
+            <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="#" id="logoutBtn" class="logout-link">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="page-hero"
+    style="background:linear-gradient(135deg,#7c3aed,#4f46e5);">
+    <div class="page-hero-content">
+      <h1>🎉 Campus Events</h1>
+      <p>Discover exciting events happening across Nigerian universities.</p>
+    </div>
+  </div>
+
+  <!-- FILTER -->
+  <div class="news-filter-bar">
+    <div class="news-filter-inner">
+      <div class="news-search-wrap" style="flex:1;">
+        <i class="fas fa-search"></i>
+        <input type="text" id="eventSearch"
+          placeholder="Search events..."/>
+      </div>
+      <select id="eventUniFilter" class="filter-select">
+        <option value="">All Universities</option>
+        <option value="UNILAG">UNILAG</option>
+        <option value="UNN">UNN</option>
+        <option value="UI">UI</option>
+        <option value="DELSU">DELSU</option>
+        <option value="LASU">LASU</option>
+        <option value="OAU">OAU</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- EVENTS GRID -->
+  <div style="max-width:1200px;margin:32px auto;padding:0 20px;">
+    <div id="eventsGrid" class="events-grid"></div>
+  </div>
+
+  <footer class="auth-footer" style="margin-top:20px;">
+    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="navbar.js"></script>
+  <script>
+    var defaultEvents = [
+      {
+        id:'EVT-001', title:'UNILAG Startup Pitch Competition',
+        university:'UNILAG', date:'May 20, 2024',
+        location:'Faculty of Business Admin, UNILAG, Lagos',
+        description:'Network with founders, pitch your startup idea and win funding. Open to all UNILAG students.',
+        image:'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=300&fit=crop',
+        category:'Business', free:true, tag:'🚀'
+      },
+      {
+        id:'EVT-002', title:'DELSU Beach Party 2024',
+        university:'DELSU', date:'May 10, 2024',
+        location:'Abraka Beach, Delta State',
+        description:"Don't miss the biggest student beach party of the year! Live music, games, food and fun.",
+        image:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=300&fit=crop',
+        category:'Social', free:false, price:'₦500', tag:'🏖️'
+      },
+      {
+        id:'EVT-003', title:'UNN Tech Expo & Hackathon',
+        university:'UNN', date:'June 5, 2024',
+        location:'Engineering Faculty, UNN, Nsukka',
+        description:'A 24-hour hackathon for student developers. Build solutions to campus problems and win prizes.',
+        image:'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=600&h=300&fit=crop',
+        category:'Technology', free:true, tag:'💻'
+      },
+      {
+        id:'EVT-004', title:'OAU Cultural Festival & Talent Show',
+        university:'OAU', date:'June 12, 2024',
+        location:'Great Hall, OAU, Ile-Ife',
+        description:'Celebrate the rich culture of OAU students with performances, food and art exhibitions.',
+        image:'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=300&fit=crop',
+        category:'Cultural', free:false, price:'₦300', tag:'🎭'
+      },
+      {
+        id:'EVT-005', title:'LASU Business Summit 2024',
+        university:'LASU', date:'June 18, 2024',
+        location:'LASU Main Auditorium, Lagos',
+        description:'Learn from successful entrepreneurs and business leaders. Networking opportunities available.',
+        image:'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&h=300&fit=crop',
+        category:'Business', free:false, price:'₦1,000', tag:'💼'
+      },
+      {
+        id:'EVT-006', title:'UI Health & Wellness Week',
+        university:'UI', date:'June 25, 2024',
+        location:'UI Sports Centre, Ibadan',
+        description:'Free health screenings, mental health talks, fitness sessions and wellness workshops.',
+        image:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=300&fit=crop',
+        category:'Health', free:true, tag:'💚'
+      }
+    ];
+
+    function renderEvents(list) {
+      var grid = document.getElementById('eventsGrid');
+      if (list.length === 0) {
+        grid.innerHTML =
+          '<div class="empty-state-card" style="grid-column:1/-1;">' +
+          '<div style="font-size:48px;">🎉</div>' +
+          '<p>No events found.</p></div>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < list.length; i++) {
+        var ev = list[i];
+        html +=
+          '<div class="event-page-card">' +
+          '<div class="event-page-img-wrap">' +
+          '<img src="' + ev.image + '" alt="' + ev.title + '" ' +
+          'class="event-page-img" ' +
+          'onerror="this.src=\'https://via.placeholder.com/600x300\'"/>' +
+          '<span class="event-tag-badge">' + ev.tag + ' ' + ev.category + '</span>' +
+          '</div>' +
+          '<div class="event-page-body">' +
+          '<div class="news-card-meta">' +
+          '<span class="news-uni-badge">' +
+          '<i class="fas fa-university"></i> ' + ev.university + '</span>' +
+          '<span class="news-date">' +
+          '<i class="fas fa-calendar"></i> ' + ev.date + '</span>' +
+          '</div>' +
+          '<h3 class="event-page-title">' + ev.title + '</h3>' +
+          '<p class="event-page-location">' +
+          '<i class="fas fa-map-marker-alt"></i> ' + ev.location + '</p>' +
+          '<p class="event-page-desc">' + ev.description + '</p>' +
+          '<div class="event-page-footer">' +
+          '<span class="event-price">' +
+          (ev.free ? '🟢 Free Entry' : '🎟️ ' + ev.price) +
+          '</span>' +
+          '<button class="btn-view-profile" ' +
+          'onclick="alert(\'Register for: ' + ev.title + '\\n\\nDate: ' + ev.date + '\\nLocation: ' + ev.location + '\')">' +
+          'See Details' +
+          '</button>' +
+          '</div>' +
+          '</div>' +
+          '</div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    function filterEvents() {
+      var search = document.getElementById('eventSearch').value.toLowerCase();
+      var uni    = document.getElementById('eventUniFilter').value;
+      var filtered = defaultEvents.filter(function (ev) {
+        var matchSearch = !search ||
+          ev.title.toLowerCase().includes(search) ||
+          ev.description.toLowerCase().includes(search);
+        var matchUni = !uni || ev.university === uni;
+        return matchSearch && matchUni;
+      });
+      renderEvents(filtered);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      renderEvents(defaultEvents);
+      document.getElementById('eventSearch')
+        .addEventListener('input', filterEvents);
+      document.getElementById('eventUniFilter')
+        .addEventListener('change', filterEvents);
+    });
+  </script>
+
+</body>
+</html>

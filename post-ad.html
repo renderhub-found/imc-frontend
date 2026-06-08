@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Post an Ad – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <div class="nav-right">
+        <div class="auth-buttons" id="authButtons">
+          <a href="login.html" class="btn-login">Login</a>
+          <a href="signup.html" class="btn-signup">Sign Up</a>
+        </div>
+        <div class="user-menu" id="userMenu" style="display:none;">
+          <button class="hamburger-btn" id="hamburgerBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <a href="vendor.html">
+              <i class="fas fa-store"></i> Become Vendor
+            </a>
+            <a href="ambassador.html">
+              <i class="fas fa-user-tie"></i> Become Ambassador
+            </a>
+            <a href="campus-news.html">
+              <i class="fas fa-newspaper"></i> Campus News
+            </a>
+            <a href="post-ad.html">
+              <i class="fas fa-ad"></i> Post Ad
+            </a>
+            <a href="online-courses.html">
+              <i class="fas fa-graduation-cap"></i> Online Courses
+            </a>
+            <a href="#">
+              <i class="fas fa-envelope"></i> Contact
+            </a>
+            <a href="#" id="logoutBtn" class="logout-link">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero"
+    style="background:linear-gradient(135deg,#e85d04,#c94d00);">
+    <div class="page-hero-content">
+      <h1>📢 Post an Ad</h1>
+      <p>Reach thousands of students across Nigerian universities.</p>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS STRIP -->
+  <div class="how-it-works-strip">
+    <div class="hiw-item">
+      <span>📝</span>
+      <p>Fill the form</p>
+    </div>
+    <div class="hiw-arrow">→</div>
+    <div class="hiw-item">
+      <span>💳</span>
+      <p>Pay ₦2,000</p>
+    </div>
+    <div class="hiw-arrow">→</div>
+    <div class="hiw-item">
+      <span>⏳</span>
+      <p>Admin reviews</p>
+    </div>
+    <div class="hiw-arrow">→</div>
+    <div class="hiw-item">
+      <span>🚀</span>
+      <p>Ad goes live!</p>
+    </div>
+  </div>
+
+  <!-- MAIN FORM -->
+  <section class="auth-section"
+    style="background:#f4f6fb;padding:40px 20px;">
+    <div class="auth-card" style="max-width:580px;">
+
+      <!-- Not logged in notice -->
+      <div id="notLoggedInBox" style="display:none;" class="auth-error">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>You must
+          <a href="login.html"
+            style="color:#cc0000;font-weight:700;">login</a> or
+          <a href="signup.html"
+            style="color:#cc0000;font-weight:700;">sign up</a>
+          to post an ad.
+        </span>
+      </div>
+
+      <!-- THE FORM -->
+      <div id="adFormBox">
+        <div class="auth-icon">📢</div>
+        <h2 class="auth-title">Post Your Ad</h2>
+        <p class="auth-subtitle">
+          Fill in your ad details — reaches students campuswide
+        </p>
+
+        <!-- Error Box -->
+        <div class="auth-error" id="adError" style="display:none;">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="adErrorMsg"></span>
+        </div>
+
+        <div class="auth-form">
+
+          <!-- Ad Title -->
+          <div class="form-group">
+            <label>Ad Title</label>
+            <div class="input-wrapper">
+              <i class="fas fa-heading input-icon"></i>
+              <input type="text" id="adTitle"
+                placeholder="e.g. Fresh Jollof Rice — Fast Delivery!" />
+            </div>
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label>Ad Category</label>
+            <div class="input-wrapper">
+              <i class="fas fa-tag input-icon"></i>
+              <select id="adCategory" class="form-select">
+                <option value="">-- Select category --</option>
+                <option value="Food & Drinks">Food & Drinks</option>
+                <option value="Fashion & Clothing">Fashion & Clothing</option>
+                <option value="Gadgets & Electronics">
+                  Gadgets & Electronics
+                </option>
+                <option value="Beauty & Grooming">Beauty & Grooming</option>
+                <option value="Housing & Lodges">Housing & Lodges</option>
+                <option value="Services">Services</option>
+                <option value="Events">Events</option>
+                <option value="Jobs & Internships">Jobs & Internships</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="form-group">
+            <label>Location / University</label>
+            <div class="input-wrapper">
+              <i class="fas fa-map-marker-alt input-icon"></i>
+              <input type="text" id="adLocation"
+                placeholder="e.g. UNILAG, Yaba Lagos" />
+            </div>
+          </div>
+
+          <!-- Contact Number -->
+          <div class="form-group">
+            <label>Contact Number</label>
+            <div class="input-wrapper">
+              <i class="fas fa-phone input-icon"></i>
+              <input type="tel" id="adContact"
+                placeholder="e.g. 08012345678" />
+            </div>
+          </div>
+
+          <!-- Ad Image Upload -->
+          <div class="form-group">
+         <label>Ad Image
+        <span style="color:#aaa;font-weight:400;">
+      (JPG, PNG — required)
+    </span>
+  </label>
+  <div class="file-upload-area">
+    <input type="file" id="adImageFile"
+      accept="image/*" style="display:none;"/>
+    <div class="file-upload-placeholder"
+      id="adImagePlaceholder"
+      onclick="document.getElementById('adImageFile').click()">
+      <i class="fas fa-image"></i>
+      <p>Tap to upload ad image</p>
+      <span>JPG, PNG, WEBP — Max 5MB</span>
+    </div>
+    <div id="adImagePreviewWrap" style="display:none;">
+      <img id="adPreviewImg" src="" alt="Ad preview"
+        style="width:100%;max-height:200px;
+        object-fit:cover;display:block;
+        border-radius:8px 8px 0 0;"/>
+      <button class="btn-remove-upload" type="button"
+        onclick="removeAdImage()">
+        <i class="fas fa-times"></i> Remove Image
+      </button>
+    </div>
+  </div>
+</div>
+              <span style="color:#aaa;font-weight:400;">
+                (paste any image link — optional)
+              </span>
+            </label>
+            <div class="input-wrapper">
+              <i class="fas fa-image input-icon"></i>
+              <input type="url" id="adImage"
+                placeholder="https://..." />
+            </div>
+            <!-- Live image preview -->
+            <div id="adImagePreview"
+              style="margin-top:10px;display:none;">
+              <img id="adPreviewImg"
+                src="" alt="Ad preview"
+                style="width:100%;max-height:180px;
+                  object-fit:cover;border-radius:10px;
+                  border:1px solid #e0e0e0;"/>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label>Ad Description</label>
+            <textarea class="form-textarea" id="adDescription"
+              placeholder="Describe what you're advertising..."
+              rows="4"></textarea>
+          </div>
+
+          <!-- Duration -->
+          <div class="form-group">
+            <label>Ad Duration</label>
+            <div class="input-wrapper">
+              <i class="fas fa-clock input-icon"></i>
+              <select id="adDuration" class="form-select">
+                <option value="7">7 Days — ₦2,000</option>
+                <option value="14">14 Days — ₦3,500</option>
+                <option value="30">30 Days — ₦6,000</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Price display -->
+          <div class="ad-price-display" id="adPriceDisplay">
+            You will pay: <strong id="adPriceText">₦2,000</strong>
+            for <strong id="adDaysText">7 days</strong>
+          </div>
+
+          <!-- Submit Button -->
+          <button class="btn-auth-submit" id="adSubmitBtn"
+            style="background:#e85d04;">
+            <span id="adBtnText">
+              <i class="fas fa-credit-card"></i>
+              Submit & Pay ₦2,000
+            </span>
+            <span id="adSpinner" style="display:none;">
+              <i class="fas fa-spinner fa-spin"></i> Processing...
+            </span>
+          </button>
+
+          <p style="text-align:center;font-size:12px;
+            color:#aaa;margin-top:10px;">
+            🔒 Secure payment · Ad reviewed within 24 hours
+          </p>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MY ADS SECTION (shown when logged in) -->
+  <section class="section" id="myAdsSection" style="display:none;">
+    <div class="section-header">
+      <h2>📋 My Submitted Ads</h2>
+    </div>
+    <div id="myAdsList"></div>
+  </section>
+
+  <footer class="auth-footer">
+    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="auth.js"></script>
+  <script src="post-ad.js"></script>
+<script src="app.js"></script>
+<script src="paystack.js"></script>
+</body>
+</html>
