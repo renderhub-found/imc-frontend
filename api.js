@@ -11,12 +11,12 @@ var IMC_API = (function () {
   // Development: your local server
   // Production: your deployed server (Railway, Render etc)
  // Auto-detects development vs production
-var BASE_URL = (
+  var BASE_URL = (
   window.location.hostname === '127.0.0.1' ||
   window.location.hostname === 'localhost'
 )
   ? 'http://localhost:5000/api'
-  : ' https://imc-backend-0y2u.onrender.com 
+  : 'https://imc-backend-0y2u.onrender.com/api';
 
   // ================================================
   //   HELPER: Get token from localStorage
@@ -417,5 +417,3 @@ async function verifyPayment(reference, type, metadata) {
 
 })();
 
-initializePayment: initializePayment,
-verifyPayment:     verifyPayment,
