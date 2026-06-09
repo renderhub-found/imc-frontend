@@ -121,7 +121,7 @@ window.addEventListener('DOMContentLoaded', async function () {
 
     // Open Paystack payment
     IMCPaystack.openPayment({
-      amount:      10000,
+      amount:      5000,
       type:        'vendor_registration',
       description: 'Vendor Registration Fee — Inside My Campus',
       email:       currentUser.email,
