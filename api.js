@@ -263,9 +263,9 @@ var IMC_API = (function () {
   // ================================================
   //   ADS: Submit a new ad
   // ================================================
-  async function submitAd(adData) {
-    return await request('POST', '/ads', adData, true);
-  }
+  async function getMyAds() {
+  return await request('GET', '/ads/my-ads', null, true);
+}
 
   // ================================================
   //   NEWS: Get all approved news

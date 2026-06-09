@@ -1,44 +1,33 @@
 // ================================================
 //   INSIDE MY CAMPUS — paystack.js
-//   Production: Real Paystack Bank Transfer
-//   No simulation. No fake cards. Real payments only.
+//   PRODUCTION ONLY
+//   No card forms. No simulation. No test mode.
+//   Real Paystack redirect only.
 // ================================================
 
 var IMCPaystack = (function () {
   'use strict';
 
   // ================================================
-  //   MAIN ENTRY POINT
-  //   Call this from any pay button
+  //   OPEN PAYMENT — main entry point
   // ================================================
 
   function openPayment(config) {
-    /*
-      config = {
-        amount:      number    e.g. 5000
-        type:        string    e.g. 'vendor_registration'
-        description: string    e.g. 'Vendor Registration Fee'
-        email:       string    user email
-        metadata:    object    optional extra data
-        onSuccess:   function  called after verification
-        onCancel:    function  called if user cancels
-      }
-    */
-
     console.log('[Paystack] openPayment called');
     console.log('[Paystack] type:', config.type);
     console.log('[Paystack] amount:', config.amount);
+    console.log('[Paystack] email:', config.email);
 
-    // Validate config before anything
+    // Validate before anything
     if (!config.type) {
-      console.error('[Paystack] ERROR: type is missing from config!');
-      alert('Payment configuration error: type is missing. Contact support.');
+      console.error('[Paystack] MISSING: type');
+      showError('Payment configuration error: type is missing.');
       return;
     }
 
     if (!config.amount || config.amount < 100) {
-      console.error('[Paystack] ERROR: invalid amount:', config.amount);
-      alert('Payment configuration error: invalid amount.');
+      console.error('[Paystack] MISSING or INVALID: amount');
+      showError('Payment configuration error: invalid amount.');
       return;
     }
 
@@ -47,20 +36,18 @@ var IMCPaystack = (function () {
       return;
     }
 
-    // Start real payment
-    startRealPayment(config);
+    // Go
+    startPayment(config);
   }
 
   // ================================================
-  //   STEP 1: CALL BACKEND TO INITIALIZE
+  //   START PAYMENT — calls backend then redirects
   // ================================================
 
-  async function startRealPayment(config) {
-    showLoadingOverlay('Setting up your payment...');
+  async function startPayment(config) {
+    showLoading('Preparing your payment...');
 
     try {
-      console.log('[Paystack] Calling /api/payments/initialize');
-
       var result = await IMC_API.initializePayment(
         config.amount,
         config.type,
@@ -68,38 +55,52 @@ var IMCPaystack = (function () {
         config.metadata    || {}
       );
 
-      hideLoadingOverlay();
+      hideLoading();
 
-      console.log('[Paystack] Initialize result:', JSON.stringify(result));
+      console.log('[Paystack] Backend response:', JSON.stringify(result));
 
       if (!result.success) {
         console.error('[Paystack] Init failed:', result.message);
-        showErrorPopup(
-          result.message || 'Could not set up payment. Please try again.'
-        );
+        showError(result.message || 'Payment setup failed. Please try again.');
         if (typeof config.onCancel === 'function') {
           config.onCancel();
         }
         return;
       }
 
-      // Save payment info for verification later
-      localStorage.setItem('imc_pending_payment', JSON.stringify({
+      if (!result.authorizationUrl) {
+        console.error('[Paystack] No authorizationUrl in response');
+        showError('Payment URL not received. Please try again.');
+        if (typeof config.onCancel === 'function') {
+          config.onCancel();
+        }
+        return;
+      }
+
+      // Save pending payment for verification after redirect
+      var pendingPayment = {
         reference:   result.reference,
         type:        config.type,
         amount:      config.amount,
         description: config.description || config.type,
         metadata:    config.metadata    || {}
-      }));
+      };
+
+      localStorage.setItem(
+        'imc_pending_payment',
+        JSON.stringify(pendingPayment)
+      );
+
+      console.log('[Paystack] Redirecting to Paystack...');
+      console.log('[Paystack] URL:', result.authorizationUrl);
 
       // Redirect to Paystack checkout
-      console.log('[Paystack] Redirecting to Paystack checkout...');
       window.location.href = result.authorizationUrl;
 
     } catch (err) {
-      hideLoadingOverlay();
+      hideLoading();
       console.error('[Paystack] Unexpected error:', err.message);
-      showErrorPopup('Payment setup failed. Please try again.');
+      showError('An unexpected error occurred. Please try again.');
       if (typeof config.onCancel === 'function') {
         config.onCancel();
       }
@@ -107,28 +108,29 @@ var IMCPaystack = (function () {
   }
 
   // ================================================
-  //   STEP 2: HANDLE RETURN FROM PAYSTACK
-  //   Called on payment-success.html
+  //   HANDLE RETURN FROM PAYSTACK
+  //   Call this on payment-success.html
   // ================================================
 
   async function handleRedirectReturn() {
     var urlParams = new URLSearchParams(window.location.search);
     var reference = urlParams.get('reference') ||
-                    urlParams.get('trxref');
+                    urlParams.get('trxref')    ||
+                    '';
 
-    console.log('[Paystack] Handling redirect return');
+    console.log('[Paystack] handleRedirectReturn');
     console.log('[Paystack] Reference from URL:', reference);
 
     if (!reference) {
-      console.log('[Paystack] No reference in URL');
+      console.log('[Paystack] No reference found in URL');
       return null;
     }
 
-    // Get saved payment config
     var pendingStr = localStorage.getItem('imc_pending_payment');
+
     if (!pendingStr) {
-      console.log('[Paystack] No pending payment in localStorage');
-      return null;
+      console.log('[Paystack] No pending payment in storage');
+      return { success: false, message: 'Payment session expired.' };
     }
 
     var pending;
@@ -136,15 +138,11 @@ var IMCPaystack = (function () {
       pending = JSON.parse(pendingStr);
     } catch (e) {
       console.error('[Paystack] Could not parse pending payment');
-      return null;
+      return { success: false, message: 'Payment data corrupted.' };
     }
 
-    localStorage.removeItem('imc_pending_payment');
+    console.log('[Paystack] Verifying. Type:', pending.type);
 
-    console.log('[Paystack] Verifying payment with backend...');
-    console.log('[Paystack] Type:', pending.type);
-
-    // Verify with backend
     var result = await IMC_API.verifyPayment(
       reference,
       pending.type,
@@ -153,6 +151,10 @@ var IMCPaystack = (function () {
 
     console.log('[Paystack] Verify result:', JSON.stringify(result));
 
+    if (result.success) {
+      localStorage.removeItem('imc_pending_payment');
+    }
+
     return result;
   }
 
@@ -160,32 +162,35 @@ var IMCPaystack = (function () {
   //   LOADING OVERLAY
   // ================================================
 
-  function showLoadingOverlay(message) {
-    var existing = document.getElementById('imc_loading_overlay');
-    if (existing) existing.remove();
+  function showLoading(message) {
+    var old = document.getElementById('imc_pay_loading');
+    if (old) old.remove();
 
     var el       = document.createElement('div');
-    el.id        = 'imc_loading_overlay';
+    el.id        = 'imc_pay_loading';
     el.style.cssText =
-      'position:fixed;inset:0;background:rgba(0,0,0,0.6);' +
-      'z-index:99999;display:flex;align-items:center;' +
-      'justify-content:center;flex-direction:column;gap:16px;';
+      'position:fixed;inset:0;background:rgba(0,0,0,0.65);' +
+      'z-index:999999;display:flex;flex-direction:column;' +
+      'align-items:center;justify-content:center;gap:16px;';
 
     el.innerHTML =
-      '<div style="width:44px;height:44px;border:4px solid #ffffff44;' +
+      '<div style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.2);' +
       'border-top-color:#fff;border-radius:50%;' +
-      'animation:imc_spin 0.8s linear infinite;"></div>' +
-      '<div style="color:#fff;font-size:15px;font-family:Inter,sans-serif;' +
-      'font-weight:600;">' + (message || 'Loading...') + '</div>' +
+      'animation:imc_ps_spin 0.8s linear infinite;"></div>' +
+      '<div style="color:#fff;font-size:15px;font-weight:600;' +
+      'font-family:Inter,sans-serif;">' +
+      (message || 'Please wait...') +
+      '</div>' +
       '<style>' +
-      '@keyframes imc_spin{to{transform:rotate(360deg)}}' +
+      '@keyframes imc_ps_spin{0%{transform:rotate(0deg)}' +
+      '100%{transform:rotate(360deg)}}' +
       '</style>';
 
     document.body.appendChild(el);
   }
 
-  function hideLoadingOverlay() {
-    var el = document.getElementById('imc_loading_overlay');
+  function hideLoading() {
+    var el = document.getElementById('imc_pay_loading');
     if (el) el.remove();
   }
 
@@ -193,29 +198,30 @@ var IMCPaystack = (function () {
   //   ERROR POPUP
   // ================================================
 
-  function showErrorPopup(message) {
-    var existing = document.getElementById('imc_error_overlay');
-    if (existing) existing.remove();
+  function showError(message) {
+    var old = document.getElementById('imc_pay_error');
+    if (old) old.remove();
 
     var overlay       = document.createElement('div');
-    overlay.id        = 'imc_error_overlay';
+    overlay.id        = 'imc_pay_error';
     overlay.style.cssText =
-      'position:fixed;inset:0;background:rgba(0,0,0,0.6);' +
-      'z-index:99999;display:flex;align-items:center;' +
+      'position:fixed;inset:0;background:rgba(0,0,0,0.65);' +
+      'z-index:999999;display:flex;align-items:center;' +
       'justify-content:center;padding:20px;';
 
     overlay.innerHTML =
       '<div style="background:#fff;border-radius:16px;padding:32px 24px;' +
-      'max-width:360px;width:100%;text-align:center;' +
-      'box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
-      '<div style="font-size:40px;margin-bottom:12px;">❌</div>' +
+      'max-width:380px;width:100%;text-align:center;' +
+      'box-shadow:0 20px 60px rgba(0,0,0,0.25);' +
+      'font-family:Inter,sans-serif;">' +
+      '<div style="font-size:44px;margin-bottom:12px;">⚠️</div>' +
       '<h3 style="font-size:18px;font-weight:700;color:#1a1a2e;' +
-      'margin-bottom:8px;">Payment Failed</h3>' +
-      '<p style="font-size:14px;color:#666;margin-bottom:20px;">' +
-      message + '</p>' +
-      '<button id="imc_err_close" ' +
+      'margin-bottom:10px;">Payment Error</h3>' +
+      '<p style="font-size:14px;color:#555;line-height:1.5;' +
+      'margin-bottom:24px;">' + message + '</p>' +
+      '<button id="imc_pay_err_btn" ' +
       'style="background:#e85d04;color:#fff;border:none;' +
-      'padding:12px 28px;border-radius:8px;font-size:14px;' +
+      'padding:12px 32px;border-radius:8px;font-size:15px;' +
       'font-weight:700;cursor:pointer;font-family:Inter,sans-serif;">' +
       'Close' +
       '</button>' +
@@ -223,10 +229,8 @@ var IMCPaystack = (function () {
 
     document.body.appendChild(overlay);
 
-    document.getElementById('imc_err_close').addEventListener(
-      'click', function () {
-        overlay.remove();
-      }
+    document.getElementById('imc_pay_err_btn').addEventListener(
+      'click', function () { overlay.remove(); }
     );
 
     overlay.addEventListener('click', function (e) {
@@ -241,8 +245,8 @@ var IMCPaystack = (function () {
   return {
     openPayment:          openPayment,
     handleRedirectReturn: handleRedirectReturn,
-    showLoadingOverlay:   showLoadingOverlay,
-    hideLoadingOverlay:   hideLoadingOverlay
+    showLoading:          showLoading,
+    hideLoading:          hideLoading
   };
 
 })();
