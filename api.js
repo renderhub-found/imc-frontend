@@ -416,7 +416,8 @@ async function verifyPayment(reference, type, metadata) {
     purchaseCourse:         purchaseCourse,
 
     // Payments
-    verifyPayment:          verifyPayment,
+initializePayment: initializePayment,
+verifyPayment: verifyPayment,
 
     // Admin
     getAdminStats:          getAdminStats,
