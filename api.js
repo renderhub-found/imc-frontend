@@ -68,60 +68,72 @@ var IMC_API = (function () {
   //   This is used by ALL other functions
   // ================================================
   async function request(method, endpoint, data, requiresAuth) {
-    try {
-      // Build request options
-      var options = {
-        method:  method,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      };
-
-      // Add auth token if required
-      if (requiresAuth) {
-        var token = getToken();
-        if (!token) {
-          return {
-            success: false,
-            message: 'Not logged in. Please login first.'
-          };
-        }
-        options.headers['Authorization'] = 'Bearer ' + token;
+  try {
+    var options = {
+      method:  method,
+      headers: {
+        'Content-Type': 'application/json'
       }
+    };
 
-      // Add body for POST/PUT requests
-      if (data && (method === 'POST' || method === 'PUT')) {
-        options.body = JSON.stringify(data);
-      }
-
-      // Make the request
-      var response = await fetch(BASE_URL + endpoint, options);
-      var result   = await response.json();
-
-      return result;
-
-    } catch (err) {
-      // Network error — backend not running
-      console.error('API Error:', err.message);
-
-      if (err.message.includes('fetch') ||
-          err.message.includes('Failed') ||
-          err.message.includes('NetworkError')) {
+    if (requiresAuth) {
+      var token = getToken();
+      if (!token) {
         return {
           success: false,
-          message: 'Cannot connect to server. ' +
-                   'Make sure the backend is running on port 5000.',
-          networkError: true
+          message: 'Not logged in. Please login first.'
         };
       }
+      options.headers['Authorization'] = 'Bearer ' + token;
+    }
 
+    if (data && (method === 'POST' || method === 'PUT')) {
+      options.body = JSON.stringify(data);
+    }
+
+    var response = await fetch(BASE_URL + endpoint, options);
+
+    var text = await response.text();
+    var result;
+    try {
+      result = JSON.parse(text);
+    } catch (parseErr) {
+      console.error('Response not JSON:', text);
       return {
         success: false,
-        message: 'Something went wrong. Please try again.'
+        message: 'Server returned unexpected response.'
       };
     }
-  }
 
+    return result;
+
+  } catch (err) {
+    console.error('API Error:', err.message);
+
+    // More specific error messages
+    if (err.message === 'Failed to fetch') {
+      return {
+        success: false,
+        message: 'Cannot reach the server. This may be a CORS issue or the server is starting up. Please try again in 30 seconds.',
+        networkError: true
+      };
+    }
+
+    if (err.message.includes('NetworkError')) {
+      return {
+        success: false,
+        message: 'Network error. Please check your internet connection.',
+        networkError: true
+      };
+    }
+
+    return {
+      success: false,
+      message: 'Something went wrong: ' + err.message,
+      networkError: true
+    };
+  }
+}
   // ================================================
   //   AUTH: Register
   // ================================================
