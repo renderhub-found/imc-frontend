@@ -253,19 +253,21 @@ var IMC_API = (function () {
     );
   }
 
-  // ================================================
-  //   ADS: Get all approved ads
-  // ================================================
-  async function getAds() {
-    return await request('GET', '/ads', null, false);
-  }
+  // ADS: Get all approved ads
+async function getAds() {
+  return await request('GET', '/ads', null, false);
+}
 
-  // ================================================
-  //   ADS: Submit a new ad
-  // ================================================
-  async function getMyAds() {
+// ADS: Get my ads
+async function getMyAds() {
   return await request('GET', '/ads/my-ads', null, true);
 }
+
+// ADS: Submit a new ad
+async function submitAd(adData) {
+  return await request('POST', '/ads', adData, true);
+}
+  
 
   // ================================================
   //   NEWS: Get all approved news
@@ -409,9 +411,10 @@ async function verifyPayment(reference, type, metadata) {
     registerAmbassador:     registerAmbassador,
     getMyAmbassadorProfile: getMyAmbassadorProfile,
 
-    // Ads
-    getAds:                 getAds,
-    submitAd:               submitAd,
+      // Ads
+     getAds:              getAds,
+     getMyAds:           getMyAds,
+     submitAd:           submitAd,  
 
     // News
     getNews:                getNews,
