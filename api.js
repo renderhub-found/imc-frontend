@@ -306,9 +306,12 @@ var IMC_API = (function () {
   }
 
   // ================================================
-//   PAYMENTS: Initialize payment
+//   PAYMENTS: Initialize
 // ================================================
 async function initializePayment(amount, type, description, metadata) {
+  console.log('[API] initializePayment called');
+  console.log('[API] amount:', amount, '| type:', type);
+
   return await request(
     'POST',
     '/payments/initialize',
@@ -323,9 +326,12 @@ async function initializePayment(amount, type, description, metadata) {
 }
 
 // ================================================
-//   PAYMENTS: Verify payment after redirect
+//   PAYMENTS: Verify
 // ================================================
 async function verifyPayment(reference, type, metadata) {
+  console.log('[API] verifyPayment called');
+  console.log('[API] reference:', reference, '| type:', type);
+
   return await request(
     'POST',
     '/payments/verify',

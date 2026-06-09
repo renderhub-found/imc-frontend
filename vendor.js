@@ -95,53 +95,62 @@ window.addEventListener('DOMContentLoaded', async function () {
       var finalCategory = category === 'Others' ? customCat : category;
 
       // Open Paystack payment
-      IMCPaystack.openPayment({
-        amount:      10000,
-        description: 'Vendor Registration — Inside My Campus',
-        email:       currentUser.email,
+    IMCPaystack.openPayment({
+  amount:      10000,
+  type:        'vendor_registration',
+  description: 'Vendor Registration Fee — Inside My Campus',
+  email:       currentUser.email,
+  metadata: {
+    userId:     currentUser.id || currentUser._id || '',
+    userEmail:  currentUser.email,
+    bizName:    bizName,
+    university: university
+  },
 
-        onSuccess: async function (paymentRef) {
-          // Show spinner
-          var btnText = document.getElementById('vendorBtnText');
-          var spinner = document.getElementById('vendorSpinner');
-          if (btnText) btnText.style.display = 'none';
-          if (spinner) spinner.style.display = 'inline';
-          submitBtn.disabled = true;
+  onSuccess: async function (paymentRef) {
+    var btnText = document.getElementById('vendorBtnText');
+    var spinner = document.getElementById('vendorSpinner');
+    if (btnText) btnText.style.display = 'none';
+    if (spinner) spinner.style.display = 'inline';
+    submitBtn.disabled = true;
 
-          // Send to backend
-          var result = await IMC_API.registerVendor({
-            fullName:    fullName,
-            university:  university,
-            bizName:     bizName,
-            whatsApp:    whatsApp,
-            category:    finalCategory,
-            description: description,
-            refCode:     refCode ||
-              localStorage.getItem('imc_ref_code') || '',
-            paymentRef:  paymentRef.reference || 'PAID'
-          });
-
-          if (result.success) {
-            // Update user in localStorage
-            currentUser.role = 'vendor';
-            localStorage.setItem('imc_user', JSON.stringify(currentUser));
-
-            // Redirect to dashboard
-            window.location.href = 'vendor-dashboard.html';
-
-          } else {
-            showErr(result.message || 'Registration failed. Try again.');
-            if (btnText) btnText.style.display = 'inline';
-            if (spinner) spinner.style.display = 'none';
-            submitBtn.disabled = false;
-          }
-        },
-
-        onCancel: function () {
-          showErr('Payment cancelled. Please try again.');
-        }
-      });
+    var result = await IMC_API.registerVendor({
+      fullName:    fullName,
+      university:  university,
+      bizName:     bizName,
+      whatsApp:    whatsApp,
+      category:    finalCategory,
+      description: description,
+      refCode:     refCode || localStorage.getItem('imc_ref_code') || '',
+      paymentRef:  paymentRef && paymentRef.reference
+                   ? paymentRef.reference
+                   : 'PAID'
     });
+
+    if (result.success) {
+      currentUser.role = 'vendor';
+      localStorage.setItem('imc_user', JSON.stringify(currentUser));
+      window.location.href = 'vendor-dashboard.html';
+    } else {
+      var errorBox = document.getElementById('vendorError');
+      var errorMsg = document.getElementById('vendorErrorMsg');
+      if (errorMsg) errorMsg.textContent = result.message || 'Registration failed.';
+      if (errorBox) errorBox.style.display = 'flex';
+      if (btnText) btnText.style.display = 'inline';
+      if (spinner) spinner.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+  },
+
+  onCancel: function () {
+    var errorBox = document.getElementById('vendorError');
+    var errorMsg = document.getElementById('vendorErrorMsg');
+    if (errorMsg) errorMsg.textContent = 'Payment was cancelled.';
+    if (errorBox) errorBox.style.display = 'flex';
+  }
+});  
+
+
   }
 
 });

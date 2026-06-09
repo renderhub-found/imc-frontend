@@ -3,61 +3,143 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Payment Processing – Inside My Campus</title>
+  <title>Payment — Inside My Campus</title>
   <link rel="stylesheet" href="style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f4f6fb;
+      font-family: Inter, sans-serif;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .payment-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 28px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .payment-icon { font-size: 56px; margin-bottom: 16px; }
+    .payment-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+    .payment-subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .payment-ref {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 24px;
+      font-family: monospace;
+    }
+    .btn-primary {
+      display: inline-block;
+      background: #1a3c8f;
+      color: #fff;
+      padding: 13px 32px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-family: Inter, sans-serif;
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #e0e0e0;
+      border-top-color: #1a3c8f;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress-bar {
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #2d8653;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 3s linear;
+    }
+  </style>
 </head>
-<body style="display:flex;align-items:center;justify-content:center;
-  min-height:100vh;background:#f4f6fb;font-family:Inter,sans-serif;">
+<body>
 
-  <div style="text-align:center;padding:40px 24px;max-width:440px;
-    background:white;border-radius:20px;
-    box-shadow:0 8px 32px rgba(0,0,0,0.1);">
+  <div class="payment-card">
 
-    <div id="loadingState">
-      <div style="font-size:48px;margin-bottom:16px;">⏳</div>
-      <h2 style="font-size:20px;color:#1a1a2e;margin-bottom:8px;">
-        Verifying Payment...
-      </h2>
-      <p style="font-size:14px;color:#888;">
-        Please wait while we confirm your payment.
-      </p>
+    <!-- Loading state -->
+    <div id="stateLoading">
+      <div class="spinner"></div>
+      <div class="payment-title">Verifying Payment</div>
+      <div class="payment-subtitle">
+        Please wait while we confirm your payment with Paystack...
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
     </div>
 
-    <div id="successState" style="display:none;">
-      <div style="font-size:56px;margin-bottom:16px;">✅</div>
-      <h2 style="font-size:22px;color:#2d8653;margin-bottom:8px;">
-        Payment Successful!
-      </h2>
-      <p style="font-size:14px;color:#555;margin-bottom:8px;"
-        id="successMessage">
+    <!-- Success state -->
+    <div id="stateSuccess" style="display:none;">
+      <div class="payment-icon">✅</div>
+      <div class="payment-title" id="successTitle">Payment Successful!</div>
+      <div class="payment-subtitle" id="successMessage">
         Your payment has been confirmed.
-      </p>
-      <p style="font-size:13px;color:#aaa;margin-bottom:24px;"
-        id="successRef"></p>
+      </div>
+      <div class="payment-ref" id="successRef"></div>
+      <div class="payment-subtitle" style="color:#2d8653;font-weight:600;">
+        Redirecting you now...
+      </div>
+    </div>
+
+    <!-- Pending state (transfer not completed) -->
+    <div id="statePending" style="display:none;">
+      <div class="payment-icon">⏳</div>
+      <div class="payment-title">Transfer Pending</div>
+      <div class="payment-subtitle">
+        We have not received your transfer yet.
+        Please complete the bank transfer and click verify again.
+      </div>
+      <div class="payment-ref" id="pendingRef"></div>
+      <button class="btn-primary" id="retryVerifyBtn"
+        style="margin-bottom:12px;">
+        Verify Again
+      </button>
+      <br/>
       <a href="index.html"
-        style="display:inline-block;background:#1a3c8f;color:white;
-        padding:12px 28px;border-radius:8px;font-weight:700;
-        text-decoration:none;">
-        Back to Home
+        style="font-size:13px;color:#888;text-decoration:none;">
+        Go back to home
       </a>
     </div>
 
-    <div id="errorState" style="display:none;">
-      <div style="font-size:56px;margin-bottom:16px;">❌</div>
-      <h2 style="font-size:22px;color:#c62828;margin-bottom:8px;">
-        Payment Issue
-      </h2>
-      <p style="font-size:14px;color:#555;margin-bottom:24px;"
-        id="errorMessage">
+    <!-- Error state -->
+    <div id="stateError" style="display:none;">
+      <div class="payment-icon">❌</div>
+      <div class="payment-title">Payment Issue</div>
+      <div class="payment-subtitle" id="errorMessage">
         We could not verify your payment.
-      </p>
-      <a href="index.html"
-        style="display:inline-block;background:#e85d04;color:white;
-        padding:12px 28px;border-radius:8px;font-weight:700;
-        text-decoration:none;">
-        Go Back
-      </a>
+      </div>
+      <a href="index.html" class="btn-primary">Go Back</a>
     </div>
 
   </div>
@@ -67,60 +149,142 @@
   <script>
     document.addEventListener('DOMContentLoaded', async function () {
 
-      var result = await IMCPaystack.handleRedirectReturn();
+      // Start progress bar animation
+      setTimeout(function () {
+        var fill = document.getElementById('progressFill');
+        if (fill) fill.style.width = '90%';
+      }, 100);
 
-      var loadingEl = document.getElementById('loadingState');
-      var successEl = document.getElementById('successState');
-      var errorEl   = document.getElementById('errorState');
+      function showState(name) {
+        ['stateLoading','stateSuccess','statePending','stateError']
+          .forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = id === name ? 'block' : 'none';
+          });
+      }
 
-      loadingEl.style.display = 'none';
+      // Get reference from URL
+      var urlParams = new URLSearchParams(window.location.search);
+      var reference = urlParams.get('reference') ||
+                      urlParams.get('trxref');
 
-      if (!result) {
-        // No reference in URL — just go home
+      console.log('[PaySuccess] Reference:', reference);
+
+      if (!reference) {
+        // No reference — user navigated here directly
         window.location.href = 'index.html';
         return;
       }
 
-      if (result.success) {
-        successEl.style.display = 'block';
+      // Get pending payment from localStorage
+      var pendingStr = localStorage.getItem('imc_pending_payment');
+      var pending    = null;
 
-        var msgEl = document.getElementById('successMessage');
-        var refEl = document.getElementById('successRef');
+      try {
+        if (pendingStr) pending = JSON.parse(pendingStr);
+      } catch (e) {
+        console.error('[PaySuccess] Parse error');
+      }
 
-        if (result.updateResult && result.updateResult.updated === 'vendor') {
-          msgEl.textContent = 'Vendor registration payment confirmed!';
+      if (!pending) {
+        showState('stateError');
+        document.getElementById('errorMessage').textContent =
+          'Payment session expired. Please contact support with reference: ' + reference;
+        return;
+      }
+
+      console.log('[PaySuccess] Verifying type:', pending.type);
+
+      // Verify with backend
+      async function doVerify() {
+        showState('stateLoading');
+
+        var result = await IMC_API.verifyPayment(
+          reference,
+          pending.type,
+          pending.metadata || {}
+        );
+
+        console.log('[PaySuccess] Verify result:', JSON.stringify(result));
+
+        if (result.success) {
+          // Clear pending payment
+          localStorage.removeItem('imc_pending_payment');
+
+          showState('stateSuccess');
+
+          var titleEl   = document.getElementById('successTitle');
+          var msgEl     = document.getElementById('successMessage');
+          var refEl     = document.getElementById('successRef');
+
+          if (refEl) {
+            refEl.textContent = 'Reference: ' + reference;
+          }
+
+          var updateResult = result.updateResult || {};
+          var redirectUrl  = updateResult.redirectUrl || 'index.html';
+
+          if (updateResult.updated === 'vendor') {
+            if (titleEl) titleEl.textContent = '🎉 Vendor Registration Confirmed!';
+            if (msgEl) msgEl.textContent =
+              'Welcome to Inside My Campus! Your vendor profile is now active.';
+            redirectUrl = 'vendor-dashboard.html';
+
+            // Update user role in localStorage
+            try {
+              var u = JSON.parse(localStorage.getItem('imc_user') || '{}');
+              u.role = 'vendor';
+              localStorage.setItem('imc_user', JSON.stringify(u));
+            } catch (e) {}
+
+          } else if (updateResult.updated === 'course') {
+            if (titleEl) titleEl.textContent = '🎓 Course Purchase Confirmed!';
+            if (msgEl) msgEl.textContent =
+              'You now have access to: ' + (updateResult.title || 'your course');
+            redirectUrl = 'online-courses.html';
+
+          } else if (updateResult.updated === 'ad') {
+            if (titleEl) titleEl.textContent = '📢 Ad Posted Successfully!';
+            if (msgEl) msgEl.textContent =
+              'Your ad is pending admin approval and will go live soon.';
+            redirectUrl = 'post-ad.html';
+          }
+
+          // Redirect after 3 seconds
           setTimeout(function () {
-            window.location.href = 'vendor-dashboard.html';
+            window.location.href = redirectUrl;
           }, 3000);
-        } else if (result.updateResult && result.updateResult.updated === 'course') {
-          msgEl.textContent = 'Course purchased! Redirecting...';
-          setTimeout(function () {
-            window.location.href = 'online-courses.html';
-          }, 3000);
-        } else if (result.updateResult && result.updateResult.updated === 'ad') {
-          msgEl.textContent = 'Ad submitted! Pending admin approval.';
-          setTimeout(function () {
-            window.location.href = 'post-ad.html';
-          }, 3000);
+
+        } else if (
+          result.message &&
+          result.message.toLowerCase().includes('not completed')
+        ) {
+          // Transfer not done yet
+          showState('statePending');
+          var pendingRefEl = document.getElementById('pendingRef');
+          if (pendingRefEl) {
+            pendingRefEl.textContent = 'Reference: ' + reference;
+          }
+
         } else {
-          msgEl.textContent = 'Payment confirmed! Redirecting...';
-          setTimeout(function () {
-            window.location.href = 'index.html';
-          }, 3000);
-        }
-
-        if (refEl && result.reference) {
-          refEl.textContent = 'Reference: ' + result.reference;
-        }
-
-      } else {
-        errorEl.style.display = 'block';
-        var errMsgEl = document.getElementById('errorMessage');
-        if (errMsgEl) {
-          errMsgEl.textContent = result.message ||
-            'Payment could not be verified. Please contact support.';
+          showState('stateError');
+          var errMsgEl = document.getElementById('errorMessage');
+          if (errMsgEl) {
+            errMsgEl.textContent = result.message ||
+              'Payment could not be verified. Reference: ' + reference;
+          }
         }
       }
+
+      // Initial verification
+      await doVerify();
+
+      // Retry button
+      var retryBtn = document.getElementById('retryVerifyBtn');
+      if (retryBtn) {
+        retryBtn.addEventListener('click', doVerify);
+      }
+
     });
   </script>
 
