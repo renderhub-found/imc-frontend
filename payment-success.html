@@ -9,96 +9,70 @@
     body {
       display:flex;align-items:center;justify-content:center;
       min-height:100vh;background:#f4f6fb;
-      font-family:Inter,sans-serif;padding:20px;
-      box-sizing:border-box;
+      font-family:Inter,sans-serif;padding:20px;box-sizing:border-box;
     }
     .card {
-      background:#fff;border-radius:20px;
-      padding:40px 28px;max-width:460px;width:100%;
+      background:#fff;border-radius:20px;padding:40px 28px;
+      max-width:460px;width:100%;
       box-shadow:0 8px 40px rgba(0,0,0,0.1);text-align:center;
     }
     .icon  { font-size:56px;margin-bottom:16px; }
-    .title {
-      font-size:22px;font-weight:800;color:#1a1a2e;margin-bottom:8px;
-    }
-    .sub {
-      font-size:14px;color:#666;line-height:1.6;margin-bottom:8px;
-    }
-    .ref { font-size:12px;color:#aaa;margin-bottom:20px;font-family:monospace; }
-    .btn {
+    .title { font-size:22px;font-weight:800;color:#1a1a2e;margin-bottom:8px; }
+    .sub   { font-size:14px;color:#666;line-height:1.6;margin-bottom:8px; }
+    .ref   { font-size:12px;color:#aaa;margin-bottom:20px;font-family:monospace; }
+    .btn   {
       display:inline-block;background:#1a3c8f;color:#fff;
       padding:13px 32px;border-radius:10px;font-weight:700;
-      font-size:15px;text-decoration:none;border:none;
-      cursor:pointer;font-family:Inter,sans-serif;
+      font-size:15px;text-decoration:none;border:none;cursor:pointer;
+      font-family:Inter,sans-serif;margin-top:8px;
     }
-    .btn-green { background:#2d8653; }
     .spinner {
       width:44px;height:44px;border:4px solid #e0e0e0;
       border-top-color:#1a3c8f;border-radius:50%;
       animation:spin 0.8s linear infinite;margin:0 auto 16px;
     }
-    .step {
-      font-size:13px;color:#888;margin-top:8px;min-height:20px;
-    }
+    .step { font-size:13px;color:#888;margin-top:10px;min-height:20px; }
     @keyframes spin { to { transform:rotate(360deg); } }
   </style>
 </head>
 <body>
 <div class="card">
 
-  <!-- Loading -->
-  <div id="stateLoading">
+  <div id="sLoading">
     <div class="spinner"></div>
     <div class="title">Processing Payment</div>
-    <div class="sub">Please wait while we confirm your payment...</div>
-    <div class="step" id="stepMsg">Verifying with Paystack...</div>
+    <div class="sub">Please wait while we verify your payment...</div>
+    <div class="step" id="stepMsg">Connecting to Paystack...</div>
   </div>
 
-  <!-- Success -->
-  <div id="stateSuccess" style="display:none;">
+  <div id="sSuccess" style="display:none;">
     <div class="icon">🎉</div>
-    <div class="title" id="successTitle">Payment Confirmed!</div>
-    <div class="sub"  id="successSub">Your account is being set up...</div>
-    <div class="ref"  id="successRef"></div>
-    <div class="sub" style="color:#2d8653;font-weight:600;">
-      Redirecting you now...
+    <div class="title" id="sTitle">Payment Confirmed!</div>
+    <div class="sub"   id="sSub">Setting up your account...</div>
+    <div class="ref"   id="sRef"></div>
+    <div class="sub" style="color:#2d8653;font-weight:600;margin-top:4px;">
+      Redirecting...
     </div>
   </div>
 
-  <!-- Already paid — needs vendor creation -->
-  <div id="stateComplete" style="display:none;">
-    <div class="icon">✅</div>
-    <div class="title">Payment Already Confirmed</div>
-    <div class="sub" id="completeSub">
-      Your payment was received. Setting up your account...
-    </div>
-    <div class="step" id="completeStep"></div>
-  </div>
-
-  <!-- Pending -->
-  <div id="statePending" style="display:none;">
+  <div id="sPending" style="display:none;">
     <div class="icon">⏳</div>
-    <div class="title">Transfer Not Received Yet</div>
+    <div class="title">Transfer Not Received</div>
     <div class="sub">
-      We have not received your transfer yet.
-      Please complete the bank transfer then click verify.
+      Complete your bank transfer then click Check Again.
     </div>
-    <div class="ref" id="pendingRef"></div>
-    <button class="btn" id="retryBtn" style="margin-bottom:12px;">
-      Check Again
-    </button>
+    <div class="ref" id="sPendingRef"></div>
+    <button class="btn" id="retryBtn">Check Again</button>
     <br/>
-    <a href="index.html" style="font-size:13px;color:#888;">
-      Back to home
-    </a>
+    <a href="index.html" style="font-size:13px;color:#888;
+      display:inline-block;margin-top:12px;">Back to home</a>
   </div>
 
-  <!-- Error -->
-  <div id="stateError" style="display:none;">
+  <div id="sError" style="display:none;">
     <div class="icon">❌</div>
     <div class="title">Payment Issue</div>
-    <div class="sub" id="errorSub">Could not verify your payment.</div>
-    <div class="ref" id="errorRef"></div>
+    <div class="sub" id="sErrMsg">Could not verify your payment.</div>
+    <div class="ref" id="sErrRef"></div>
     <a href="index.html" class="btn">Back to Home</a>
   </div>
 
@@ -109,318 +83,195 @@
 <script>
 document.addEventListener('DOMContentLoaded', async function () {
 
-  // ---- Helper: show one state ----
   function show(id) {
-    var ids = [
-      'stateLoading','stateSuccess','stateComplete',
-      'statePending','stateError'
-    ];
-    ids.forEach(function (s) {
+    ['sLoading','sSuccess','sPending','sError'].forEach(function (s) {
       var el = document.getElementById(s);
       if (el) el.style.display = s === id ? 'block' : 'none';
     });
   }
 
-  function setStep(msg) {
+  function step(msg) {
+    console.log('[PaySuccess]', msg);
     var el = document.getElementById('stepMsg');
     if (el) el.textContent = msg;
-    console.log('[PaySuccess]', msg);
+  }
+
+  function success(title, sub, ref, redirectUrl, delay) {
+    show('sSuccess');
+    var t = document.getElementById('sTitle');
+    var s = document.getElementById('sSub');
+    var r = document.getElementById('sRef');
+    if (t) t.textContent = title;
+    if (s) s.textContent = sub;
+    if (r) r.textContent = ref ? 'Ref: ' + ref : '';
+    setTimeout(function () {
+      window.location.href = redirectUrl || 'index.html';
+    }, delay || 3000);
+  }
+
+  function error(msg, ref) {
+    show('sError');
+    var m = document.getElementById('sErrMsg');
+    var r = document.getElementById('sErrRef');
+    if (m) m.innerHTML  = msg;
+    if (r) r.textContent = ref ? 'Reference: ' + ref : '';
   }
 
   // ---- Get reference from URL ----
-  var urlParams = new URLSearchParams(window.location.search);
-  var reference = urlParams.get('reference') ||
-                  urlParams.get('trxref')    || '';
+  var params    = new URLSearchParams(window.location.search);
+  var reference = params.get('reference') || params.get('trxref') || '';
 
-  console.log('[PaySuccess] Page loaded');
   console.log('[PaySuccess] Reference:', reference);
 
   if (!reference) {
-    console.log('[PaySuccess] No reference — going home');
     window.location.href = 'index.html';
     return;
   }
 
-  // ---- Get saved form data ----
-  var pendingStr = localStorage.getItem('imc_pending_payment');
-  var formStr    = localStorage.getItem('imc_vendor_form');
+  // ---- Get saved data ----
+  var pending    = null;
+  var vendorForm = null;
+  var savedRef   = localStorage.getItem('imc_vendor_payref');
 
-  var pending = null;
-  var form    = null;
+  try { pending    = JSON.parse(localStorage.getItem('imc_pending_payment') || 'null'); } catch(e) {}
+  try { vendorForm = JSON.parse(localStorage.getItem('imc_vendor_form')     || 'null'); } catch(e) {}
 
-  try { pending = pendingStr ? JSON.parse(pendingStr) : null; } catch(e) {}
-  try { form    = formStr    ? JSON.parse(formStr)    : null; } catch(e) {}
-
-  console.log('[PaySuccess] Pending payment:', JSON.stringify(pending));
-  console.log('[PaySuccess] Vendor form:', form ? 'exists' : 'not found');
+  console.log('[PaySuccess] pending:', JSON.stringify(pending));
+  console.log('[PaySuccess] vendorForm:', vendorForm ? 'exists' : 'null');
 
   if (!pending) {
-    show('stateError');
-    document.getElementById('errorSub').textContent =
-      'Payment session not found. Please contact support. Reference: ' + reference;
-    document.getElementById('errorRef').textContent =
-      'Ref: ' + reference;
+    error(
+      'Payment session expired.<br>If you completed payment, contact support with reference: <strong>' + reference + '</strong>',
+      reference
+    );
     return;
   }
 
-  // ---- STEP 1: Verify payment with Paystack ----
-  setStep('Verifying payment with Paystack...');
+  // ---- Verify function ----
+  async function doVerify() {
+    show('sLoading');
+    step('Verifying payment with Paystack...');
 
-  var verifyResult = await IMC_API.verifyPayment(
-    reference,
-    pending.type,
-    pending.metadata || {}
-  );
+    var result = await IMC_API.verifyPayment(
+      reference,
+      pending.type,
+      pending.metadata || {},
+      vendorForm
+    );
 
-  console.log('[PaySuccess] Verify result:', JSON.stringify(verifyResult));
+    console.log('[PaySuccess] Verify result:', JSON.stringify(result));
 
-  if (!verifyResult.success) {
-    // Check if it is pending (not completed yet)
-    if (verifyResult.message &&
-        verifyResult.message.toLowerCase().includes('not completed')) {
-      show('statePending');
-      var pRef = document.getElementById('pendingRef');
-      if (pRef) pRef.textContent = 'Reference: ' + reference;
+    if (!result.success) {
+      if (result.message && result.message.toLowerCase().includes('not completed')) {
+        show('sPending');
+        var pr = document.getElementById('sPendingRef');
+        if (pr) pr.textContent = 'Reference: ' + reference;
+        return;
+      }
+      error(result.message || 'Payment verification failed.', reference);
       return;
     }
 
-    show('stateError');
-    document.getElementById('errorSub').textContent =
-      verifyResult.message || 'Payment verification failed.';
-    document.getElementById('errorRef').textContent =
-      'Reference: ' + reference;
-    return;
+    // Payment verified
+    localStorage.removeItem('imc_pending_payment');
+    var updateResult = result.updateResult || {};
+    var type         = pending.type;
+
+    console.log('[PaySuccess] updateResult:', JSON.stringify(updateResult));
+
+    step('Payment confirmed! Setting up your account...');
+
+    // ---- Vendor registration ----
+    if (type === 'vendor_registration') {
+      localStorage.setItem('imc_vendor_payref', reference);
+
+      // If vendor was already created by verify, redirect
+      if (updateResult.updated === 'vendor' && updateResult.bizName !== 'not found') {
+        var u = IMC_API.getCurrentUser();
+        if (u) { u.role = 'vendor'; localStorage.setItem('imc_user', JSON.stringify(u)); }
+        localStorage.removeItem('imc_vendor_form');
+        localStorage.removeItem('imc_vendor_payref');
+        success('Vendor Registration Complete! 🎉',
+          'Welcome! Your vendor profile is now active.',
+          reference, 'vendor-dashboard.html', 3000);
+        return;
+      }
+
+      // Vendor not created yet — create now
+      if (!vendorForm || !vendorForm.bizName) {
+        error(
+          'Your payment was received but your registration form data was lost.<br><br>' +
+          '<strong>You will NOT be charged again.</strong><br><br>' +
+          'Please <a href="vendor.html" style="color:#1a3c8f;font-weight:700;">return to vendor registration</a> ' +
+          'to complete setup.',
+          reference
+        );
+        return;
+      }
+
+      step('Creating your vendor account...');
+
+      var regResult = await IMC_API.registerVendor({
+        fullName:    vendorForm.fullName,
+        university:  vendorForm.university,
+        bizName:     vendorForm.bizName,
+        whatsApp:    vendorForm.whatsApp,
+        category:    vendorForm.category,
+        description: vendorForm.description,
+        refCode:     vendorForm.refCode || '',
+        paymentRef:  reference
+      });
+
+      console.log('[PaySuccess] registerVendor:', JSON.stringify(regResult));
+
+      if (regResult.success || (regResult.message && regResult.message.includes('already'))) {
+        var u = IMC_API.getCurrentUser();
+        if (u) { u.role = 'vendor'; localStorage.setItem('imc_user', JSON.stringify(u)); }
+        localStorage.removeItem('imc_vendor_form');
+        localStorage.removeItem('imc_vendor_payref');
+        success('Vendor Registration Complete! 🎉',
+          'Welcome! Your vendor profile is now active.',
+          reference, 'vendor-dashboard.html', 3000);
+      } else {
+        error(
+          'Payment confirmed but account creation failed.<br>' +
+          '<strong>' + (regResult.message || 'Unknown error') + '</strong><br><br>' +
+          'Contact support. Reference: <strong>' + reference + '</strong>',
+          ''
+        );
+      }
+      return;
+    }
+
+    // ---- Course purchase ----
+    if (type === 'course_purchase') {
+      success('Course Purchased! 🎓',
+        'You now have access to: ' + (updateResult.title || 'your course'),
+        reference, 'online-courses.html', 3000);
+      return;
+    }
+
+    // ---- Ad posting ----
+    if (type === 'ad_posting') {
+      success('Ad Submitted! 📢',
+        'Your ad is pending approval and goes live within 24 hours.',
+        reference, 'post-ad.html', 3000);
+      return;
+    }
+
+    // Generic
+    success('Payment Successful!', 'Thank you for your payment.',
+      reference, 'index.html', 3000);
   }
 
-  // Payment verified!
-  console.log('[PaySuccess] Payment verified! Type:', pending.type);
-  setStep('Payment confirmed! Setting up your account...');
+  await doVerify();
 
-  // Save payment ref for recovery
-  localStorage.setItem('imc_vendor_payref', reference);
-  localStorage.removeItem('imc_pending_payment');
-
-  // ---- STEP 2: Handle each payment type ----
-
-  if (pending.type === 'vendor_registration') {
-    await handleVendorRegistration(reference, form, pending);
-
-  } else if (pending.type === 'course_purchase') {
-    await handleCoursePurchase(reference, pending, verifyResult);
-
-  } else if (pending.type === 'ad_posting') {
-    await handleAdPosting(reference, pending, verifyResult);
-
-  } else {
-    // Generic success
-    show('stateSuccess');
-    document.getElementById('successTitle').textContent = 'Payment Successful!';
-    document.getElementById('successRef').textContent   = 'Ref: ' + reference;
-    setTimeout(function () {
-      window.location.href = 'index.html';
-    }, 3000);
-  }
-
-  // ---- Retry button ----
   var retryBtn = document.getElementById('retryBtn');
   if (retryBtn) {
-    retryBtn.addEventListener('click', function () {
-      window.location.reload();
-    });
+    retryBtn.addEventListener('click', doVerify);
   }
 
 });
-
-// ================================================
-//   VENDOR REGISTRATION FLOW
-// ================================================
-
-async function handleVendorRegistration(reference, form, pending) {
-  console.log('[PaySuccess] handleVendorRegistration');
-
-  var stepEl = document.getElementById('stepMsg');
-  function step(msg) {
-    if (stepEl) stepEl.textContent = msg;
-    console.log('[PaySuccess]', msg);
-  }
-
-  // Get current user
-  var currentUser = null;
-  try {
-    currentUser = JSON.parse(localStorage.getItem('imc_user') || 'null');
-  } catch (e) {}
-
-  if (!currentUser) {
-    console.error('[PaySuccess] No user in localStorage!');
-    show('stateError');
-    document.getElementById('errorSub').textContent =
-      'Session expired. Please login and your vendor account will be created automatically.';
-    return;
-  }
-
-  // Check if vendor already exists
-  step('Checking vendor status...');
-  var profileResult = await IMC_API.getMyVendorProfile();
-  console.log('[PaySuccess] Profile check:', JSON.stringify(profileResult));
-
-  if (profileResult.success && profileResult.isVendor) {
-    console.log('[PaySuccess] Vendor already exists — redirecting');
-    localStorage.removeItem('imc_vendor_form');
-    localStorage.removeItem('imc_vendor_payref');
-    showSuccessAndRedirect(
-      'Vendor Account Active!',
-      'Your vendor account is ready.',
-      reference,
-      'vendor-dashboard.html',
-      2000
-    );
-    return;
-  }
-
-  // Need form data
-  if (!form) {
-    console.error('[PaySuccess] No form data found in localStorage!');
-
-    // Show form to re-enter details
-    show('stateError');
-    document.getElementById('errorSub').innerHTML =
-      'Your payment of ₦' + (pending.amount || 5000).toLocaleString() +
-      ' was received. However your registration form data was lost.<br><br>' +
-      '<strong>Reference: ' + reference + '</strong><br><br>' +
-      'Please <a href="vendor.html" style="color:#1a3c8f;font-weight:700;">' +
-      'return to vendor registration</a> — you will NOT be charged again.';
-    document.getElementById('errorRef').textContent = '';
-
-    // Save reference so vendor.html picks it up
-    localStorage.setItem('imc_vendor_payref', reference);
-    return;
-  }
-
-  // Create vendor record
-  step('Creating your vendor account...');
-  console.log('[PaySuccess] Calling registerVendor...');
-
-  var result = await IMC_API.registerVendor({
-    fullName:    form.fullName,
-    university:  form.university,
-    bizName:     form.bizName,
-    whatsApp:    form.whatsApp,
-    category:    form.category,
-    description: form.description,
-    refCode:     form.refCode || '',
-    paymentRef:  reference
-  });
-
-  console.log('[PaySuccess] registerVendor result:', JSON.stringify(result));
-
-  if (result.success) {
-    // Update user role
-    currentUser.role = 'vendor';
-    localStorage.setItem('imc_user', JSON.stringify(currentUser));
-
-    // Clean up
-    localStorage.removeItem('imc_vendor_form');
-    localStorage.removeItem('imc_vendor_payref');
-
-    showSuccessAndRedirect(
-      'Vendor Registration Complete! 🎉',
-      'Welcome to Inside My Campus! Your vendor profile is now active.',
-      reference,
-      'vendor-dashboard.html',
-      3000
-    );
-
-  } else if (result.message && (
-    result.message.includes('already registered') ||
-    result.message.includes('already a vendor')
-  )) {
-    // Already exists
-    localStorage.removeItem('imc_vendor_form');
-    localStorage.removeItem('imc_vendor_payref');
-    showSuccessAndRedirect(
-      'Already a Vendor!',
-      'Your vendor account is active.',
-      reference,
-      'vendor-dashboard.html',
-      2000
-    );
-
-  } else {
-    console.error('[PaySuccess] registerVendor failed:', result.message);
-    show('stateError');
-    document.getElementById('errorSub').innerHTML =
-      'Your payment was received but account creation failed.<br>' +
-      '<strong>Error: ' + (result.message || 'Unknown error') + '</strong><br><br>' +
-      'Please contact support with reference: <strong>' + reference + '</strong>';
-    document.getElementById('errorRef').textContent = '';
-  }
-}
-
-// ================================================
-//   COURSE PURCHASE FLOW
-// ================================================
-
-async function handleCoursePurchase(reference, pending, verifyResult) {
-  console.log('[PaySuccess] handleCoursePurchase');
-
-  var updateResult = verifyResult.updateResult || {};
-
-  showSuccessAndRedirect(
-    'Course Purchase Confirmed! 🎓',
-    'You now have access to: ' + (updateResult.title || 'your course'),
-    reference,
-    'online-courses.html',
-    3000
-  );
-}
-
-// ================================================
-//   AD POSTING FLOW
-// ================================================
-
-async function handleAdPosting(reference, pending, verifyResult) {
-  console.log('[PaySuccess] handleAdPosting');
-
-  var updateResult = verifyResult.updateResult || {};
-
-  showSuccessAndRedirect(
-    'Ad Posted Successfully! 📢',
-    'Your ad is pending admin approval and will go live within 24 hours.',
-    reference,
-    'post-ad.html',
-    3000
-  );
-}
-
-// ================================================
-//   HELPER: Show success and redirect
-// ================================================
-
-function showSuccessAndRedirect(title, subtitle, reference, url, delay) {
-  function show(id) {
-    ['stateLoading','stateSuccess','stateComplete','statePending','stateError']
-      .forEach(function (s) {
-        var el = document.getElementById(s);
-        if (el) el.style.display = s === id ? 'block' : 'none';
-      });
-  }
-
-  show('stateSuccess');
-
-  var titleEl = document.getElementById('successTitle');
-  var subEl   = document.getElementById('successSub');
-  var refEl   = document.getElementById('successRef');
-
-  if (titleEl) titleEl.textContent = title;
-  if (subEl)   subEl.textContent   = subtitle;
-  if (refEl)   refEl.textContent   = 'Ref: ' + reference;
-
-  console.log('[PaySuccess] Success! Redirecting to:', url, 'in', delay, 'ms');
-
-  setTimeout(function () {
-    window.location.href = url;
-  }, delay || 3000);
-}
 </script>
 </body>
 </html>

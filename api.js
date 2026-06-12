@@ -1,441 +1,304 @@
 // ================================================
 //   INSIDE MY CAMPUS — api.js
-//   Handles ALL communication with the backend
-//   Include this on every page that needs the API
+//   Single source of truth for all API calls
 // ================================================
 
 var IMC_API = (function () {
   'use strict';
 
-  // ---- Your backend URL ----
-  // Development: your local server
-  // Production: your deployed server (Railway, Render etc)
- // Auto-detects development vs production
   var BASE_URL = (
-  window.location.hostname === '127.0.0.1' ||
-  window.location.hostname === 'localhost'
-)
-  ? 'http://localhost:5000/api'
-  : 'https://imc-backend-0y2u.onrender.com/api';
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === 'localhost'
+  )
+    ? 'http://localhost:5000/api'
+    : 'https://imc-backend-0y2u.onrender.com/api';
 
-  // ================================================
-  //   HELPER: Get token from localStorage
-  // ================================================
-  function getToken() {
-    return localStorage.getItem('imc_token') || null;
-  }
+  console.log('[API] BASE_URL:', BASE_URL);
 
-  // ================================================
-  //   HELPER: Save login data to localStorage
-  // ================================================
+  // ---- Token helpers ----
+  function getToken()  { return localStorage.getItem('imc_token') || null; }
+
   function saveAuthData(token, user) {
-    localStorage.setItem('imc_token',      token);
-    localStorage.setItem('imc_user',       JSON.stringify(user));
-    localStorage.setItem('imc_logged_in',  'true');
+    localStorage.setItem('imc_token',     token);
+    localStorage.setItem('imc_user',      JSON.stringify(user));
+    localStorage.setItem('imc_logged_in', 'true');
   }
 
-  // ================================================
-  //   HELPER: Clear login data (logout)
-  // ================================================
   function clearAuthData() {
     localStorage.removeItem('imc_token');
     localStorage.removeItem('imc_user');
     localStorage.removeItem('imc_logged_in');
   }
 
-  // ================================================
-  //   HELPER: Check if user is logged in
-  // ================================================
   function isLoggedIn() {
-    var token = getToken();
-    var user  = localStorage.getItem('imc_user');
-    return token !== null && user !== null;
+    return !!getToken() && !!localStorage.getItem('imc_user');
   }
 
-  // ================================================
-  //   HELPER: Get current user object
-  // ================================================
   function getCurrentUser() {
     try {
       return JSON.parse(localStorage.getItem('imc_user') || 'null');
-    } catch (e) {
-      return null;
-    }
+    } catch (e) { return null; }
   }
 
-  // ================================================
-  //   CORE: Make API request
-  //   This is used by ALL other functions
-  // ================================================
+  // ---- Core request ----
   async function request(method, endpoint, data, requiresAuth) {
-  try {
-    var options = {
-      method:  method,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-
-    if (requiresAuth) {
-      var token = getToken();
-      if (!token) {
-        return {
-          success: false,
-          message: 'Not logged in. Please login first.'
-        };
-      }
-      options.headers['Authorization'] = 'Bearer ' + token;
-    }
-
-    if (data && (method === 'POST' || method === 'PUT')) {
-      options.body = JSON.stringify(data);
-    }
-
-    var response = await fetch(BASE_URL + endpoint, options);
-
-    var text = await response.text();
-    var result;
     try {
-      result = JSON.parse(text);
-    } catch (parseErr) {
-      console.error('Response not JSON:', text);
-      return {
-        success: false,
-        message: 'Server returned unexpected response.'
+      var options = {
+        method:  method,
+        headers: { 'Content-Type': 'application/json' }
       };
-    }
 
-    return result;
+      if (requiresAuth) {
+        var token = getToken();
+        if (!token) {
+          return { success: false, message: 'Not logged in.', notLoggedIn: true };
+        }
+        options.headers['Authorization'] = 'Bearer ' + token;
+      }
 
-  } catch (err) {
-    console.error('API Error:', err.message);
+      if (data && (method === 'POST' || method === 'PUT')) {
+        options.body = JSON.stringify(data);
+      }
 
-    // More specific error messages
-    if (err.message === 'Failed to fetch') {
+      var url      = BASE_URL + endpoint;
+      var response = await fetch(url, options);
+      var text     = await response.text();
+
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.error('[API] Non-JSON response from', endpoint, ':', text.substring(0, 200));
+        return { success: false, message: 'Server returned unexpected response.' };
+      }
+
+    } catch (err) {
+      console.error('[API] Request error:', endpoint, err.message);
       return {
-        success: false,
-        message: 'Cannot reach the server. This may be a CORS issue or the server is starting up. Please try again in 30 seconds.',
+        success:      false,
+        message:      'Connection error. Please check your internet.',
         networkError: true
       };
     }
-
-    if (err.message.includes('NetworkError')) {
-      return {
-        success: false,
-        message: 'Network error. Please check your internet connection.',
-        networkError: true
-      };
-    }
-
-    return {
-      success: false,
-      message: 'Something went wrong: ' + err.message,
-      networkError: true
-    };
   }
-}
+
   // ================================================
-  //   AUTH: Register
+  //   AUTH
   // ================================================
+
   async function register(userData) {
     var result = await request('POST', '/auth/register', userData, false);
-
-    if (result.success) {
-      saveAuthData(result.token, result.user);
-    }
-
+    if (result.success) saveAuthData(result.token, result.user);
     return result;
   }
 
-  // ================================================
-  //   AUTH: Login
-  // ================================================
   async function login(email, password) {
-    var result = await request(
-      'POST',
-      '/auth/login',
-      { email: email, password: password },
-      false
-    );
-
-    if (result.success) {
-      saveAuthData(result.token, result.user);
-    }
-
+    var result = await request('POST', '/auth/login',
+      { email: email, password: password }, false);
+    if (result.success) saveAuthData(result.token, result.user);
     return result;
   }
 
-  // ================================================
-  //   AUTH: Logout
-  // ================================================
   function logout() {
     clearAuthData();
     window.location.href = 'index.html';
   }
 
-  // ================================================
-  //   AUTH: Get my profile
-  // ================================================
   async function getProfile() {
     return await request('GET', '/auth/me', null, true);
   }
 
-  // ================================================
-  //   AUTH: Update profile
-  // ================================================
   async function updateProfile(data) {
     return await request('PUT', '/auth/update-profile', data, true);
   }
 
-  // ================================================
-  //   AUTH: Change password
-  // ================================================
   async function changePassword(currentPassword, newPassword) {
-    return await request(
-      'PUT',
-      '/auth/change-password',
-      {
-        currentPassword: currentPassword,
-        newPassword:     newPassword
-      },
-      true
-    );
+    return await request('PUT', '/auth/change-password',
+      { currentPassword: currentPassword, newPassword: newPassword }, true);
   }
 
   // ================================================
-  //   VENDORS: Get all vendors
+  //   VENDORS
   // ================================================
+
   async function getVendors(filters) {
-    var query = '';
-    if (filters) {
-      var params = new URLSearchParams(filters);
-      query      = '?' + params.toString();
-    }
-    return await request('GET', '/vendors' + query, null, false);
+    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+    return await request('GET', '/vendors' + q, null, false);
   }
 
-  // ================================================
-  //   VENDORS: Register as vendor
-  // ================================================
   async function registerVendor(vendorData) {
+    console.log('[API] registerVendor:', JSON.stringify(vendorData));
     return await request('POST', '/vendors/register', vendorData, true);
   }
 
-  // ================================================
-  //   VENDORS: Add product
-  // ================================================
-  async function addProduct(productData) {
-    return await request('POST', '/vendors/products', productData, true);
-  }
-
-  // ================================================
-  //   VENDORS: Get my vendor profile
-  // ================================================
   async function getMyVendorProfile() {
     return await request('GET', '/vendors/my-profile', null, true);
   }
 
-  // ================================================
-  //   AMBASSADORS: Register as ambassador
-  // ================================================
-  async function registerAmbassador(ambData) {
-    return await request(
-      'POST', '/ambassadors/register', ambData, true
-    );
+  async function addProduct(productData) {
+    return await request('POST', '/vendors/products', productData, true);
+  }
+
+  async function deleteProduct(productId) {
+    return await request('DELETE', '/vendors/products/' + productId, null, true);
   }
 
   // ================================================
-  //   AMBASSADORS: Get my ambassador profile
+  //   AMBASSADORS
   // ================================================
+
+  async function registerAmbassador(data) {
+    console.log('[API] registerAmbassador:', JSON.stringify(data));
+    return await request('POST', '/ambassadors/register', data, true);
+  }
+
   async function getMyAmbassadorProfile() {
-    return await request(
-      'GET', '/ambassadors/my-profile', null, true
-    );
+    return await request('GET', '/ambassadors/my-profile', null, true);
   }
 
-  // ADS: Get all approved ads
-async function getAds() {
-  return await request('GET', '/ads', null, false);
-}
+  async function requestWithdrawal(data) {
+    return await request('POST', '/ambassadors/withdraw', data, true);
+  }
 
-// ADS: Get my ads
-async function getMyAds() {
-  return await request('GET', '/ads/my-ads', null, true);
-}
-
-// ADS: Submit a new ad
-async function submitAd(adData) {
-  return await request('POST', '/ads', adData, true);
-}
-  
+  async function claimTaskReward(taskId, reward) {
+    return await request('POST', '/ambassadors/claim-task',
+      { taskId: taskId, reward: reward }, true);
+  }
 
   // ================================================
-  //   NEWS: Get all approved news
+  //   ADS
   // ================================================
+
+  async function getAds(filters) {
+    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+    return await request('GET', '/ads' + q, null, false);
+  }
+
+  async function getMyAds() {
+    return await request('GET', '/ads/my-ads', null, true);
+  }
+
+  async function submitAd(adData) {
+    console.log('[API] submitAd:', JSON.stringify(adData));
+    return await request('POST', '/ads', adData, true);
+  }
+
+  // ================================================
+  //   NEWS
+  // ================================================
+
   async function getNews(filters) {
-    var query = '';
-    if (filters) {
-      var params = new URLSearchParams(filters);
-      query      = '?' + params.toString();
-    }
-    return await request('GET', '/news' + query, null, false);
+    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+    return await request('GET', '/news' + q, null, false);
   }
 
-  // ================================================
-  //   NEWS: Submit news (ambassador)
-  // ================================================
   async function submitNews(newsData) {
     return await request('POST', '/news', newsData, true);
   }
 
   // ================================================
-  //   COURSES: Get all courses
+  //   COURSES
   // ================================================
-  async function getCourses() {
-    return await request('GET', '/courses', null, false);
+
+  async function getCourses(filters) {
+    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+    return await request('GET', '/courses' + q, null, false);
   }
 
-  // ================================================
-  //   COURSES: Purchase a course
-  // ================================================
+  async function getCourseById(id) {
+    return await request('GET', '/courses/' + id, null, false);
+  }
+
+  async function getMyCourses() {
+    return await request('GET', '/courses/my-courses', null, true);
+  }
+
   async function purchaseCourse(courseId, paymentRef) {
-    return await request(
-      'POST',
-      '/courses/purchase',
-      { courseId: courseId, paymentRef: paymentRef },
-      true
-    );
+    return await request('POST', '/courses/purchase',
+      { courseId: courseId, paymentRef: paymentRef }, true);
   }
 
   // ================================================
-//   PAYMENTS: Initialize
-// ================================================
-async function initializePayment(amount, type, description, metadata) {
-  console.log('[API] initializePayment called');
-  console.log('[API] amount:', amount, '| type:', type);
+  //   PAYMENTS
+  // ================================================
 
-  return await request(
-    'POST',
-    '/payments/initialize',
-    {
+  async function initializePayment(amount, type, description, metadata) {
+    console.log('[API] initializePayment — type:', type, '| amount:', amount);
+    return await request('POST', '/payments/initialize', {
       amount:      amount,
       type:        type,
       description: description || type,
       metadata:    metadata    || {}
-    },
-    true
-  );
-}
+    }, true);
+  }
 
-// ================================================
-//   PAYMENTS: Verify
-// ================================================
-async function verifyPayment(reference, type, metadata) {
-  console.log('[API] verifyPayment called');
-  console.log('[API] reference:', reference, '| type:', type);
-
-  return await request(
-    'POST',
-    '/payments/verify',
-    {
-      reference: reference,
-      type:      type,
-      metadata:  metadata || {}
-    },
-    true
-  );
-}
+  async function verifyPayment(reference, type, metadata, vendorForm) {
+    console.log('[API] verifyPayment — ref:', reference, '| type:', type);
+    return await request('POST', '/payments/verify', {
+      reference:  reference,
+      type:       type,
+      metadata:   metadata   || {},
+      vendorForm: vendorForm || null
+    }, true);
+  }
 
   // ================================================
-  //   ADMIN: Get stats
+  //   ADMIN
   // ================================================
+
   async function getAdminStats() {
     return await request('GET', '/admin/stats', null, true);
   }
 
-  // ================================================
-  //   ADMIN: Update vendor status
-  // ================================================
   async function updateVendorStatus(vendorId, status) {
-    return await request(
-      'PUT',
-      '/admin/vendors/' + vendorId,
-      { status: status },
-      true
-    );
+    return await request('PUT', '/admin/vendors/' + vendorId,
+      { status: status }, true);
   }
 
-  // ================================================
-  //   ADMIN: Update ad status
-  // ================================================
   async function updateAdStatus(adId, status) {
-    return await request(
-      'PUT',
-      '/admin/ads/' + adId,
-      { status: status },
-      true
-    );
+    return await request('PUT', '/admin/ads/' + adId,
+      { status: status }, true);
   }
 
-  // ================================================
-  //   HEALTH CHECK
-  // ================================================
   async function checkHealth() {
     return await request('GET', '/health', null, false);
   }
 
   // ================================================
-  //   PUBLIC API — what other files can use
+  //   PUBLIC API
   // ================================================
+
   return {
     // Auth
-    register:               register,
-    login:                  login,
-    logout:                 logout,
-    getProfile:             getProfile,
-    updateProfile:          updateProfile,
-    changePassword:         changePassword,
-    isLoggedIn:             isLoggedIn,
-    getCurrentUser:         getCurrentUser,
-    getToken:               getToken,
-    saveAuthData:           saveAuthData,
-    clearAuthData:          clearAuthData,
+    register, login, logout, getProfile,
+    updateProfile, changePassword,
+    isLoggedIn, getCurrentUser, getToken,
+    saveAuthData, clearAuthData,
 
     // Vendors
-    getVendors:             getVendors,
-    registerVendor:         registerVendor,
-    addProduct:             addProduct,
-    getMyVendorProfile:     getMyVendorProfile,
+    getVendors, registerVendor, getMyVendorProfile,
+    addProduct, deleteProduct,
 
     // Ambassadors
-    registerAmbassador:     registerAmbassador,
-    getMyAmbassadorProfile: getMyAmbassadorProfile,
+    registerAmbassador, getMyAmbassadorProfile,
+    requestWithdrawal, claimTaskReward,
 
-      // Ads
-     getAds:              getAds,
-     getMyAds:           getMyAds,
-     submitAd:           submitAd,  
+    // Ads
+    getAds, getMyAds, submitAd,
 
     // News
-    getNews:                getNews,
-    submitNews:             submitNews,
+    getNews, submitNews,
 
     // Courses
-    getCourses:             getCourses,
-    purchaseCourse:         purchaseCourse,
+    getCourses, getCourseById, getMyCourses, purchaseCourse,
 
     // Payments
-initializePayment: initializePayment,
-verifyPayment: verifyPayment,
+    initializePayment, verifyPayment,
 
     // Admin
-    getAdminStats:          getAdminStats,
-    updateVendorStatus:     updateVendorStatus,
-    updateAdStatus:         updateAdStatus,
+    getAdminStats, updateVendorStatus, updateAdStatus,
 
     // Health
-    checkHealth:            checkHealth
+    checkHealth
   };
 
 })();
-
