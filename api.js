@@ -1,6 +1,6 @@
 // ================================================
 //   INSIDE MY CAMPUS — api.js
-//   Single source of truth for all API calls
+//   Complete production API client
 // ================================================
 
 var IMC_API = (function () {
@@ -15,7 +15,7 @@ var IMC_API = (function () {
 
   console.log('[API] BASE_URL:', BASE_URL);
 
-  // ---- Token helpers ----
+  // ---- Helpers ----
   function getToken()  { return localStorage.getItem('imc_token') || null; }
 
   function saveAuthData(token, user) {
@@ -41,14 +41,14 @@ var IMC_API = (function () {
   }
 
   // ---- Core request ----
-  async function request(method, endpoint, data, requiresAuth) {
+  async function request(method, endpoint, data, auth) {
     try {
       var options = {
         method:  method,
         headers: { 'Content-Type': 'application/json' }
       };
 
-      if (requiresAuth) {
+      if (auth) {
         var token = getToken();
         if (!token) {
           return { success: false, message: 'Not logged in.', notLoggedIn: true };
@@ -60,42 +60,34 @@ var IMC_API = (function () {
         options.body = JSON.stringify(data);
       }
 
-      var url      = BASE_URL + endpoint;
-      var response = await fetch(url, options);
+      var response = await fetch(BASE_URL + endpoint, options);
       var text     = await response.text();
 
       try {
         return JSON.parse(text);
       } catch (e) {
-        console.error('[API] Non-JSON response from', endpoint, ':', text.substring(0, 200));
-        return { success: false, message: 'Server returned unexpected response.' };
+        console.error('[API] Non-JSON from', endpoint, ':', text.substring(0, 200));
+        return { success: false, message: 'Unexpected server response.' };
       }
 
     } catch (err) {
-      console.error('[API] Request error:', endpoint, err.message);
-      return {
-        success:      false,
-        message:      'Connection error. Please check your internet.',
-        networkError: true
-      };
+      console.error('[API]', endpoint, 'error:', err.message);
+      return { success: false, message: 'Connection error.', networkError: true };
     }
   }
 
-  // ================================================
-  //   AUTH
-  // ================================================
-
-  async function register(userData) {
-    var result = await request('POST', '/auth/register', userData, false);
-    if (result.success) saveAuthData(result.token, result.user);
-    return result;
+  // ---- AUTH ----
+  async function register(data) {
+    var r = await request('POST', '/auth/register', data, false);
+    if (r.success) saveAuthData(r.token, r.user);
+    return r;
   }
 
   async function login(email, password) {
-    var result = await request('POST', '/auth/login',
+    var r = await request('POST', '/auth/login',
       { email: email, password: password }, false);
-    if (result.success) saveAuthData(result.token, result.user);
-    return result;
+    if (r.success) saveAuthData(r.token, r.user);
+    return r;
   }
 
   function logout() {
@@ -111,41 +103,44 @@ var IMC_API = (function () {
     return await request('PUT', '/auth/update-profile', data, true);
   }
 
-  async function changePassword(currentPassword, newPassword) {
+  async function changePassword(current, next) {
     return await request('PUT', '/auth/change-password',
-      { currentPassword: currentPassword, newPassword: newPassword }, true);
+      { currentPassword: current, newPassword: next }, true);
   }
 
-  // ================================================
-  //   VENDORS
-  // ================================================
+  async function forgotPassword(email) {
+    return await request('POST', '/auth/forgot-password', { email: email }, false);
+  }
 
-  async function getVendors(filters) {
-    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  async function resetPassword(token, password) {
+    return await request('POST', '/auth/reset-password',
+      { token: token, password: password }, false);
+  }
+
+  // ---- VENDORS ----
+  async function getVendors(f) {
+    var q = f ? '?' + new URLSearchParams(f).toString() : '';
     return await request('GET', '/vendors' + q, null, false);
   }
 
-  async function registerVendor(vendorData) {
-    console.log('[API] registerVendor:', JSON.stringify(vendorData));
-    return await request('POST', '/vendors/register', vendorData, true);
+  async function registerVendor(data) {
+    console.log('[API] registerVendor:', JSON.stringify(data));
+    return await request('POST', '/vendors/register', data, true);
   }
 
   async function getMyVendorProfile() {
     return await request('GET', '/vendors/my-profile', null, true);
   }
 
-  async function addProduct(productData) {
-    return await request('POST', '/vendors/products', productData, true);
+  async function addProduct(data) {
+    return await request('POST', '/vendors/products', data, true);
   }
 
-  async function deleteProduct(productId) {
-    return await request('DELETE', '/vendors/products/' + productId, null, true);
+  async function deleteProduct(id) {
+    return await request('DELETE', '/vendors/products/' + id, null, true);
   }
 
-  // ================================================
-  //   AMBASSADORS
-  // ================================================
-
+  // ---- AMBASSADORS ----
   async function registerAmbassador(data) {
     console.log('[API] registerAmbassador:', JSON.stringify(data));
     return await request('POST', '/ambassadors/register', data, true);
@@ -164,12 +159,9 @@ var IMC_API = (function () {
       { taskId: taskId, reward: reward }, true);
   }
 
-  // ================================================
-  //   ADS
-  // ================================================
-
-  async function getAds(filters) {
-    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  // ---- ADS ----
+  async function getAds(f) {
+    var q = f ? '?' + new URLSearchParams(f).toString() : '';
     return await request('GET', '/ads' + q, null, false);
   }
 
@@ -177,30 +169,24 @@ var IMC_API = (function () {
     return await request('GET', '/ads/my-ads', null, true);
   }
 
-  async function submitAd(adData) {
-    console.log('[API] submitAd:', JSON.stringify(adData));
-    return await request('POST', '/ads', adData, true);
+  async function submitAd(data) {
+    console.log('[API] submitAd:', JSON.stringify(data));
+    return await request('POST', '/ads', data, true);
   }
 
-  // ================================================
-  //   NEWS
-  // ================================================
-
-  async function getNews(filters) {
-    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  // ---- NEWS ----
+  async function getNews(f) {
+    var q = f ? '?' + new URLSearchParams(f).toString() : '';
     return await request('GET', '/news' + q, null, false);
   }
 
-  async function submitNews(newsData) {
-    return await request('POST', '/news', newsData, true);
+  async function submitNews(data) {
+    return await request('POST', '/news', data, true);
   }
 
-  // ================================================
-  //   COURSES
-  // ================================================
-
-  async function getCourses(filters) {
-    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  // ---- COURSES ----
+  async function getCourses(f) {
+    var q = f ? '?' + new URLSearchParams(f).toString() : '';
     return await request('GET', '/courses' + q, null, false);
   }
 
@@ -212,15 +198,7 @@ var IMC_API = (function () {
     return await request('GET', '/courses/my-courses', null, true);
   }
 
-  async function purchaseCourse(courseId, paymentRef) {
-    return await request('POST', '/courses/purchase',
-      { courseId: courseId, paymentRef: paymentRef }, true);
-  }
-
-  // ================================================
-  //   PAYMENTS
-  // ================================================
-
+  // ---- PAYMENTS ----
   async function initializePayment(amount, type, description, metadata) {
     console.log('[API] initializePayment — type:', type, '| amount:', amount);
     return await request('POST', '/payments/initialize', {
@@ -241,62 +219,38 @@ var IMC_API = (function () {
     }, true);
   }
 
-  // ================================================
-  //   ADMIN
-  // ================================================
-
+  // ---- ADMIN ----
   async function getAdminStats() {
     return await request('GET', '/admin/stats', null, true);
   }
 
-  async function updateVendorStatus(vendorId, status) {
-    return await request('PUT', '/admin/vendors/' + vendorId,
-      { status: status }, true);
-  }
-
-  async function updateAdStatus(adId, status) {
-    return await request('PUT', '/admin/ads/' + adId,
-      { status: status }, true);
+  async function updateVendorStatus(id, status) {
+    return await request('PUT', '/admin/vendors/' + id, { status: status }, true);
   }
 
   async function checkHealth() {
     return await request('GET', '/health', null, false);
   }
 
-  // ================================================
-  //   PUBLIC API
-  // ================================================
-
   return {
     // Auth
     register, login, logout, getProfile,
-    updateProfile, changePassword,
-    isLoggedIn, getCurrentUser, getToken,
-    saveAuthData, clearAuthData,
-
+    updateProfile, changePassword, forgotPassword, resetPassword,
+    isLoggedIn, getCurrentUser, getToken, saveAuthData, clearAuthData,
     // Vendors
-    getVendors, registerVendor, getMyVendorProfile,
-    addProduct, deleteProduct,
-
+    getVendors, registerVendor, getMyVendorProfile, addProduct, deleteProduct,
     // Ambassadors
-    registerAmbassador, getMyAmbassadorProfile,
-    requestWithdrawal, claimTaskReward,
-
+    registerAmbassador, getMyAmbassadorProfile, requestWithdrawal, claimTaskReward,
     // Ads
     getAds, getMyAds, submitAd,
-
     // News
     getNews, submitNews,
-
     // Courses
-    getCourses, getCourseById, getMyCourses, purchaseCourse,
-
+    getCourses, getCourseById, getMyCourses,
     // Payments
     initializePayment, verifyPayment,
-
     // Admin
-    getAdminStats, updateVendorStatus, updateAdStatus,
-
+    getAdminStats, updateVendorStatus,
     // Health
     checkHealth
   };

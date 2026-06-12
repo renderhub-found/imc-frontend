@@ -1,6 +1,5 @@
 // ================================================
 //   POST AD — post-ad.js
-//   Production version — real Paystack only
 // ================================================
 
 (function () {
@@ -14,43 +13,34 @@
 
   document.addEventListener('DOMContentLoaded', function () {
 
-    var loggedIn    = localStorage.getItem('imc_logged_in');
-    var currentUser = null;
-
-    try {
-      currentUser = JSON.parse(localStorage.getItem('imc_user') || 'null');
-    } catch (e) {
-      currentUser = null;
-    }
-
-    var formBox      = document.getElementById('adFormBox');
-    var noLoginBox   = document.getElementById('notLoggedInBox');
-    var myAdsSection = document.getElementById('myAdsSection');
-
-    if (!loggedIn || !currentUser) {
-      if (formBox)    formBox.style.display    = 'none';
-      if (noLoginBox) noLoginBox.style.display = 'flex';
+    if (!IMC_API.isLoggedIn()) {
+      var fb = document.getElementById('adFormBox');
+      var nb = document.getElementById('notLoggedInBox');
+      if (fb) fb.style.display = 'none';
+      if (nb) nb.style.display = 'flex';
       return;
     }
 
+    var currentUser = IMC_API.getCurrentUser();
+
+    // Load my ads
+    var myAdsSection = document.getElementById('myAdsSection');
     if (myAdsSection) {
       myAdsSection.style.display = 'block';
-      renderMyAds(currentUser.email);
+      loadMyAds();
     }
 
-    // ---- Image upload preview ----
-    var adImgInput = document.getElementById('adImageFile');
-    if (adImgInput) {
-      adImgInput.addEventListener('change', function () {
+    // Image preview
+    var imgInput = document.getElementById('adImageFile');
+    if (imgInput) {
+      imgInput.addEventListener('change', function () {
         var file = this.files[0];
         if (!file) return;
-
         if (file.size > 5 * 1024 * 1024) {
           alert('Image must be under 5MB.');
           this.value = '';
           return;
         }
-
         var reader = new FileReader();
         reader.onload = function (e) {
           var prev = document.getElementById('adPreviewImg');
@@ -64,26 +54,23 @@
       });
     }
 
-    // ---- Duration change ----
-    var durationSel = document.getElementById('adDuration');
-    var priceTextEl = document.getElementById('adPriceText');
-    var daysTextEl  = document.getElementById('adDaysText');
-    var btnTextEl   = document.getElementById('adBtnText');
-
-    if (durationSel) {
-      durationSel.addEventListener('change', function () {
-        var days    = parseInt(this.value);
-        var pricing = pricingTable[days];
-        if (!pricing) return;
-
-        if (priceTextEl) priceTextEl.textContent = pricing.label;
-        if (daysTextEl)  daysTextEl.textContent  = days + ' days';
-        if (btnTextEl)   btnTextEl.innerHTML =
-          '<i class="fas fa-credit-card"></i> Submit & Pay ' + pricing.label;
+    // Duration change
+    var durSel = document.getElementById('adDuration');
+    if (durSel) {
+      durSel.addEventListener('change', function () {
+        var p   = pricingTable[parseInt(this.value)];
+        if (!p) return;
+        var pt = document.getElementById('adPriceText');
+        var dt = document.getElementById('adDaysText');
+        var bt = document.getElementById('adBtnText');
+        if (pt) pt.textContent = p.label;
+        if (dt) dt.textContent = this.value + ' days';
+        if (bt) bt.innerHTML =
+          '<i class="fas fa-credit-card"></i> Submit & Pay ' + p.label;
       });
     }
 
-    // ---- Submit button ----
+    // Submit button
     var submitBtn = document.getElementById('adSubmitBtn');
     if (submitBtn) {
       submitBtn.addEventListener('click', function () {
@@ -94,7 +81,7 @@
   });
 
   // ================================================
-  //   HANDLE AD SUBMIT
+  //   HANDLE SUBMIT
   // ================================================
 
   function handleAdSubmit(currentUser) {
@@ -103,13 +90,12 @@
     var location    = getVal('adLocation');
     var contact     = getVal('adContact');
     var description = getVal('adDescription');
-    var durationEl  = document.getElementById('adDuration');
-    var duration    = durationEl ? parseInt(durationEl.value) || 7 : 7;
-    var adImgInput  = document.getElementById('adImageFile');
+    var durEl       = document.getElementById('adDuration');
+    var duration    = durEl ? parseInt(durEl.value) || 7 : 7;
+    var imgInput    = document.getElementById('adImageFile');
 
     var errorBox = document.getElementById('adError');
     var errorMsg = document.getElementById('adErrorMsg');
-
     if (errorBox) errorBox.style.display = 'none';
 
     function showErr(msg) {
@@ -118,117 +104,102 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Validate
-    if (!title)       { showErr('Please enter an ad title.');               return; }
-    if (!category)    { showErr('Please select a category.');               return; }
-    if (!location)    { showErr('Please enter your location.');             return; }
-    if (!contact)     { showErr('Please enter a contact number.');          return; }
-    if (!description) { showErr('Please add a description for your ad.');   return; }
+    if (!title)       { showErr('Please enter an ad title.');     return; }
+    if (!category)    { showErr('Please select a category.');     return; }
+    if (!location)    { showErr('Please enter your location.');   return; }
+    if (!contact)     { showErr('Please enter a contact number.'); return; }
+    if (!description) { showErr('Please add a description.');     return; }
 
     var pricing = pricingTable[duration] || pricingTable[7];
 
-    // Read image then proceed
-    var imgFile = adImgInput && adImgInput.files[0];
+    var adFormData = {
+      title:       title,
+      category:    category,
+      location:    location,
+      contact:     contact,
+      description: description,
+      duration:    duration,
+      ownerName:   currentUser.firstName || ''
+    };
+
+    var imgFile = imgInput && imgInput.files[0];
+
+    function proceed(imageData) {
+      adFormData.image = imageData || '';
+
+      // Save ad form to localStorage before payment redirect
+      localStorage.setItem('imc_ad_form', JSON.stringify(adFormData));
+      console.log('[PostAd] Ad form saved. Opening payment...');
+      console.log('[PostAd] type: ad_posting | amount:', pricing.price);
+
+      IMCPaystack.openPayment({
+        amount:      pricing.price,
+        type:        'ad_posting',
+        description: 'Ad Posting — ' + duration + ' days — Inside My Campus',
+        email:       currentUser.email,
+        metadata: {
+          userId:    currentUser.id || currentUser._id || '',
+          userEmail: currentUser.email,
+          adForm:    adFormData
+        },
+        onSuccess: function (payRef) {
+          var ref = payRef && payRef.reference ? payRef.reference : String(payRef);
+          console.log('[PostAd] onSuccess ref:', ref);
+          handleAdAfterPayment(adFormData, ref);
+        },
+        onCancel: function () {
+          localStorage.removeItem('imc_ad_form');
+          showErr('Payment cancelled.');
+        }
+      });
+    }
 
     if (imgFile) {
       var reader = new FileReader();
-      reader.onload = function (e) {
-        openAdPayment(currentUser, {
-          title, category, location, contact,
-          description, duration, pricing,
-          image: e.target.result
-        });
-      };
-      reader.onerror = function () {
-        openAdPayment(currentUser, {
-          title, category, location, contact,
-          description, duration, pricing,
-          image: ''
-        });
-      };
+      reader.onload  = function (e) { proceed(e.target.result); };
+      reader.onerror = function ()  { proceed(''); };
       reader.readAsDataURL(imgFile);
     } else {
-      openAdPayment(currentUser, {
-        title, category, location, contact,
-        description, duration, pricing,
-        image: ''
-      });
+      proceed('');
     }
   }
 
   // ================================================
-  //   OPEN PAYSTACK PAYMENT FOR AD
+  //   AFTER PAYMENT
   // ================================================
 
-  function openAdPayment(currentUser, adData) {
+  async function handleAdAfterPayment(adFormData, paymentRef) {
     var submitBtn = document.getElementById('adSubmitBtn');
     var btnText   = document.getElementById('adBtnText');
     var spinner   = document.getElementById('adSpinner');
-
-    console.log('[PostAd] Opening payment');
-    console.log('[PostAd] Amount:', adData.pricing.price);
-    console.log('[PostAd] Type: ad_posting');
-
-    IMCPaystack.openPayment({
-      amount:      adData.pricing.price,
-      type:        'ad_posting',
-      description: 'Ad Posting Fee — ' + adData.duration + ' days — Inside My Campus',
-      email:       currentUser.email,
-      metadata: {
-        userId:    currentUser.id || currentUser._id || '',
-        userEmail: currentUser.email,
-        adTitle:   adData.title,
-        duration:  adData.duration
-      },
-      onSuccess: function (payRef) {
-        handleAdAfterPayment(currentUser, adData, payRef);
-      },
-      onCancel: function () {
-        var errorBox = document.getElementById('adError');
-        var errorMsg = document.getElementById('adErrorMsg');
-        if (errorMsg) errorMsg.textContent   = 'Payment cancelled. Please try again.';
-        if (errorBox) errorBox.style.display = 'flex';
-      }
-    });
-  }
-
-  // ================================================
-  //   AFTER PAYMENT — SAVE AD TO BACKEND
-  // ================================================
-
-  async function handleAdAfterPayment(currentUser, adData, payRef) {
-    var submitBtn = document.getElementById('adSubmitBtn');
-    var btnText   = document.getElementById('adBtnText');
-    var spinner   = document.getElementById('adSpinner');
-    var errorBox  = document.getElementById('adError');
-    var errorMsg  = document.getElementById('adErrorMsg');
 
     if (btnText)   btnText.style.display   = 'none';
     if (spinner)   spinner.style.display   = 'inline';
     if (submitBtn) submitBtn.disabled      = true;
 
-    var reference = payRef && payRef.reference
-      ? payRef.reference
-      : (payRef || 'PAID');
-
     var result = await IMC_API.submitAd({
-      title:       adData.title,
-      category:    adData.category,
-      location:    adData.location,
-      contact:     adData.contact,
-      description: adData.description,
-      duration:    adData.duration,
-      image:       adData.image,
-      paymentRef:  reference
+      title:       adFormData.title,
+      category:    adFormData.category,
+      location:    adFormData.location,
+      contact:     adFormData.contact,
+      description: adFormData.description,
+      duration:    adFormData.duration,
+      image:       adFormData.image || '',
+      paymentRef:  paymentRef
     });
 
+    console.log('[PostAd] submitAd result:', JSON.stringify(result));
+
     if (result.success) {
+      localStorage.removeItem('imc_ad_form');
       clearAdForm();
-      renderMyAds(currentUser.email);
-      showSuccessBanner('Ad submitted! Pending admin approval — goes live within 24 hours.');
+      await loadMyAds();
+      showSuccessBanner('Ad submitted! Pending admin approval.');
     } else {
-      if (errorMsg) errorMsg.textContent   = result.message || 'Ad submission failed.';
-      if (errorBox) errorBox.style.display = 'flex';
+      var eb = document.getElementById('adError');
+      var em = document.getElementById('adErrorMsg');
+      if (em) em.textContent   = result.message || 'Ad submission failed.';
+      if (eb) eb.style.display = 'flex';
     }
 
     if (btnText)   btnText.style.display   = 'inline';
@@ -237,24 +208,22 @@
   }
 
   // ================================================
-  //   RENDER MY ADS
+  //   LOAD MY ADS
   // ================================================
 
-  async function renderMyAds(email) {
+  async function loadMyAds() {
     var container = document.getElementById('myAdsList');
     if (!container) return;
 
-    container.innerHTML =
-      '<p style="color:#888;font-size:14px;">Loading your ads...</p>';
+    container.innerHTML = '<p style="color:#888;font-size:14px;">Loading...</p>';
 
     var result = await IMC_API.getMyAds();
 
     if (!result.success || !result.ads || result.ads.length === 0) {
       container.innerHTML =
-        '<div class="empty-state-card">' +
-        '<div style="font-size:40px;">📋</div>' +
-        '<p>You have not posted any ads yet.</p>' +
-        '</div>';
+        '<div style="text-align:center;padding:24px;color:#888;">' +
+        '<div style="font-size:32px;">📋</div>' +
+        '<p>No ads posted yet.</p></div>';
       return;
     }
 
@@ -263,32 +232,18 @@
         ad.status === 'approved' ? '✅ Live' :
         ad.status === 'rejected' ? '❌ Rejected' : '⏳ Pending';
 
-      var imgSrc = ad.image ||
-        'https://via.placeholder.com/120x90?text=Ad';
-
       return '<div class="my-ad-card">' +
-        '<img src="' + imgSrc + '" alt="' + escapeHtml(ad.title) + '" ' +
-        'class="my-ad-img" ' +
-        'onerror="this.src=\'https://via.placeholder.com/120x90?text=Ad\'"/>' +
         '<div class="my-ad-body">' +
-        '<h4>' + escapeHtml(ad.title) + '</h4>' +
-        '<p class="my-ad-cat">' +
-        '<i class="fas fa-tag"></i> ' + escapeHtml(ad.category) + '</p>' +
-        '<p class="my-ad-loc">' +
-        '<i class="fas fa-map-marker-alt"></i> ' + escapeHtml(ad.location) + '</p>' +
-        '<p class="my-ad-date">' +
-        '<i class="fas fa-calendar"></i> ' +
-        'Duration: ' + (ad.duration || 7) + ' days' +
-        '</p>' +
+        '<h4>' + esc(ad.title) + '</h4>' +
+        '<p><i class="fas fa-tag"></i> ' + esc(ad.category) + '</p>' +
+        '<p><i class="fas fa-map-marker-alt"></i> ' + esc(ad.location) + '</p>' +
+        '<p><i class="fas fa-calendar"></i> ' + (ad.duration || 7) + ' days</p>' +
         '</div>' +
         '<div class="my-ad-status">' +
-        '<span class="status-badge ' + ad.status + '">' +
-        statusLabel + '</span>' +
-        '<span style="font-size:11px;color:#aaa;display:block;margin-top:6px;">' +
-        '₦' + (ad.price || 0).toLocaleString() + ' paid' +
-        '</span>' +
-        '</div>' +
-        '</div>';
+        '<span class="status-badge ' + ad.status + '">' + statusLabel + '</span>' +
+        '<span style="font-size:11px;color:#aaa;display:block;margin-top:4px;">' +
+        '₦' + (ad.price || 0).toLocaleString() + '</span>' +
+        '</div></div>';
     }).join('');
   }
 
@@ -301,54 +256,31 @@
     return el ? el.value.trim() : '';
   }
 
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   function clearAdForm() {
-    var fields = ['adTitle','adCategory','adLocation','adContact','adDescription'];
-    fields.forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-
+    ['adTitle','adCategory','adLocation','adContact','adDescription']
+      .forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
     var dur = document.getElementById('adDuration');
     if (dur) dur.value = '7';
-
     window.removeAdImage && window.removeAdImage();
-
-    var btnText = document.getElementById('adBtnText');
-    if (btnText) btnText.innerHTML =
-      '<i class="fas fa-credit-card"></i> Submit & Pay ₦2,000';
-
-    var priceText = document.getElementById('adPriceText');
-    if (priceText) priceText.textContent = '₦2,000';
   }
 
   function showSuccessBanner(msg) {
-    var existing = document.getElementById('adSuccessBanner');
-    if (existing) existing.remove();
-
-    var banner       = document.createElement('div');
-    banner.id        = 'adSuccessBanner';
-    banner.className = 'auth-success';
-    banner.style.cssText = 'margin-bottom:16px;';
-    banner.innerHTML =
-      '<i class="fas fa-check-circle"></i>' +
-      '<span>' + msg + '</span>';
-
-    var formBox = document.getElementById('adFormBox');
-    if (formBox) formBox.insertBefore(banner, formBox.firstChild);
-
-    setTimeout(function () {
-      if (banner.parentNode) banner.remove();
-    }, 6000);
-
+    var b    = document.createElement('div');
+    b.style.cssText =
+      'background:#e8f9ee;border:1px solid #2d8653;border-radius:8px;' +
+      'padding:12px 16px;margin-bottom:16px;font-size:14px;color:#2d8653;';
+    b.textContent = msg;
+    var fb = document.getElementById('adFormBox');
+    if (fb) fb.insertBefore(b, fb.firstChild);
+    setTimeout(function () { if (b.parentNode) b.remove(); }, 6000);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

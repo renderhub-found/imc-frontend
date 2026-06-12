@@ -113,6 +113,46 @@ if (toggleLoginPassword) {
 
 
 // ================================================
+//   FORGOT PASSWORD
+// ================================================
+
+var forgotBtn = document.getElementById('forgotPasswordBtn');
+
+if (forgotBtn) {
+  forgotBtn.addEventListener('click', async function () {
+    var email    = getVal('forgotEmail');
+    var errBox   = document.getElementById('forgotError');
+    var errMsg   = document.getElementById('forgotErrorMsg');
+    var okBox    = document.getElementById('forgotSuccess');
+    var btnText  = document.getElementById('forgotBtnText');
+    var spinner  = document.getElementById('forgotSpinner');
+
+    if (errBox) errBox.style.display = 'none';
+    if (okBox)  okBox.style.display  = 'none';
+
+    if (!email) {
+      if (errMsg) errMsg.textContent   = 'Please enter your email address.';
+      if (errBox) errBox.style.display = 'flex';
+      return;
+    }
+
+    if (btnText) btnText.style.display = 'none';
+    if (spinner) spinner.style.display = 'inline';
+    forgotBtn.disabled = true;
+
+    var result = await IMC_API.forgotPassword(email);
+
+    if (spinner) spinner.style.display = 'none';
+    if (btnText) btnText.style.display = 'inline';
+    forgotBtn.disabled = false;
+
+    if (okBox) {
+      okBox.style.display = 'flex';
+    }
+  });
+}
+
+// ================================================
 //   SIGNUP LOGIC
 // ================================================
 
