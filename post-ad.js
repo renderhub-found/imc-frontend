@@ -72,11 +72,18 @@
 
     // Submit button
     var submitBtn = document.getElementById('adSubmitBtn');
-    if (submitBtn) {
-      submitBtn.addEventListener('click', function () {
-        handleAdSubmit(currentUser);
-      });
-    }
+if (submitBtn) {
+  submitBtn.addEventListener('click', function () {
+    console.log('[PostAd] Submit button clicked');
+    console.log('[PostAd] IMC_API available:', typeof IMC_API);
+    console.log('[PostAd] IMCPaystack available:', typeof IMCPaystack);
+    console.log('[PostAd] isLoggedIn:', IMC_API.isLoggedIn());
+    handleAdSubmit(currentUser);
+  });
+  console.log('[PostAd] Submit button listener attached');
+} else {
+  console.error('[PostAd] ERROR: adSubmitBtn not found in DOM!');
+}
 
   });
 
