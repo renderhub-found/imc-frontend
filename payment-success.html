@@ -234,19 +234,58 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // ---- Ad posting ----
     if (type === 'ad_posting') {
-      ok('Ad Submitted! 📢',
-         'Your ad is pending approval and goes live within 24 hours.',
-         reference, 'post-ad.html', 3000);
-      return;
-    }
+  // Try to get saved ad form
+  var adForm = null;
+  try {
+    adForm = JSON.parse(localStorage.getItem('imc_ad_form') || 'null');
+  } catch (e) { adForm = null; }
 
-    ok('Payment Successful!', 'Thank you.', reference, 'index.html', 3000);
+  // Verify payment
+  var adVerify = await IMC_API.verifyPayment(
+    reference, 'ad_posting', pending.metadata || {}, null
+  );
+
+  if (!adVerify.success) {
+    if (adVerify.message && adVerify.message.toLowerCase().includes('not completed')) {
+      pendingState(reference);
+    } else {
+      errorState(adVerify.message || 'Verification failed');
+    }
+    return;
   }
 
-  await doVerify();
+  // If ad already created during verify, done
+  if (adVerify.updateResult && adVerify.updateResult.updated === 'ad') {
+    localStorage.removeItem('imc_ad_form');
+    successAndRedirect('Ad Submitted!', 'post-ad.html');
+    return;
+  }
 
-  var retryBtn = document.getElementById('retryBtn');
-  if (retryBtn) retryBtn.addEventListener('click', doVerify);
+  // Create ad now if form data available
+  if (adForm && adForm.title) {
+    var adResult = await IMC_API.submitAd({
+      title:       adForm.title,
+      category:    adForm.category,
+      location:    adForm.location,
+      contact:     adForm.contact,
+      description: adForm.description,
+      duration:    adForm.duration,
+      image:       adForm.image || '',
+      paymentRef:  reference
+    });
+
+    localStorage.removeItem('imc_ad_form');
+
+    if (adResult.success) {
+      successAndRedirect('Ad Posted!', 'post-ad.html');
+    } else {
+      errorState('Ad creation failed: ' + (adResult.message || 'Error') +
+                 '. Reference: ' + reference);
+    }
+  } else {
+    successAndRedirect('Ad payment received!', 'post-ad.html');
+  }
+}
 
 });
 </script>

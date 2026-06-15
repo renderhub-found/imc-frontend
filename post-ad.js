@@ -126,6 +126,7 @@ if (submitBtn) {
       contact:     contact,
       description: description,
       duration:    duration,
+      pricing:     pricing,
       ownerName:   currentUser.firstName || ''
     };
 
@@ -133,30 +134,45 @@ if (submitBtn) {
 
     function proceed(imageData) {
       adFormData.image = imageData || '';
+      openAdPayment(currentUser, adFormData);
+    }
 
-      // Save ad form to localStorage before payment redirect
-      localStorage.setItem('imc_ad_form', JSON.stringify(adFormData));
-      console.log('[PostAd] Ad form saved. Opening payment...');
-      console.log('[PostAd] type: ad_posting | amount:', pricing.price);
+    function openAdPayment(currentUser, adData) {
+      localStorage.setItem('imc_ad_form', JSON.stringify(adData));
+      console.log('[PostAd] Ad form saved to localStorage');
+      console.log('[PostAd] Calling IMCPaystack.openPayment');
+      console.log('[PostAd] type: ad_posting');
+      console.log('[PostAd] amount:', adData.pricing.price);
 
       IMCPaystack.openPayment({
-        amount:      pricing.price,
+        amount:      adData.pricing.price,
         type:        'ad_posting',
-        description: 'Ad Posting — ' + duration + ' days — Inside My Campus',
+        description: 'Ad Posting — ' + adData.duration + ' days',
         email:       currentUser.email,
         metadata: {
           userId:    currentUser.id || currentUser._id || '',
           userEmail: currentUser.email,
-          adForm:    adFormData
+          adForm: {
+            title:       adData.title,
+            category:    adData.category,
+            location:    adData.location,
+            contact:     adData.contact,
+            description: adData.description,
+            duration:    adData.duration,
+            image:       adData.image || '',
+            ownerName:   currentUser.firstName || ''
+          }
         },
         onSuccess: function (payRef) {
           var ref = payRef && payRef.reference ? payRef.reference : String(payRef);
-          console.log('[PostAd] onSuccess ref:', ref);
-          handleAdAfterPayment(adFormData, ref);
+          handleAdAfterPayment(adData, ref);
         },
         onCancel: function () {
           localStorage.removeItem('imc_ad_form');
-          showErr('Payment cancelled.');
+          var eb = document.getElementById('adError');
+          var em = document.getElementById('adErrorMsg');
+          if (em) em.textContent   = 'Payment cancelled.';
+          if (eb) eb.style.display = 'flex';
         }
       });
     }
