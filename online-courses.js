@@ -1,734 +1,422 @@
 // ================================================
 //   ONLINE COURSES — online-courses.js
+//   Production only — real Paystack via backend
 // ================================================
 
-// ---- Seed default courses ----
-function seedDefaultCourses() {
-  const existing = JSON.parse(
-    localStorage.getItem('imc_courses') || '[]'
-  );
-  if (existing.length > 0) return;
+(function () {
+  'use strict';
 
-  const defaults = [
-    {
-      id:          'CRS-001',
-      title:       'How to Start a Campus Business from Scratch',
-      category:    'Business',
-      instructor:  'IMC Academy',
-      description: 'Learn how to identify business opportunities on campus, ' +
-        'set up your brand, attract your first customers and scale your ' +
-        'campus business to generate consistent income as a student.',
-      price:       1000,
-      isFree:      false,
-      image:
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d' +
-        '?w=600&h=300&fit=crop',
-      fileUrl:
-        'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1',
-      duration:    '3 hours',
-      lessons:     12,
-      level:       'Beginner',
-      rating:      4.8,
-      students:    234,
-      tags:        ['Business','Entrepreneurship','Campus']
-    },
-    {
-      id:          'CRS-002',
-      title:       'Complete Web Design for Beginners',
-      category:    'Technology',
-      instructor:  'IMC Academy',
-      description: 'Master HTML, CSS and basic JavaScript to build ' +
-        'beautiful websites. Perfect for students who want to earn ' +
-        'money building websites for businesses on and off campus.',
-      price:       2000,
-      isFree:      false,
-      image:
-        'https://images.unsplash.com/photo-1547658719-da2b51169166' +
-        '?w=600&h=300&fit=crop',
-      fileUrl:
-        'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1',
-      duration:    '6 hours',
-      lessons:     24,
-      level:       'Beginner',
-      rating:      4.9,
-      students:    512,
-      tags:        ['Web Design','HTML','CSS','Technology']
-    },
-    {
-      id:          'CRS-003',
-      title:       'Social Media Marketing for Students',
-      category:    'Marketing',
-      instructor:  'IMC Academy',
-      description: 'Learn to grow Instagram, TikTok and WhatsApp pages ' +
-        'for businesses. Discover how to charge clients and build a ' +
-        'freelance marketing career from your hostel room.',
-      price:       1500,
-      isFree:      false,
-      image:
-        'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7' +
-        '?w=600&h=300&fit=crop',
-      fileUrl:
-        'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1',
-      duration:    '4 hours',
-      lessons:     16,
-      level:       'Beginner',
-      rating:      4.7,
-      students:    389,
-      tags:        ['Marketing','Social Media','Instagram']
-    },
-    {
-      id:          'CRS-004',
-      title:       'Personal Finance & Money Management for Students',
-      category:    'Finance',
-      instructor:  'IMC Academy',
-      description: 'Take control of your money. Learn budgeting, saving, ' +
-        'investing on a student income, and how to build wealth even ' +
-        'before you graduate.',
-      price:       0,
-      isFree:      true,
-      image:
-        'https://images.unsplash.com/photo-1554224155-6726b3ff858f' +
-        '?w=600&h=300&fit=crop',
-      fileUrl:
-        'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1',
-      duration:    '2 hours',
-      lessons:     8,
-      level:       'Beginner',
-      rating:      4.6,
-      students:    892,
-      tags:        ['Finance','Money','Budgeting']
-    },
-    {
-      id:          'CRS-005',
-      title:       'Graphic Design with Canva — Zero to Pro',
-      category:    'Design',
-      instructor:  'IMC Academy',
-      description: 'Use Canva to design flyers, logos, social media posts ' +
-        'and brand identities for clients. Start earning as a ' +
-        'freelance designer while still in school.',
-      price:       1500,
-      isFree:      false,
-      image:
-        'https://images.unsplash.com/photo-1626785774573-4b799315345d' +
-        '?w=600&h=300&fit=crop',
-      fileUrl:
-        'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1',
-      duration:    '5 hours',
-      lessons:     20,
-      level:       'Beginner',
-      rating:      4.8,
-      students:    445,
-      tags:        ['Design','Canva','Freelance']
-    },
-    {
-      id:          'CRS-006',
-      title:       'Public Speaking & Confidence for Students',
-      category:    'Personal Development',
-      instructor:  'IMC Academy',
-      description: 'Overcome stage fright, speak with confidence in class ' +
-        'and at events, and develop leadership communication skills ' +
-        'that will set you apart for life.',
-      price:       1000,
-      isFree:      false,
-      image:
-        'https://images.unsplash.com/photo-1475721027785-f74eccf877e2' +
-        '?w=600&h=300&fit=crop',
-      fileUrl:
-        'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1',
-      duration:    '3 hours',
-      lessons:     10,
-      level:       'All Levels',
-      rating:      4.9,
-      students:    621,
-      tags:        ['Communication','Leadership','Confidence']
-    }
-  ];
+  document.addEventListener('DOMContentLoaded', async function () {
 
-  localStorage.setItem('imc_courses', JSON.stringify(defaults));
-}
+    console.log('[Courses] Page loaded');
+    console.log('[Courses] IMC_API available:', typeof IMC_API);
+    console.log('[Courses] IMCPaystack available:', typeof IMCPaystack);
 
+    var coursesGrid    = document.getElementById('coursesGrid');
+    var myCoursesGrid  = document.getElementById('myCoursesGrid');
+    var filterBtns     = document.querySelectorAll('.filter-btn');
+    var searchInput    = document.getElementById('courseSearch');
 
-// ================================================
-//   PAGE LOAD
-// ================================================
-window.addEventListener('DOMContentLoaded', function () {
+    var allCourses     = [];
+    var currentFilter  = 'all';
 
-  seedDefaultCourses();
+    // ---- Load all courses ----
+    await loadCourses();
 
-  const loggedIn    = localStorage.getItem('imc_logged_in');
-  const currentUser = JSON.parse(
-    localStorage.getItem('imc_user') || 'null'
-  );
-
-  // Show my courses if logged in
-  if (loggedIn && currentUser) {
-    const mySection = document.getElementById('myCoursesSection');
-    const purchases = JSON.parse(
-      localStorage.getItem('imc_purchases') || '[]'
-    );
-    const mine = purchases.filter(
-      p => p.userEmail === currentUser.email
-    );
-    if (mine.length > 0) {
-      mySection.style.display = 'block';
-      renderMyCourses(mine);
-    }
-  }
-
-  // Load all courses
-  loadCourses();
-
-  // Update total count
-  const all = JSON.parse(
-    localStorage.getItem('imc_courses') || '[]'
-  );
-  document.getElementById('totalCoursesCount').textContent =
-    all.length;
-
-  // ---- Search ----
-  document.getElementById('courseSearchInput').addEventListener(
-    'input', function () {
-      loadCourses(
-        this.value.trim(),
-        document.getElementById('courseCategoryFilter').value,
-        document.getElementById('coursePriceFilter').value
-      );
-    }
-  );
-
-  // ---- Category filter ----
-  document.getElementById('courseCategoryFilter').addEventListener(
-    'change', function () {
-      loadCourses(
-        document.getElementById('courseSearchInput').value.trim(),
-        this.value,
-        document.getElementById('coursePriceFilter').value
-      );
-    }
-  );
-
-  // ---- Price filter ----
-  document.getElementById('coursePriceFilter').addEventListener(
-    'change', function () {
-      loadCourses(
-        document.getElementById('courseSearchInput').value.trim(),
-        document.getElementById('courseCategoryFilter').value,
-        this.value
-      );
-    }
-  );
-
-  // ---- Close modal ----
-  document.getElementById('closeCourseModal').addEventListener(
-    'click', function () {
-      document.getElementById('courseModal').style.display = 'none';
-      document.body.style.overflow = '';
-    }
-  );
-
-  document.getElementById('courseModal').addEventListener(
-    'click', function (e) {
-      if (e.target === this) {
-        this.style.display        = 'none';
-        document.body.style.overflow = '';
-      }
-    }
-  );
-
-});
-
-
-// ================================================
-//   LOAD & RENDER COURSES
-// ================================================
-function loadCourses(
-  search = '', category = '', priceFilter = ''
-) {
-  const all      = JSON.parse(
-    localStorage.getItem('imc_courses') || '[]'
-  );
-  const loading  = document.getElementById('coursesLoading');
-  const grid     = document.getElementById('coursesGrid');
-  const empty    = document.getElementById('coursesEmpty');
-  const countEl  = document.getElementById('courseResultCount');
-
-  loading.style.display = 'flex';
-  grid.innerHTML        = '';
-  empty.style.display   = 'none';
-
-  setTimeout(function () {
-    loading.style.display = 'none';
-
-    let filtered = [...all];
-
-    if (search) {
-      const q = search.toLowerCase();
-      filtered = filtered.filter(c =>
-        c.title.toLowerCase().includes(q) ||
-        c.category.toLowerCase().includes(q) ||
-        c.description.toLowerCase().includes(q)
-      );
+    // ---- Load my purchased courses if logged in ----
+    if (IMC_API.isLoggedIn()) {
+      await loadMyCourses();
     }
 
-    if (category) {
-      filtered = filtered.filter(
-        c => c.category === category
-      );
+    // ---- Filter buttons ----
+    if (filterBtns.length > 0) {
+      filterBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          filterBtns.forEach(function (b) { b.classList.remove('active'); });
+          this.classList.add('active');
+          currentFilter = this.getAttribute('data-filter') || 'all';
+          renderCourses(allCourses, currentFilter);
+        });
+      });
     }
 
-    if (priceFilter === 'free') {
-      filtered = filtered.filter(c => c.isFree);
-    } else if (priceFilter === 'paid') {
-      filtered = filtered.filter(c => !c.isFree);
+    // ---- Search ----
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        var q = this.value.toLowerCase().trim();
+        var filtered = allCourses.filter(function (c) {
+          return (
+            c.title.toLowerCase().includes(q) ||
+            (c.category || '').toLowerCase().includes(q) ||
+            (c.description || '').toLowerCase().includes(q)
+          );
+        });
+        renderCourses(filtered, 'all');
+      });
     }
 
-    countEl.textContent =
-      filtered.length + ' course' +
-      (filtered.length !== 1 ? 's' : '') + ' found';
+  });
 
-    if (filtered.length === 0) {
-      empty.style.display = 'flex';
+  // ================================================
+  //   LOAD ALL COURSES
+  // ================================================
+
+  async function loadCourses() {
+    var grid = document.getElementById('coursesGrid');
+    if (!grid) return;
+
+    grid.innerHTML = loadingHTML('Loading courses...');
+
+    var result = await IMC_API.getCourses();
+
+    console.log('[Courses] getCourses result:', JSON.stringify(result));
+
+    if (!result.success || !result.courses || result.courses.length === 0) {
+      grid.innerHTML = emptyHTML('No courses available yet. Check back soon!');
       return;
     }
 
-    grid.innerHTML = filtered.map(
-      c => renderCourseCard(c)
-    ).join('');
-
-  }, 300);
-}
-
-
-// ================================================
-//   RENDER COURSE CARD
-// ================================================
-function renderCourseCard(course) {
-  const purchases = JSON.parse(
-    localStorage.getItem('imc_purchases') || '[]'
-  );
-  const currentUser = JSON.parse(
-    localStorage.getItem('imc_user') || 'null'
-  );
-  const alreadyBought = currentUser
-    ? purchases.find(
-        p => p.courseId === course.id &&
-             p.userEmail === currentUser.email
-      )
-    : false;
-
-  const stars = renderStars(course.rating);
-
-  return `
-    <div class="course-card">
-      <div class="course-card-img-wrap">
-        <img src="${course.image}" alt="${course.title}"
-          class="course-card-img"
-          onerror="this.src='https://via.placeholder.com/400x200?text=Course'"/>
-        <span class="course-level-badge">${course.level}</span>
-        ${course.isFree
-          ? '<span class="course-free-badge">FREE</span>'
-          : ''}
-      </div>
-      <div class="course-card-body">
-        <span class="course-category-tag">${course.category}</span>
-        <h3 class="course-title">${course.title}</h3>
-        <p class="course-instructor">
-          <i class="fas fa-chalkboard-teacher"></i>
-          ${course.instructor}
-        </p>
-        <p class="course-desc">
-          ${course.description.substring(0, 90)}...
-        </p>
-        <div class="course-meta">
-          <span>
-            <i class="fas fa-clock"></i> ${course.duration}
-          </span>
-          <span>
-            <i class="fas fa-book"></i> ${course.lessons} lessons
-          </span>
-          <span>
-            <i class="fas fa-users"></i>
-            ${course.students.toLocaleString()}
-          </span>
-        </div>
-        <div class="course-rating">
-          <span class="stars">${stars}</span>
-          <span class="rating-num">${course.rating}</span>
-        </div>
-        <div class="course-card-footer">
-          <div class="course-price">
-            ${course.isFree
-              ? '<span class="price-free">FREE</span>'
-              : `<span class="price-paid">
-                   ₦${course.price.toLocaleString()}
-                 </span>`
-            }
-          </div>
-          ${alreadyBought
-            ? `<a href="${course.fileUrl}" target="_blank"
-                 class="btn-get-course btn-download">
-                 <i class="fas fa-download"></i> Download
-               </a>`
-            : `<button class="btn-get-course"
-                 onclick="openCourseModal('${course.id}')">
-                 ${course.isFree ? 'Get Free' : 'Get Course'}
-               </button>`
-          }
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-
-// ================================================
-//   RENDER MY COURSES (purchased)
-// ================================================
-function renderMyCourses(purchases) {
-  const allCourses = JSON.parse(
-    localStorage.getItem('imc_courses') || '[]'
-  );
-  const container  = document.getElementById('myCoursesList');
-
-  const myCourses = purchases.map(function (p) {
-    return allCourses.find(c => c.id === p.courseId);
-  }).filter(Boolean);
-
-  container.innerHTML = myCourses.map(function (course) {
-    return `
-      <div class="course-card course-card-owned">
-        <div class="course-card-img-wrap">
-          <img src="${course.image}" alt="${course.title}"
-            class="course-card-img"
-            onerror="this.src='https://via.placeholder.com/400x200'"/>
-          <span class="course-owned-badge">
-            ✅ Purchased
-          </span>
-        </div>
-        <div class="course-card-body">
-          <h3 class="course-title">${course.title}</h3>
-          <p class="course-instructor">
-            <i class="fas fa-chalkboard-teacher"></i>
-            ${course.instructor}
-          </p>
-          <div class="course-card-footer" style="margin-top:14px;">
-            <span style="font-size:13px;color:#2d8653;font-weight:700;">
-              <i class="fas fa-check-circle"></i> Access Granted
-            </span>
-            <a href="${course.fileUrl}" target="_blank"
-              class="btn-get-course btn-download">
-              <i class="fas fa-download"></i> Download
-            </a>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-
-// ================================================
-//   OPEN COURSE MODAL
-// ================================================
-function openCourseModal(courseId) {
-  const courses     = JSON.parse(
-    localStorage.getItem('imc_courses') || '[]'
-  );
-  const course      = courses.find(c => c.id === courseId);
-  if (!course) return;
-
-  const loggedIn    = localStorage.getItem('imc_logged_in');
-  const currentUser = JSON.parse(
-    localStorage.getItem('imc_user') || 'null'
-  );
-  const stars       = renderStars(course.rating);
-
-  document.getElementById('courseModalContent').innerHTML = `
-    <img src="${course.image}" alt="${course.title}"
-      class="modal-news-img"
-      onerror="this.src='https://via.placeholder.com/600x250'"/>
-    <div class="modal-news-body">
-      <span class="course-category-tag"
-        style="margin-bottom:10px;display:inline-block;">
-        ${course.category}
-      </span>
-      <h2 class="modal-news-title">${course.title}</h2>
-      <p class="course-instructor" style="margin-bottom:14px;">
-        <i class="fas fa-chalkboard-teacher"></i>
-        ${course.instructor}
-      </p>
-
-      <div class="course-modal-stats">
-        <div class="cms-item">
-          <i class="fas fa-clock"></i>
-          <span>${course.duration}</span>
-        </div>
-        <div class="cms-item">
-          <i class="fas fa-book"></i>
-          <span>${course.lessons} Lessons</span>
-        </div>
-        <div class="cms-item">
-          <i class="fas fa-signal"></i>
-          <span>${course.level}</span>
-        </div>
-        <div class="cms-item">
-          <i class="fas fa-users"></i>
-          <span>${course.students.toLocaleString()} Students</span>
-        </div>
-      </div>
-
-      <div class="course-rating" style="margin:14px 0;">
-        <span class="stars">${stars}</span>
-        <span class="rating-num">${course.rating} / 5.0</span>
-      </div>
-
-      <p class="modal-news-content"
-        style="font-size:14px;margin-bottom:18px;">
-        ${course.description}
-      </p>
-
-      <div class="course-modal-footer">
-        <div class="course-price" style="font-size:22px;">
-          ${course.isFree
-            ? '<span class="price-free" style="font-size:22px;">FREE</span>'
-            : `<span class="price-paid" style="font-size:22px;">
-                 ₦${course.price.toLocaleString()}
-               </span>`
-          }
-        </div>
-        ${loggedIn && currentUser
-          ? `<button class="btn-get-course"
-               style="padding:12px 28px;font-size:15px;"
-               id="modalBuyBtn"
-               onclick="buyCourse('${course.id}')">
-               ${course.isFree
-                 ? '<i class="fas fa-download"></i> Get Free Course'
-                 : '<i class="fas fa-credit-card"></i> Buy Now'}
-             </button>`
-          : `<a href="login.html"
-               class="btn-get-course"
-               style="padding:12px 28px;font-size:15px;">
-               Login to Purchase
-             </a>`
-        }
-      </div>
-    </div>
-  `;
-
-  document.getElementById('courseModal').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-
-// ================================================
-//   BUY / GET COURSE
-// ================================================
-function buyCourse(courseId) {
-  const courses     = JSON.parse(
-    localStorage.getItem('imc_courses') || '[]'
-  );
-  const course      = courses.find(c => c.id === courseId);
-  const currentUser = JSON.parse(
-    localStorage.getItem('imc_user') || 'null'
-  );
-
-  if (!course || !currentUser) return;
-
-  // Check already purchased
-  const purchases   = JSON.parse(
-    localStorage.getItem('imc_purchases') || '[]'
-  );
-  const owned = purchases.find(
-    p => p.courseId === courseId &&
-         p.userEmail === currentUser.email
-  );
-  if (owned) {
-    window.open(course.fileUrl, '_blank');
-    return;
+    allCourses = result.courses;
+    renderCourses(allCourses, 'all');
   }
 
-  // Free course — no payment
-  if (course.isFree) {
-    savePurchase(course, currentUser);
-    return;
+  // ================================================
+  //   RENDER COURSES
+  // ================================================
+
+  function renderCourses(courses, filter) {
+    var grid = document.getElementById('coursesGrid');
+    if (!grid) return;
+
+    var filtered = courses;
+
+    if (filter && filter !== 'all') {
+      filtered = courses.filter(function (c) {
+        return (c.category || '').toLowerCase() === filter.toLowerCase();
+      });
+    }
+
+    if (filtered.length === 0) {
+      grid.innerHTML = emptyHTML('No courses found in this category.');
+      return;
+    }
+
+    grid.innerHTML = filtered.map(function (course) {
+      return buildCourseCard(course);
+    }).join('');
+
+    // Attach buy buttons
+    grid.querySelectorAll('.buy-course-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var courseId    = this.getAttribute('data-course-id');
+        var courseTitle = this.getAttribute('data-course-title');
+        var coursePrice = parseInt(this.getAttribute('data-course-price')) || 0;
+        var isFree      = this.getAttribute('data-course-free') === 'true';
+
+        console.log('[Courses] Buy button clicked');
+        console.log('[Courses] courseId:', courseId);
+        console.log('[Courses] price:', coursePrice);
+        console.log('[Courses] isFree:', isFree);
+
+        buyCourse(courseId, courseTitle, coursePrice, isFree);
+      });
+    });
   }
 
-  // Paid course — Paystack popup
-  simulateCoursePayment(
-    course.price, course.title, function (success) {
-      if (success) {
-        savePurchase(course, currentUser);
-      } else {
-        alert('Payment cancelled. Please try again.');
-      }
-    }
-  );
-}
+  // ================================================
+  //   BUILD COURSE CARD
+  // ================================================
 
+  function buildCourseCard(course) {
+    var priceLabel = course.isFree || course.price === 0
+      ? '<span class="course-free-badge">FREE</span>'
+      : '<span class="course-price">₦' +
+        parseInt(course.price).toLocaleString() + '</span>';
 
-// ---- Save purchase & redirect ----
-function savePurchase(course, currentUser) {
-  const purchases = JSON.parse(
-    localStorage.getItem('imc_purchases') || '[]'
-  );
+    var btnLabel = course.isFree || course.price === 0
+      ? 'Get Free Course'
+      : 'Buy Course — ₦' + parseInt(course.price).toLocaleString();
 
-  purchases.push({
-    id:          'PUR-' + Date.now(),
-    courseId:    course.id,
-    courseTitle: course.title,
-    userEmail:   currentUser.email,
-    price:       course.price,
-    date:        new Date().toLocaleDateString()
-  });
+    var img = course.image
+      ? '<img src="' + esc(course.image) + '" alt="' + esc(course.title) +
+        '" class="course-card-img" onerror="this.style.display=\'none\'"/>'
+      : '<div class="course-card-img-placeholder">' +
+        '<i class="fas fa-graduation-cap"></i></div>';
 
-  localStorage.setItem(
-    'imc_purchases', JSON.stringify(purchases)
-  );
-
-  // Close modal
-  document.getElementById('courseModal').style.display = 'none';
-  document.body.style.overflow = '';
-
-  alert(
-    '🎉 Course access granted!\n\n' +
-    'Click OK to download your course material.'
-  );
-
-  window.open(course.fileUrl, '_blank');
-
-  // Reload page to reflect purchase
-  setTimeout(() => window.location.reload(), 500);
-}
-
-
-// ================================================
-//   SIMULATED PAYSTACK FOR COURSES
-// ================================================
-function simulateCoursePayment(amount, title, callback) {
-
-  const btn = document.getElementById('modalBuyBtn');
-  if (btn) {
-    btn.textContent = 'Loading...';
-    btn.disabled    = true;
+    return '<div class="course-card">' +
+      img +
+      '<div class="course-card-body">' +
+      '<div class="course-card-category">' + esc(course.category || '') + '</div>' +
+      '<h3 class="course-card-title">' + esc(course.title) + '</h3>' +
+      '<p class="course-card-desc">' + esc(course.description || '') + '</p>' +
+      '<div class="course-card-meta">' +
+      '<span><i class="fas fa-clock"></i> ' + esc(course.duration || '2 hours') + '</span>' +
+      '<span><i class="fas fa-book"></i> ' + (course.lessons || 0) + ' lessons</span>' +
+      '<span><i class="fas fa-signal"></i> ' + esc(course.level || 'Beginner') + '</span>' +
+      '</div>' +
+      '<div class="course-card-footer">' +
+      priceLabel +
+      '<button class="buy-course-btn btn-primary"' +
+      ' data-course-id="'    + esc(course._id)    + '"' +
+      ' data-course-title="' + esc(course.title)  + '"' +
+      ' data-course-price="' + (course.price || 0) + '"' +
+      ' data-course-free="'  + (course.isFree || course.price === 0) + '">' +
+      btnLabel +
+      '</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
   }
 
-  const overlay = document.createElement('div');
-  overlay.id    = 'paystackOverlay';
-  overlay.innerHTML = `
-    <div class="paystack-popup">
-      <div class="paystack-header">
-        <img src="https://website.paystack.com/icons/favicon.png"
-          alt="Paystack" width="24"
-          onerror="this.style.display='none'"/>
-        <span>Paystack</span>
-        <button id="closePaystack" class="paystack-close">✕</button>
-      </div>
-      <div class="paystack-body">
-        <div class="paystack-amount">
-          ₦${amount.toLocaleString()}
-        </div>
-        <p class="paystack-desc">
-          Inside My Campus — ${title}
-        </p>
-        <div class="paystack-form">
-          <div class="paystack-input-group">
-            <label>Card Number</label>
-            <input type="text"
-              placeholder="0000 0000 0000 0000"
-              maxlength="19" id="psCardNum"/>
-          </div>
-          <div class="paystack-row">
-            <div class="paystack-input-group">
-              <label>Expiry</label>
-              <input type="text"
-                placeholder="MM/YY"
-                maxlength="5" id="psExpiry"/>
-            </div>
-            <div class="paystack-input-group">
-              <label>CVV</label>
-              <input type="text"
-                placeholder="123"
-                maxlength="3" id="psCVV"/>
-            </div>
-          </div>
-          <button class="paystack-pay-btn" id="paystackPayNow">
-            Pay ₦${amount.toLocaleString()}
-          </button>
-          <button class="paystack-cancel-btn"
-            id="paystackCancel">Cancel</button>
-        </div>
-        <p class="paystack-secure">🔒 Secured by Paystack</p>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
+  // ================================================
+  //   BUY COURSE — REAL PAYSTACK ONLY
+  //   No simulation. No fake cards. No demo flow.
+  // ================================================
 
-  document.getElementById('psCardNum').addEventListener(
-    'input', function () {
-      let v = this.value.replace(/\D/g,'').substring(0,16);
-      this.value = v.replace(/(.{4})/g,'$1 ').trim();
+  async function buyCourse(courseId, courseTitle, coursePrice, isFree) {
+    console.log('[Courses] buyCourse called');
+    console.log('[Courses] courseId:', courseId);
+    console.log('[Courses] courseTitle:', courseTitle);
+    console.log('[Courses] coursePrice:', coursePrice);
+    console.log('[Courses] isFree:', isFree);
+
+    // Must be logged in
+    if (!IMC_API.isLoggedIn()) {
+      console.log('[Courses] Not logged in. Redirecting to login...');
+      localStorage.setItem('imc_redirect_after_login', 'online-courses.html');
+      window.location.href = 'login.html';
+      return;
     }
-  );
 
-  document.getElementById('paystackPayNow').addEventListener(
-    'click', function () {
-      const card   = document.getElementById('psCardNum')
-                       .value.replace(/\s/g,'');
-      const expiry = document.getElementById('psExpiry').value;
-      const cvv    = document.getElementById('psCVV').value;
+    // Free course — grant access directly
+    if (isFree || coursePrice === 0) {
+      console.log('[Courses] Free course — granting access directly');
+      await handleFreeCourse(courseId, courseTitle);
+      return;
+    }
 
-      if (card.length < 16 || !expiry || cvv.length < 3) {
-        alert('Please fill in all card details correctly.');
-        return;
+    // Paid course — use real Paystack
+    console.log('[Courses] Paid course — initiating real Paystack payment');
+
+    if (typeof IMCPaystack === 'undefined') {
+      console.error('[Courses] IMCPaystack is not loaded!');
+      showCourseError('Payment system not loaded. Please refresh the page.');
+      return;
+    }
+
+    // Save course info for after payment redirect
+    localStorage.setItem('imc_pending_course', JSON.stringify({
+      courseId:    courseId,
+      courseTitle: courseTitle,
+      coursePrice: coursePrice
+    }));
+
+    IMCPaystack.openPayment({
+      amount:      coursePrice,
+      type:        'course_purchase',
+      description: 'Course: ' + courseTitle,
+      metadata: {
+        courseId:    courseId,
+        courseTitle: courseTitle,
+        userEmail:   (IMC_API.getCurrentUser() || {}).email || ''
+      },
+      onSuccess: function (payRef) {
+        // This runs if payment completes without page redirect
+        var ref = payRef && payRef.reference ? payRef.reference : String(payRef);
+        console.log('[Courses] onSuccess ref:', ref);
+        handleCourseAfterPayment(courseId, ref);
+      },
+      onCancel: function () {
+        console.log('[Courses] Payment cancelled');
+        localStorage.removeItem('imc_pending_course');
+        showCourseError('Payment was cancelled. Please try again.');
       }
+    });
+  }
 
-      this.textContent = 'Processing...';
-      this.disabled    = true;
+  // ================================================
+  //   FREE COURSE HANDLER
+  // ================================================
 
-      setTimeout(function () {
-        document.body.removeChild(overlay);
-        callback(true);
-      }, 2000);
-    }
-  );
+  async function handleFreeCourse(courseId, courseTitle) {
+    console.log('[Courses] Granting free course access...');
 
-  document.getElementById('paystackCancel').addEventListener(
-    'click', function () {
-      document.body.removeChild(overlay);
-      if (btn) {
-        btn.innerHTML =
-          '<i class="fas fa-credit-card"></i> Buy Now';
-        btn.disabled  = false;
-      }
-      callback(false);
-    }
-  );
+    var result = await IMC_API.purchaseCourse(courseId, 'FREE');
 
-  document.getElementById('closePaystack').addEventListener(
-    'click', function () {
-      document.body.removeChild(overlay);
-      if (btn) {
-        btn.innerHTML =
-          '<i class="fas fa-credit-card"></i> Buy Now';
-        btn.disabled  = false;
-      }
-      callback(false);
-    }
-  );
-}
+    console.log('[Courses] Free course result:', JSON.stringify(result));
 
-
-// ---- Helper: render star rating ----
-function renderStars(rating) {
-  let stars = '';
-  for (let i = 1; i <= 5; i++) {
-    if (i <= Math.floor(rating)) {
-      stars += '<i class="fas fa-star"></i>';
-    } else if (i - rating < 1) {
-      stars += '<i class="fas fa-star-half-alt"></i>';
+    if (result.success) {
+      showCourseSuccess(
+        courseTitle + ' is now in your library!',
+        result.fileUrl || ''
+      );
+      await loadMyCourses();
     } else {
-      stars += '<i class="far fa-star"></i>';
+      showCourseError(result.message || 'Could not access course. Please try again.');
     }
   }
-  return stars;
-}
+
+  // ================================================
+  //   AFTER PAID COURSE PAYMENT
+  // ================================================
+
+  async function handleCourseAfterPayment(courseId, paymentRef) {
+    console.log('[Courses] handleCourseAfterPayment');
+    console.log('[Courses] courseId:', courseId);
+    console.log('[Courses] ref:', paymentRef);
+
+    var result = await IMC_API.purchaseCourse(courseId, paymentRef);
+
+    console.log('[Courses] purchaseCourse result:', JSON.stringify(result));
+
+    if (result.success) {
+      localStorage.removeItem('imc_pending_course');
+      showCourseSuccess(
+        'Course purchased successfully!',
+        result.fileUrl || ''
+      );
+      await loadMyCourses();
+    } else {
+      showCourseError(result.message || 'Purchase failed. Please contact support.');
+    }
+  }
+
+  // ================================================
+  //   LOAD MY COURSES
+  // ================================================
+
+  async function loadMyCourses() {
+    var grid = document.getElementById('myCoursesGrid');
+    if (!grid) return;
+
+    var result = await IMC_API.getMyCourses();
+
+    console.log('[Courses] getMyCourses result:', JSON.stringify(result));
+
+    if (!result.success || !result.courses || result.courses.length === 0) {
+      grid.innerHTML =
+        '<p style="color:#888;font-size:14px;text-align:center;padding:20px;">' +
+        'No purchased courses yet.</p>';
+      return;
+    }
+
+    grid.innerHTML = result.courses.map(function (c) {
+      return '<div class="my-course-card">' +
+        '<h4>' + esc(c.title) + '</h4>' +
+        '<p style="font-size:13px;color:#888;">' + esc(c.category || '') + '</p>' +
+        (c.fileUrl
+          ? '<a href="' + esc(c.fileUrl) + '" target="_blank" ' +
+            'class="btn-primary" style="font-size:13px;padding:8px 16px;' +
+            'display:inline-block;margin-top:8px;">' +
+            '<i class="fas fa-download"></i> Access Course</a>'
+          : '<span style="font-size:12px;color:#aaa;">Link coming soon</span>'
+        ) +
+        '</div>';
+    }).join('');
+  }
+
+  // ================================================
+  //   SUCCESS POPUP
+  // ================================================
+
+  function showCourseSuccess(message, fileUrl) {
+    var old = document.getElementById('imc_course_popup');
+    if (old) old.remove();
+
+    var overlay       = document.createElement('div');
+    overlay.id        = 'imc_course_popup';
+    overlay.style.cssText =
+      'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99999;' +
+      'display:flex;align-items:center;justify-content:center;padding:20px;';
+
+    overlay.innerHTML =
+      '<div style="background:#fff;border-radius:16px;padding:32px 24px;' +
+      'max-width:400px;width:100%;text-align:center;font-family:Inter,sans-serif;">' +
+      '<div style="font-size:52px;margin-bottom:12px;">🎓</div>' +
+      '<h3 style="font-size:20px;font-weight:800;color:#1a1a2e;margin-bottom:8px;">' +
+      'Course Unlocked!</h3>' +
+      '<p style="font-size:14px;color:#555;margin-bottom:20px;">' +
+      message + '</p>' +
+      (fileUrl
+        ? '<a href="' + esc(fileUrl) + '" target="_blank" ' +
+          'style="display:inline-block;background:#2d8653;color:#fff;' +
+          'padding:12px 24px;border-radius:8px;font-weight:700;' +
+          'text-decoration:none;margin-bottom:12px;">Access Course Now</a><br/>'
+        : ''
+      ) +
+      '<button id="imc_course_popup_close" ' +
+      'style="background:none;border:none;color:#888;font-size:13px;' +
+      'cursor:pointer;margin-top:8px;">Close</button>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('imc_course_popup_close').addEventListener('click', function () {
+      overlay.remove();
+    });
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.remove();
+    });
+  }
+
+  // ================================================
+  //   ERROR POPUP
+  // ================================================
+
+  function showCourseError(message) {
+    var old = document.getElementById('imc_course_error');
+    if (old) old.remove();
+
+    var overlay       = document.createElement('div');
+    overlay.id        = 'imc_course_error';
+    overlay.style.cssText =
+      'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99999;' +
+      'display:flex;align-items:center;justify-content:center;padding:20px;';
+
+    overlay.innerHTML =
+      '<div style="background:#fff;border-radius:16px;padding:32px 24px;' +
+      'max-width:380px;width:100%;text-align:center;font-family:Inter,sans-serif;">' +
+      '<div style="font-size:44px;margin-bottom:12px;">⚠️</div>' +
+      '<h3 style="font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">' +
+      'Payment Error</h3>' +
+      '<p style="font-size:14px;color:#555;margin-bottom:20px;">' + message + '</p>' +
+      '<button id="imc_course_err_close" ' +
+      'style="background:#e85d04;color:#fff;border:none;padding:12px 28px;' +
+      'border-radius:8px;font-weight:700;cursor:pointer;">Close</button>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('imc_course_err_close').addEventListener('click', function () {
+      overlay.remove();
+    });
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.remove();
+    });
+  }
+
+  // ================================================
+  //   HELPERS
+  // ================================================
+
+  function loadingHTML(msg) {
+    return '<div style="text-align:center;padding:40px;color:#888;">' +
+      '<div style="font-size:32px;margin-bottom:12px;">⏳</div>' +
+      '<p>' + msg + '</p></div>';
+  }
+
+  function emptyHTML(msg) {
+    return '<div style="text-align:center;padding:40px;color:#888;">' +
+      '<div style="font-size:32px;margin-bottom:12px;">📚</div>' +
+      '<p>' + msg + '</p></div>';
+  }
+
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+})();
