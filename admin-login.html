@@ -3,138 +3,167 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Login – Inside My Campus</title>
+  <title>Admin Login — Inside My Campus</title>
   <link rel="stylesheet" href="style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:Inter,sans-serif;
+      background:linear-gradient(135deg,#0a1628 0%,#1a3c8f 100%);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:20px;
+    }
+    .login-card{
+      background:#fff;border-radius:20px;padding:40px 36px;
+      width:100%;max-width:420px;
+      box-shadow:0 24px 80px rgba(0,0,0,0.3);
+    }
+    .login-logo{
+      text-align:center;margin-bottom:28px;
+    }
+    .login-logo .shield{
+      font-size:48px;color:#1a3c8f;
+    }
+    .login-logo h1{
+      font-size:22px;font-weight:800;color:#1a1a2e;margin-top:8px;
+    }
+    .login-logo p{
+      font-size:13px;color:#888;margin-top:4px;
+    }
+    .form-group{margin-bottom:16px;}
+    .form-group label{
+      display:block;font-size:13px;font-weight:600;
+      color:#444;margin-bottom:6px;
+    }
+    .form-input{
+      width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;
+      border-radius:8px;font-size:14px;font-family:Inter,sans-serif;
+      outline:none;transition:border-color .2s;
+    }
+    .form-input:focus{border-color:#1a3c8f;}
+    .btn-admin{
+      width:100%;background:#1a3c8f;color:#fff;border:none;
+      padding:14px;border-radius:10px;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:Inter,sans-serif;
+      transition:background .2s;
+    }
+    .btn-admin:hover{background:#0f2456;}
+    .btn-admin:disabled{background:#aaa;cursor:not-allowed;}
+    .error-box{
+      background:#fff0f0;border:1px solid #e85d04;border-radius:8px;
+      padding:10px 14px;font-size:13px;color:#c62828;
+      margin-bottom:16px;display:none;
+    }
+    .back-link{
+      text-align:center;margin-top:16px;font-size:13px;color:#888;
+    }
+    .back-link a{color:#1a3c8f;text-decoration:none;font-weight:600;}
+  </style>
 </head>
-<body style="background:#0d1f5c;min-height:100vh;
-  display:flex;align-items:center;justify-content:center;
-  padding:20px;">
+<body>
 
-  <div class="auth-card" style="max-width:420px;">
-    <div class="auth-icon">⚙️</div>
-    <h2 class="auth-title">Admin Access</h2>
-    <p class="auth-subtitle">
-      Inside My Campus — Admin Panel
-    </p>
-
-    <div class="auth-error" id="adminError" style="display:none;">
-      <i class="fas fa-exclamation-circle"></i>
-      <span id="adminErrorMsg">Incorrect password.</span>
-    </div>
-
-    <div class="auth-form">
-      <div class="form-group">
-        <label>Admin Email</label>
-        <div class="input-wrapper">
-          <i class="fas fa-envelope input-icon"></i>
-          <input type="email" id="adminEmail"
-            placeholder="admin@insidemycampus.com"/>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Admin Password</label>
-        <div class="input-wrapper">
-          <i class="fas fa-lock input-icon"></i>
-          <input type="password" id="adminPassword"
-            placeholder="Enter admin password"/>
-          <button class="toggle-password"
-            id="toggleAdminPwd" type="button">
-            <i class="fas fa-eye" id="toggleAdminIcon"></i>
-          </button>
-        </div>
-      </div>
-
-      <button class="btn-auth-submit"
-        id="adminLoginBtn"
-        style="background:#0d1f5c;">
-        <span id="adminBtnText">
-          <i class="fas fa-shield-alt"></i> Access Admin Panel
-        </span>
-        <span id="adminSpinner" style="display:none;">
-          <i class="fas fa-spinner fa-spin"></i> Verifying...
-        </span>
-      </button>
-
-      <div style="text-align:center;margin-top:16px;">
-        <a href="index.html"
-          style="font-size:13px;color:#888;">
-          ← Back to Homepage
-        </a>
-      </div>
-    </div>
-
-    <div style="background:#f4f6fb;border-radius:10px;
-      padding:12px 16px;margin-top:20px;font-size:12px;
-      color:#888;text-align:center;line-height:1.6;">
-      <strong>Default credentials:</strong><br/>
-      Email: admin@imc.com<br/>
-      Password: admin123
-    </div>
+<div class="login-card">
+  <div class="login-logo">
+    <div class="shield"><i class="fas fa-shield-alt"></i></div>
+    <h1>Admin Panel</h1>
+    <p>Inside My Campus — Restricted Access</p>
   </div>
 
-  <script>
-    // ---- Toggle password visibility ----
-    var toggleBtn  = document.getElementById('toggleAdminPwd');
-    var pwdInput   = document.getElementById('adminPassword');
-    var toggleIcon = document.getElementById('toggleAdminIcon');
+  <div id="errorBox" class="error-box" id="loginError">
+    <i class="fas fa-exclamation-circle"></i>
+    <span id="errorMsg">Invalid credentials.</span>
+  </div>
 
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', function () {
-        if (pwdInput.type === 'password') {
-          pwdInput.type  = 'text';
-          toggleIcon.className = 'fas fa-eye-slash';
-        } else {
-          pwdInput.type  = 'password';
-          toggleIcon.className = 'fas fa-eye';
-        }
-      });
+  <div class="form-group">
+    <label for="adminEmail">Email Address</label>
+    <input type="email" id="adminEmail" class="form-input"
+      placeholder="admin@example.com" autocomplete="email"/>
+  </div>
+
+  <div class="form-group">
+    <label for="adminPassword">Password</label>
+    <input type="password" id="adminPassword" class="form-input"
+      placeholder="Your password" autocomplete="current-password"/>
+  </div>
+
+  <button id="loginBtn" class="btn-admin">
+    <span id="loginBtnText"><i class="fas fa-lock"></i> Sign In to Admin</span>
+    <span id="loginSpinner" style="display:none;">⏳ Signing in...</span>
+  </button>
+
+  <div class="back-link">
+    <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Website</a>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  // Already logged in as admin?
+  var stored = null;
+  try { stored = JSON.parse(localStorage.getItem('imc_user') || 'null'); } catch(e){}
+  if (stored && stored.role === 'admin' && localStorage.getItem('imc_token')) {
+    window.location.href = 'admin-dashboard.html';
+    return;
+  }
+
+  var loginBtn  = document.getElementById('loginBtn');
+  var errorBox  = document.getElementById('errorBox');
+  var errorMsg  = document.getElementById('errorMsg');
+  var btnText   = document.getElementById('loginBtnText');
+  var spinner   = document.getElementById('loginSpinner');
+
+  function showError(msg) {
+    errorMsg.textContent  = msg;
+    errorBox.style.display = 'block';
+  }
+
+  function setLoading(loading) {
+    btnText.style.display  = loading ? 'none'   : 'inline';
+    spinner.style.display  = loading ? 'inline' : 'none';
+    loginBtn.disabled      = loading;
+  }
+
+  async function doLogin() {
+    errorBox.style.display = 'none';
+
+    var email    = document.getElementById('adminEmail').value.trim();
+    var password = document.getElementById('adminPassword').value;
+
+    if (!email)    { showError('Please enter your email.');    return; }
+    if (!password) { showError('Please enter your password.'); return; }
+
+    setLoading(true);
+
+    var result = await IMC_API.login(email, password);
+
+    if (!result.success) {
+      setLoading(false);
+      showError(result.message || 'Login failed.');
+      return;
     }
 
-    // ---- Admin login ----
-    var ADMIN_EMAIL    = 'admin@imc.com';
-    var ADMIN_PASSWORD = 'admin123';
+    if (result.user.role !== 'admin') {
+      // Clear the saved token — not an admin
+      IMC_API.clearAuthData();
+      setLoading(false);
+      showError('Access denied. This panel is for administrators only.');
+      return;
+    }
 
-    document.getElementById('adminLoginBtn')
-      .addEventListener('click', function () {
-        var email = (document.getElementById('adminEmail').value || '').trim();
-        var pwd   = (document.getElementById('adminPassword').value || '').trim();
+    // Admin confirmed — redirect
+    window.location.href = 'admin-dashboard.html';
+  }
 
-        var errBox = document.getElementById('adminError');
-        var errMsg = document.getElementById('adminErrorMsg');
-        errBox.style.display = 'none';
+  loginBtn.addEventListener('click', doLogin);
 
-        if (!email || !pwd) {
-          errMsg.textContent = 'Please enter email and password.';
-          errBox.style.display = 'flex'; return;
-        }
-
-        if (email !== ADMIN_EMAIL || pwd !== ADMIN_PASSWORD) {
-          errMsg.textContent = 'Incorrect email or password.';
-          errBox.style.display = 'flex'; return;
-        }
-
-        // Show spinner
-        document.getElementById('adminBtnText').style.display = 'none';
-        document.getElementById('adminSpinner').style.display = 'inline';
-        document.getElementById('adminLoginBtn').disabled     = true;
-
-        localStorage.setItem('imc_admin', 'true');
-
-        setTimeout(function () {
-          window.location.href = 'admin-dashboard.html';
-        }, 1000);
-      });
-
-    // Enter key
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        document.getElementById('adminLoginBtn').click();
-      }
-    });
-  </script>
-
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+</script>
 </body>
 </html>
