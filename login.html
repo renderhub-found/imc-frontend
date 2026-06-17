@@ -48,15 +48,13 @@
         <span>Login successful! Redirecting...</span>
       </div>
 
-<!-- Add this ABOVE your existing email/password form -->
+<!-- Google Sign-In — place above email form -->
+<div id="googleBtnWrap" style="margin-bottom:16px;min-height:44px;"></div>
 
-<!-- Google Sign-In -->
-<div id="googleSignInDiv" style="margin-bottom:16px;"></div>
-
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-  <div style="flex:1;height:1px;background:#e0e0e0;"></div>
-  <span style="font-size:12px;color:#aaa;white-space:nowrap;">or sign in with email</span>
-  <div style="flex:1;height:1px;background:#e0e0e0;"></div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+  <div style="flex:1;height:1px;background:#e8e8e8;"></div>
+  <span style="font-size:12px;color:#aaa;white-space:nowrap;">or continue with email</span>
+  <div style="flex:1;height:1px;background:#e8e8e8;"></div>
 </div>
 
       <!-- Login Form -->
@@ -123,83 +121,65 @@
 
   <!-- ========== FOOTER ========== -->
   <footer class="auth-footer">
-    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+    <p>&copy; 2026 Inside My Campus. All rights reserved.</p>
   </footer>
 
-  <script src="app.js"></script>
-  <script src="auth.js"></script>
-  <script src="api.js"></script>
-  <!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+ <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="api.js"></script>
+<script src="app.js"></script>
 <script src="auth.js"></script>
 <script>
-// ---- Google Sign-In callback ----
-window.handleGoogleSignIn = async function (response) {
-  console.log('[Google] Credential received');
+// Google Client ID — replace with your real ID
+var GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE';
 
+window.handleGoogleResponse = async function (response) {
+  console.log('[Google] Credential received');
   var errBox = document.getElementById('loginError');
   var errMsg = document.getElementById('loginErrorMsg');
+  var wrap   = document.getElementById('googleBtnWrap');
 
   if (!response || !response.credential) {
-    if (errMsg) errMsg.textContent = 'Google sign-in failed. Please try again.';
+    if (errMsg) errMsg.textContent   = 'Google sign-in failed. Try again.';
     if (errBox) errBox.style.display = 'flex';
     return;
   }
 
-  // Show loading
-  var gDiv = document.getElementById('googleSignInDiv');
-  if (gDiv) gDiv.innerHTML = '<p style="text-align:center;color:#888;font-size:13px;">⏳ Signing in with Google...</p>';
+  if (wrap) wrap.innerHTML = '<p style="text-align:center;color:#888;font-size:13px;padding:10px 0;">⏳ Signing in...</p>';
 
-  // Send credential to backend
   var result = await IMC_API.googleAuth(response.credential);
-
-  console.log('[Google] Auth result:', JSON.stringify(result));
 
   if (result.success) {
     window.location.href = 'index.html';
   } else {
-    if (gDiv) {
-      // Re-render Google button
+    // Re-render button
+    if (GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.includes('YOUR_')) {
       google.accounts.id.renderButton(
-        document.getElementById('googleSignInDiv'),
-        { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' }
+        document.getElementById('googleBtnWrap'),
+        { theme: 'outline', size: 'large', width: '100%' }
       );
     }
-    if (errMsg) errMsg.textContent = result.message || 'Google login failed.';
+    if (errMsg) errMsg.textContent   = result.message || 'Google login failed.';
     if (errBox) errBox.style.display = 'flex';
   }
 };
 
-// ---- Initialize Google Sign-In ----
 window.addEventListener('load', function () {
-  var clientId = 'YOUR_GOOGLE_CLIENT_ID_HERE';
-
-  if (!clientId || clientId.includes('YOUR_')) {
-    console.warn('[Google] Client ID not set — Google login disabled');
-    return;
-  }
+  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('YOUR_')) return;
+  if (typeof google === 'undefined') return;
 
   google.accounts.id.initialize({
-    client_id: clientId,
-    callback:  window.handleGoogleSignIn,
-    auto_select: false,
-    cancel_on_tap_outside: true
+    client_id:              GOOGLE_CLIENT_ID,
+    callback:               window.handleGoogleResponse,
+    auto_select:            false,
+    cancel_on_tap_outside:  true
   });
 
   google.accounts.id.renderButton(
-    document.getElementById('googleSignInDiv'),
-    {
-      theme:  'outline',
-      size:   'large',
-      width:  '100%',
-      text:   'continue_with',
-      shape:  'rectangular',
-      logo_alignment: 'left'
-    }
+    document.getElementById('googleBtnWrap'),
+    { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' }
   );
 });
-</script>
+</script> 
 
 </body>
 </html>

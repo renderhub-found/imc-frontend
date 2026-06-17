@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Event — Inside My Campus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Inter,sans-serif;background:#f0f2f8;color:#1a1a2e;}
+    .page-header{background:#1a3c8f;padding:20px;color:#fff;}
+    .page-header h1{font-size:20px;font-weight:800;max-width:900px;margin:0 auto;}
+    .form-wrap{max-width:640px;margin:24px auto;padding:0 16px 60px;}
+    .form-card{background:#fff;border-radius:16px;padding:28px 24px;
+      box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+    .form-group{margin-bottom:18px;}
+    label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;}
+    .required{color:#e85d04;}
+    input,select,textarea{width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;
+      border-radius:8px;font-size:14px;font-family:Inter,sans-serif;outline:none;}
+    input:focus,select:focus,textarea:focus{border-color:#1a3c8f;}
+    textarea{resize:vertical;min-height:100px;}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .btn-submit{width:100%;background:#1a3c8f;color:#fff;border:none;padding:14px;
+      border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;
+      font-family:Inter,sans-serif;margin-top:8px;}
+    .btn-submit:disabled{background:#aaa;}
+    .msg{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none;}
+    .msg.error{background:#fff0f0;color:#c62828;border:1px solid #f5c6cb;}
+    .msg.success{background:#e8f9ee;color:#2d8653;border:1px solid #b7e4c7;}
+    @media(max-width:480px){.row2{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>🎉 Create New Event</h1>
+</div>
+
+<div class="form-wrap">
+  <div class="form-card">
+    <div id="msgBox" class="msg"></div>
+
+    <div class="form-group">
+      <label>Event Title <span class="required">*</span></label>
+      <input type="text" id="evTitle" placeholder="e.g. UNILAG Tech Summit 2024"/>
+    </div>
+
+    <div class="form-group">
+      <label>Description <span class="required">*</span></label>
+      <textarea id="evDescription" placeholder="Describe your event..."></textarea>
+    </div>
+
+    <div class="row2">
+      <div class="form-group">
+        <label>University <span class="required">*</span></label>
+        <input type="text" id="evUniversity" placeholder="e.g. UNILAG"/>
+      </div>
+      <div class="form-group">
+        <label>Location <span class="required">*</span></label>
+        <input type="text" id="evLocation" placeholder="e.g. Faculty Auditorium"/>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="form-group">
+        <label>Date <span class="required">*</span></label>
+        <input type="date" id="evDate"/>
+      </div>
+      <div class="form-group">
+        <label>Time <span class="required">*</span></label>
+        <input type="time" id="evTime"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Cover Image URL <span style="color:#888;font-weight:400;">(optional)</span></label>
+      <input type="text" id="evCoverImage" placeholder="https://..."/>
+    </div>
+
+    <div class="form-group">
+      <label>Contact Info</label>
+      <input type="text" id="evContact" placeholder="Phone, WhatsApp, email..."/>
+    </div>
+
+    <button class="btn-submit" id="submitBtn">
+      <i class="fas fa-calendar-plus"></i> Create Event
+    </button>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (!IMC_API.isLoggedIn()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', async function () {
+    var msgBox = document.getElementById('msgBox');
+    var btn    = document.getElementById('submitBtn');
+    msgBox.style.display = 'none';
+
+    var data = {
+      title:       document.getElementById('evTitle').value.trim(),
+      description: document.getElementById('evDescription').value.trim(),
+      university:  document.getElementById('evUniversity').value.trim(),
+      location:    document.getElementById('evLocation').value.trim(),
+      eventDate:   document.getElementById('evDate').value,
+      eventTime:   document.getElementById('evTime').value,
+      coverImage:  document.getElementById('evCoverImage').value.trim(),
+      contactInfo: document.getElementById('evContact').value.trim()
+    };
+
+    var missing = [];
+    if (!data.title)       missing.push('title');
+    if (!data.description) missing.push('description');
+    if (!data.university)  missing.push('university');
+    if (!data.location)    missing.push('location');
+    if (!data.eventDate)   missing.push('date');
+    if (!data.eventTime)   missing.push('time');
+
+    if (missing.length > 0) {
+      msgBox.className     = 'msg error';
+      msgBox.textContent   = 'Please fill in: ' + missing.join(', ');
+      msgBox.style.display = 'block';
+      return;
+    }
+
+    btn.disabled     = true;
+    btn.textContent  = '⏳ Creating...';
+
+    var result = await IMC_API.createEvent(data);
+
+    if (result.success) {
+      msgBox.className     = 'msg success';
+      msgBox.textContent   = 'Event created! Redirecting...';
+      msgBox.style.display = 'block';
+      setTimeout(function () {
+        window.location.href = 'events.html';
+      }, 1500);
+    } else {
+      msgBox.className     = 'msg error';
+      msgBox.textContent   = result.message || 'Failed to create event.';
+      msgBox.style.display = 'block';
+      btn.disabled         = false;
+      btn.innerHTML        = '<i class="fas fa-calendar-plus"></i> Create Event';
+    }
+  });
+});
+</script>
+</body>
+</html>

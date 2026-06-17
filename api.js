@@ -119,10 +119,61 @@ var IMC_API = (function () {
 
   // ---- Google Auth ----
 async function googleAuth(credential) {
-  console.log('[API] googleAuth called');
   var result = await request('POST', '/auth/google', { credential: credential }, false);
   if (result.success) saveAuthData(result.token, result.user);
   return result;
+}
+
+// ---- Events ----
+async function getEvents(filters) {
+  var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return await request('GET', '/events' + q, null, false);
+}
+
+async function getEventById(id) {
+  return await request('GET', '/events/' + id, null, false);
+}
+
+async function createEvent(data) {
+  return await request('POST', '/events', data, true);
+}
+
+async function updateEvent(id, data) {
+  return await request('PUT', '/events/' + id, data, true);
+}
+
+async function deleteEvent(id) {
+  return await request('DELETE', '/events/' + id, null, true);
+}
+
+async function getMyEvents() {
+  return await request('GET', '/events/my-events', null, true);
+}
+
+async function purchaseTicket(eventId, ticketId, paymentRef) {
+  return await request('POST', '/events/' + eventId + '/tickets/' + ticketId + '/purchase',
+    { paymentRef: paymentRef || '' }, true);
+}
+
+async function getMyTickets() {
+  return await request('GET', '/events/my-tickets', null, true);
+}
+
+// ---- Notifications ----
+async function getNotifications() {
+  return await request('GET', '/notifications', null, true);
+}
+
+async function getUnreadCount() {
+  return await request('GET', '/notifications/unread-count', null, true);
+}
+
+async function markNotificationRead(id) {
+  return await request('PUT', '/notifications/' + id + '/read', null, true);
+}
+
+async function markAllNotificationsRead() {
+  return await request('PUT', '/notifications/read-all', null, true);
 }
 
   // ---- VENDORS ----
@@ -247,6 +298,15 @@ async function googleAuth(credential) {
     isLoggedIn, getCurrentUser, getToken, saveAuthData, clearAuthData,
     // Vendors
     getVendors, registerVendor, getMyVendorProfile, addProduct, deleteProduct,
+    // Events
+getEvents, getEventById, createEvent, updateEvent, deleteEvent,
+getMyEvents, purchaseTicket, getMyTickets,
+
+// Notifications
+getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead,
+
+// Google
+googleAuth,
     // Ambassadors
     registerAmbassador, getMyAmbassadorProfile, requestWithdrawal, claimTaskReward,
     // Ads
