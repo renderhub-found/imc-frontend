@@ -1,353 +1,877 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Inside my Campus</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <title>Inside My Campus — Nigeria's Campus Marketplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ============================================
+       SCROLL FEED LAYOUT
+    ============================================ */
+    *{box-sizing:border-box;margin:0;padding:0;}
+
+    :root {
+      --primary:     #1a3c8f;
+      --primary-d:   #0f2456;
+      --accent:      #e85d04;
+      --success:     #2d8653;
+      --bg:          #f0f2f8;
+      --card:        #ffffff;
+      --text:        #1a1a2e;
+      --muted:       #888;
+      --radius:      14px;
+    }
+
+    body {
+      font-family: Inter, sans-serif;
+      background:  var(--bg);
+      color:       var(--text);
+      overflow-x:  hidden;
+    }
+
+    /* ---- TOPBAR ---- */
+    .topbar {
+      position:   fixed;
+      top:        0;
+      left:       0;
+      right:      0;
+      z-index:    1000;
+      background: var(--primary);
+      padding:    0 16px;
+      height:     56px;
+      display:    flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+    }
+    .topbar-logo {
+      font-size:   19px;
+      font-weight: 900;
+      color:       #fff;
+      letter-spacing: -0.5px;
+    }
+    .topbar-logo span { color: #ffd166; }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+    .topbar-btn {
+      background: rgba(255,255,255,0.15);
+      border:     none;
+      color:      #fff;
+      padding:    7px 14px;
+      border-radius: 20px;
+      font-size:  13px;
+      font-weight: 600;
+      cursor:     pointer;
+      font-family: Inter, sans-serif;
+      transition: background .15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .topbar-btn:hover { background: rgba(255,255,255,0.25); }
+    .topbar-btn.accent { background: var(--accent); }
+
+    /* ---- SEARCH BAR ---- */
+    .searchbar {
+      position:   sticky;
+      top:        56px;
+      z-index:    900;
+      background: #fff;
+      padding:    10px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .searchbar-inner {
+      max-width:   640px;
+      margin:      0 auto;
+      display:     flex;
+      gap:         8px;
+    }
+    .searchbar input {
+      flex:         1;
+      padding:      10px 16px;
+      border:       1.5px solid #e0e0e0;
+      border-radius: 24px;
+      font-size:    14px;
+      font-family:  Inter, sans-serif;
+      outline:      none;
+      transition:   border-color .2s;
+    }
+    .searchbar input:focus { border-color: var(--primary); }
+    .searchbar-btn {
+      background: var(--primary);
+      color:      #fff;
+      border:     none;
+      padding:    10px 18px;
+      border-radius: 24px;
+      cursor:     pointer;
+      font-size:  14px;
+    }
+
+    /* ---- SECTION TABS ---- */
+    .section-tabs {
+      display:    flex;
+      gap:        6px;
+      padding:    10px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      position:   sticky;
+      top:        106px;
+      z-index:    800;
+    }
+    .section-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      white-space: nowrap;
+      padding:    7px 16px;
+      border:     1.5px solid #e0e0e0;
+      border-radius: 20px;
+      font-size:  13px;
+      font-weight: 600;
+      cursor:     pointer;
+      background: #fff;
+      color:      #666;
+      transition: all .15s;
+      font-family: Inter, sans-serif;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color:      #fff;
+      border-color: var(--primary);
+    }
+
+    /* ---- FEED ---- */
+    .feed {
+      max-width:  720px;
+      margin:     0 auto;
+      padding:    16px 12px 80px;
+    }
+
+    /* ---- FEED SECTION ---- */
+    .feed-section {
+      margin-bottom: 28px;
+    }
+    .feed-section-header {
+      display:      flex;
+      align-items:  center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding:      0 2px;
+    }
+    .feed-section-title {
+      font-size:   17px;
+      font-weight: 800;
+      color:       var(--text);
+      display:     flex;
+      align-items: center;
+      gap:         8px;
+    }
+    .feed-section-title .icon {
+      width:        34px;
+      height:       34px;
+      border-radius: 10px;
+      display:      flex;
+      align-items:  center;
+      justify-content: center;
+      font-size:    16px;
+    }
+    .see-all {
+      font-size:   13px;
+      color:       var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    /* ---- NEWS CARDS (vertical) ---- */
+    .news-list { display: flex; flex-direction: column; gap: 12px; }
+    .news-card {
+      background:   var(--card);
+      border-radius: var(--radius);
+      overflow:     hidden;
+      box-shadow:   0 2px 10px rgba(0,0,0,0.06);
+      display:      flex;
+      gap:          0;
+      cursor:       pointer;
+      transition:   transform .15s, box-shadow .15s;
+    }
+    .news-card:hover {
+      transform:  translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    .news-card-img {
+      width:       110px;
+      min-width:   110px;
+      height:      90px;
+      object-fit:  cover;
+      background:  #e8ecf5;
+    }
+    .news-card-img-placeholder {
+      width:       110px;
+      min-width:   110px;
+      height:      90px;
+      background:  linear-gradient(135deg,#e8ecf5,#d0d8f0);
+      display:     flex;
+      align-items: center;
+      justify-content: center;
+      font-size:   28px;
+    }
+    .news-card-body {
+      padding:   12px 14px;
+      flex:      1;
+      min-width: 0;
+    }
+    .news-card-tag {
+      display:      inline-block;
+      background:   #e8f0ff;
+      color:        var(--primary);
+      font-size:    10px;
+      font-weight:  700;
+      padding:      2px 8px;
+      border-radius: 10px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .news-card-title {
+      font-size:    14px;
+      font-weight:  700;
+      color:        var(--text);
+      line-height:  1.3;
+      margin-bottom: 6px;
+      display:      -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow:     hidden;
+    }
+    .news-card-meta {
+      font-size:  11px;
+      color:      var(--muted);
+      display:    flex;
+      gap:        10px;
+    }
+
+    /* ---- VENDOR CARDS (horizontal scroll) ---- */
+    .vendor-scroll {
+      display:   flex;
+      gap:       12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .vendor-scroll::-webkit-scrollbar { display: none; }
+    .vendor-card {
+      min-width:    160px;
+      background:   var(--card);
+      border-radius: var(--radius);
+      overflow:     hidden;
+      box-shadow:   0 2px 10px rgba(0,0,0,0.06);
+      cursor:       pointer;
+      transition:   transform .15s;
+      flex-shrink:  0;
+    }
+    .vendor-card:hover { transform: translateY(-3px); }
+    .vendor-card-cover {
+      height:     90px;
+      background: linear-gradient(135deg, var(--primary), #2d5be3);
+      display:    flex;
+      align-items: center;
+      justify-content: center;
+      font-size:  32px;
+    }
+    .vendor-card-body { padding: 10px 12px; }
+    .vendor-card-name {
+      font-size:   13px;
+      font-weight: 700;
+      color:       var(--text);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow:    hidden;
+      text-overflow: ellipsis;
+    }
+    .vendor-card-cat {
+      font-size: 11px;
+      color:     var(--muted);
+    }
+    .vendor-card-uni {
+      font-size:   10px;
+      color:       var(--primary);
+      font-weight: 600;
+      margin-top:  4px;
+    }
+
+    /* ---- PRODUCT GRID ---- */
+    .product-grid {
+      display:               grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:                   12px;
+    }
+    .product-card {
+      background:   var(--card);
+      border-radius: var(--radius);
+      overflow:     hidden;
+      box-shadow:   0 2px 10px rgba(0,0,0,0.06);
+      cursor:       pointer;
+      transition:   transform .15s;
+    }
+    .product-card:hover { transform: translateY(-2px); }
+    .product-card-img {
+      width:      100%;
+      height:     130px;
+      object-fit: cover;
+      background: #f0f2f8;
+      display:    flex;
+      align-items: center;
+      justify-content: center;
+      font-size:  36px;
+    }
+    .product-card-img img {
+      width:      100%;
+      height:     130px;
+      object-fit: cover;
+    }
+    .product-card-body { padding: 10px 12px 12px; }
+    .product-card-name {
+      font-size:   13px;
+      font-weight: 700;
+      color:       var(--text);
+      margin-bottom: 4px;
+      display:     -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow:    hidden;
+    }
+    .product-card-price {
+      font-size:   14px;
+      font-weight: 800;
+      color:       var(--accent);
+    }
+    .product-card-vendor {
+      font-size: 11px;
+      color:     var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ---- SPONSORED CARD ---- */
+    .sponsored-card {
+      background:    linear-gradient(135deg, #1a3c8f 0%, #2d5be3 100%);
+      border-radius: var(--radius);
+      padding:       20px;
+      color:         #fff;
+      position:      relative;
+      overflow:      hidden;
+      margin-bottom: 12px;
+    }
+    .sponsored-card::before {
+      content:       'FEATURED';
+      position:      absolute;
+      top:           12px;
+      right:         12px;
+      background:    rgba(255,255,255,0.2);
+      padding:       3px 8px;
+      border-radius: 10px;
+      font-size:     10px;
+      font-weight:   700;
+    }
+    .sponsored-card h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .sponsored-card p  { font-size: 13px; opacity: 0.8; margin-bottom: 14px; }
+    .sponsored-card .cta {
+      display:       inline-block;
+      background:    #fff;
+      color:         var(--primary);
+      padding:       8px 18px;
+      border-radius: 20px;
+      font-weight:   700;
+      font-size:     13px;
+      text-decoration: none;
+    }
+
+    /* ---- AD CARD ---- */
+    .ad-card {
+      background:   var(--card);
+      border-radius: var(--radius);
+      overflow:     hidden;
+      box-shadow:   0 2px 10px rgba(0,0,0,0.06);
+      margin-bottom: 12px;
+    }
+    .ad-card-img {
+      width:      100%;
+      height:     160px;
+      object-fit: cover;
+      background: #f0f2f8;
+    }
+    .ad-card-body { padding: 14px; }
+    .ad-card-tag {
+      font-size:    10px;
+      font-weight:  700;
+      color:        var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .ad-card-title {
+      font-size:   15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .ad-card-meta { font-size: 12px; color: var(--muted); }
+
+    /* ---- LOADING ---- */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ---- BOTTOM NAV ---- */
+    .bottom-nav {
+      position:   fixed;
+      bottom:     0;
+      left:       0;
+      right:      0;
+      background: #fff;
+      display:    flex;
+      border-top: 1px solid #f0f0f0;
+      z-index:    1000;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+    }
+    .bottom-nav-item {
+      flex:        1;
+      display:     flex;
+      flex-direction: column;
+      align-items: center;
+      padding:     10px 0 8px;
+      font-size:   10px;
+      font-weight: 600;
+      color:       #aaa;
+      cursor:      pointer;
+      text-decoration: none;
+      transition:  color .15s;
+    }
+    .bottom-nav-item.active { color: var(--primary); }
+    .bottom-nav-item i { font-size: 20px; margin-bottom: 3px; }
+
+    /* ---- HERO BANNER ---- */
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, #2d5be3 60%, #e85d04 100%);
+      padding:    28px 20px;
+      color:      #fff;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size:   26px;
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .hero p {
+      font-size: 14px;
+      opacity:   0.85;
+      margin-bottom: 18px;
+    }
+    .hero-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .hero-btn {
+      padding:       10px 20px;
+      border-radius: 24px;
+      font-weight:   700;
+      font-size:     14px;
+      text-decoration: none;
+      transition:    opacity .15s;
+    }
+    .hero-btn:hover { opacity: 0.9; }
+    .hero-btn.primary { background: #fff; color: var(--primary); }
+    .hero-btn.outline {
+      background: rgba(255,255,255,0.15);
+      color:      #fff;
+      border:     1.5px solid rgba(255,255,255,0.5);
+    }
+
+    /* ---- EMPTY STATE ---- */
+    .empty {
+      text-align: center;
+      padding:    28px 20px;
+      color:      var(--muted);
+    }
+    .empty i { font-size: 36px; margin-bottom: 10px; display: block; }
+
+    @media(min-width:640px) {
+      .product-grid { grid-template-columns: repeat(3,1fr); }
+      .feed { padding: 16px 16px 80px; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- ========== NAVBAR ========== -->
-<nav class="navbar">
-  <div class="nav-container">
-
-    <div class="nav-logo">
-      <a href="index.html"
-        style="display:flex;align-items:center;gap:10px;">
-        <div class="logo-icon">🏫</div>
-        <span class="logo-text">Inside My Campus</span>
-      </a>
-    </div>
-
-    <ul class="nav-links" id="navLinks">
-      <li><a href="vendors-page.html">Vendors</a></li>
-      <li><a href="vendors-page.html?cat=Lodges">Lodges</a></li>
-      <li><a href="campus-news.html">Campus News</a></li>
-      <li><a href="events.html">Events</a></li>
-    </ul>
-
-    <div class="nav-right">
-      <div class="auth-buttons" id="authButtons">
-        <a href="login.html" class="btn-login">Login</a>
-        <a href="signup.html" class="btn-signup">Sign Up</a>
-      </div>
-
-      <div class="user-menu" id="userMenu" style="display:none;">
-        <button class="hamburger-btn" id="hamburgerBtn">
-          <i class="fas fa-bars"></i>
-        </button>
-        <div class="dropdown-menu" id="dropdownMenu">
-          <a href="vendor.html">
-            <i class="fas fa-store"></i> Become Vendor
-          </a>
-          <a href="ambassador.html">
-            <i class="fas fa-user-tie"></i> Become Ambassador
-          </a>
-          <a href="campus-news.html">
-            <i class="fas fa-newspaper"></i> Campus News
-          </a>
-          <a href="post-ad.html">
-            <i class="fas fa-ad"></i> Post Ad
-          </a>
-          <a href="online-courses.html">
-            <i class="fas fa-graduation-cap"></i> Online Courses
-          </a>
-          <a href="contact.html">
-            <i class="fas fa-envelope"></i> Contact
-          </a>
-          <a href="#" id="logoutBtn" class="logout-link">
-            <i class="fas fa-sign-out-alt"></i> Logout
-          </a>
-        </div>
-      </div>
-
-      <button class="mobile-nav-toggle" id="mobileNavToggle">
-        <i class="fas fa-bars"></i>
-      </button>
-    </div>
-
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">IMC<span>.</span></div>
+  <div class="topbar-actions" id="topbarActions">
+    <a href="login.html"  class="topbar-btn"><i class="fas fa-sign-in-alt"></i> Login</a>
+    <a href="signup.html" class="topbar-btn accent"><i class="fas fa-user-plus"></i> Join</a>
   </div>
-</nav>
-
-  <!-- ========== HERO SECTION ========== -->
-  <section class="hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <h1>Find Everything You Need on Campus!</h1>
-      <p>Discover trusted vendors, hostels, and latest campus news across Nigerian universities.</p>
-
-      <!-- Search Bar -->
-      <div class="search-bar" style="position:relative;">
-  <i class="fas fa-search search-icon"></i>
-  <input
-    type="text"
-    id="heroSearchInput"
-    placeholder="Search vendors, hostels, or your university..."
-    autocomplete="off"
-  />
-  <button class="search-location" id="heroSearchBtn">
-    <i class="fas fa-search"></i>
-  </button>
 </div>
 
-      <!-- Hero Buttons -->
-      <div class="hero-buttons">
-  <button class="hero-btn btn-vendors" id="findVendorsBtn">
-    Find Vendors
-  </button>
-  <button class="hero-btn btn-universities" id="exploreUnisBtn">
-    Explore Universities
-  </button>
-  <a href="vendor.html" class="hero-btn btn-become-vendor"
-    id="becomeVendorBtn">
-    Become a Vendor
+<!-- SEARCH -->
+<div class="searchbar">
+  <div class="searchbar-inner">
+    <input type="text" id="globalSearch" placeholder="Search vendors, products, news..."/>
+    <button class="searchbar-btn" id="searchBtn">
+      <i class="fas fa-search"></i>
+    </button>
+  </div>
+</div>
+
+<!-- SECTION TABS -->
+<div class="section-tabs">
+  <button class="tab-btn active" data-tab="all">🏠 All</button>
+  <button class="tab-btn" data-tab="news">📰 News</button>
+  <button class="tab-btn" data-tab="vendors">🏪 Vendors</button>
+  <button class="tab-btn" data-tab="products">🛒 Products</button>
+  <button class="tab-btn" data-tab="ads">📢 Ads</button>
+</div>
+
+<!-- FEED -->
+<div class="feed" id="mainFeed">
+
+  <!-- HERO — shown on tab all -->
+  <div class="feed-section" id="heroSection">
+    <div class="hero">
+      <h1>Nigeria's Campus<br/>Marketplace 🎓</h1>
+      <p>Discover vendors, news, courses and more on your campus</p>
+      <div class="hero-btns">
+        <a href="vendors-page.html" class="hero-btn primary">Explore Vendors</a>
+        <a href="vendor.html"       class="hero-btn outline">Become a Vendor</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPUS NEWS -->
+  <div class="feed-section" id="newsSection">
+    <div class="feed-section-header">
+      <div class="feed-section-title">
+        <div class="icon" style="background:#e8f0ff;">📰</div>
+        Campus News
+      </div>
+      <a href="campus-news.html" class="see-all">See all →</a>
+    </div>
+    <div class="news-list" id="newsList">
+      <!-- Skeleton -->
+      <div style="height:90px;" class="skeleton"></div>
+      <div style="height:90px;margin-top:10px;" class="skeleton"></div>
+    </div>
+  </div>
+
+  <!-- TRENDING VENDORS -->
+  <div class="feed-section" id="vendorsSection">
+    <div class="feed-section-header">
+      <div class="feed-section-title">
+        <div class="icon" style="background:#e8f9ee;">🏪</div>
+        Trending Vendors
+      </div>
+      <a href="vendors-page.html" class="see-all">See all →</a>
+    </div>
+    <div class="vendor-scroll" id="vendorScroll">
+      <div style="width:160px;height:150px;" class="skeleton"></div>
+      <div style="width:160px;height:150px;" class="skeleton"></div>
+      <div style="width:160px;height:150px;" class="skeleton"></div>
+    </div>
+  </div>
+
+  <!-- FEATURED PRODUCT -->
+  <div class="feed-section" id="sponsoredSection">
+    <div class="sponsored-card">
+      <h3>🎓 Start Your Campus Business</h3>
+      <p>Register as a vendor today and reach thousands of students on your campus.</p>
+      <a href="vendor.html" class="cta">Register Now →</a>
+    </div>
+  </div>
+
+  <!-- MARKETPLACE PRODUCTS -->
+  <div class="feed-section" id="productsSection">
+    <div class="feed-section-header">
+      <div class="feed-section-title">
+        <div class="icon" style="background:#fff0f5;">🛒</div>
+        Marketplace
+      </div>
+      <a href="vendors-page.html" class="see-all">Browse all →</a>
+    </div>
+    <div class="product-grid" id="productGrid">
+      <div style="height:200px;" class="skeleton"></div>
+      <div style="height:200px;" class="skeleton"></div>
+      <div style="height:200px;" class="skeleton"></div>
+      <div style="height:200px;" class="skeleton"></div>
+    </div>
+  </div>
+
+  <!-- ADS -->
+  <div class="feed-section" id="adsSection">
+    <div class="feed-section-header">
+      <div class="feed-section-title">
+        <div class="icon" style="background:#fff8e8;">📢</div>
+        Campus Ads
+      </div>
+      <a href="post-ad.html" class="see-all">Post Ad →</a>
+    </div>
+    <div id="adsList">
+      <div style="height:200px;" class="skeleton"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a href="index.html"         class="bottom-nav-item active">
+    <i class="fas fa-home"></i>Home
+  </a>
+  <a href="vendors-page.html"  class="bottom-nav-item">
+    <i class="fas fa-store"></i>Vendors
+  </a>
+  <a href="online-courses.html" class="bottom-nav-item">
+    <i class="fas fa-graduation-cap"></i>Courses
+  </a>
+  <a href="campus-news.html"   class="bottom-nav-item">
+    <i class="fas fa-newspaper"></i>News
+  </a>
+  <a href="post-ad.html"       class="bottom-nav-item">
+    <i class="fas fa-plus-circle"></i>Post Ad
   </a>
 </div>
-    </div>
-  </section>
 
-  <!-- ========== TRENDING VENDORS ========== -->
-  <section class="section trending-vendors">
-    <div class="section-header">
-      <h2>Trending Vendors Near You</h2>
-      <div class="scroll-arrows">
-        <button class="arrow-btn" id="vendorPrev"><i class="fas fa-chevron-left"></i></button>
-        <button class="arrow-btn" id="vendorNext"><i class="fas fa-chevron-right"></i></button>
-      </div>
-    </div>
-
-    <div class="vendor-cards-wrapper">
-      <div class="vendor-cards" id="vendorCards">
-
-        <!-- Card 1 -->
-        <div class="vendor-card">
-          <div class="vendor-img">
-            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop" alt="Jay Sneakers Hub"/>
-          </div>
-          <div class="vendor-info">
-            <h3>Jay Sneakers Hub</h3>
-            <p class="vendor-uni"><i class="fas fa-map-marker-alt verified"></i> UNILAG</p>
-            <a href="vendor-profile.html?id=VND-SAMPLE-1"
-             class="btn-view-profile">View Profile</a>
-          </div>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="vendor-card">
-          <div class="vendor-img">
-            <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=300&h=200&fit=crop" alt="Tasty Bites Kitchen"/>
-          </div>
-          <div class="vendor-info">
-            <h3>Tasty Bites Kitchen</h3>
-            <p class="vendor-uni"><i class="fas fa-map-marker-alt verified"></i> UNN</p>
-            <p class="vendor-desc">Popular: Jollof Rice</p>
-            <a href="vendor-profile.html?id=VND-SAMPLE-2"
-             class="btn-view-profile">View Profile</a>
-          </div>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="vendor-card">
-          <div class="vendor-img">
-            <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=300&h=200&fit=crop" alt="Grace Villa Lodge"/>
-          </div>
-          <div class="vendor-info">
-            <h3>Grace Villa Lodge</h3>
-            <p class="vendor-uni"><i class="fas fa-map-marker-alt verified green"></i> DELSU</p>
-            <p class="vendor-desc">Podaes & Jhinegar</p>
-             <a href="vendor-profile.html?id=VND-SAMPLE-3"
-             class="btn-view-profile">View Profile</a>
-          </div>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="vendor-card">
-          <div class="vendor-img">
-            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=200&fit=crop" alt="Glitz Jewelry"/>
-          </div>
-          <div class="vendor-info">
-            <h3>Glitz Jewelry</h3>
-            <p class="vendor-uni"><i class="fas fa-map-marker-alt danger"></i> LASU</p>
-            <p class="vendor-desc">Fine Jewelry & Accessories</p>
-            <a href="vendor-profile.html?id=VND-SAMPLE-4"
-            class="btn-view-profile">View Profile</a>
-          </div>
-        </div>
-
-        <!-- Card 5 -->
-        <div class="vendor-card">
-          <div class="vendor-img">
-            <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&h=200&fit=crop" alt="Campus Cuts Barber"/>
-          </div>
-          <div class="vendor-info">
-            <h3>Campus Cuts Barber</h3>
-            <p class="vendor-uni"><i class="fas fa-map-marker-alt verified"></i> UI</p>
-            <p class="vendor-desc">Haircuts & Grooming</p>
-            <a href="vendor-profile.html?id=VND-SAMPLE-5"
-            class="btn-view-profile">View Profile</a>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== CAMPUS UPDATES ========== -->
-  <section class="section campus-updates">
-    <div class="section-header">
-      <h2>Campus Updates</h2>
-      <div class="scroll-arrows">
-        <button class="arrow-btn"><i class="fas fa-chevron-left"></i></button>
-        <button class="arrow-btn"><i class="fas fa-chevron-right"></i></button>
-      </div>
-    </div>
-
-    <div class="updates-grid">
-
-      <div class="update-card">
-        <div class="update-content">
-          <h3><span class="dot"></span> UNILAG Exam Timetable Released</h3>
-          <p class="update-date">April 27, 2024</p>
-          <p>The new examination timetable for UNILAG students has been published. Check out the schedule...</p>
-        </div>
-        <div class="update-icon"><i class="fas fa-university"></i></div>
-      </div>
-
-      <div class="update-card">
-        <div class="update-content">
-          <h3><span class="dot"></span> How to Balance Studies & Side Hustles</h3>
-          <p class="update-date">April 26, 2024</p>
-          <p>Here are some tips on how to effectively balance academics with a side hustle as a student.</p>
-        </div>
-        <a href="#" class="btn-read-more">Read More &rsaquo;</a>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ========== EXPLORE CATEGORIES ========== -->
-  <section class="section explore-categories">
-    <div class="section-header">
-      <h2 class="blue-title">Explore Categories</h2>
-      <div class="scroll-arrows">
-        <button class="arrow-btn"><i class="fas fa-chevron-left"></i></button>
-        <button class="arrow-btn"><i class="fas fa-chevron-right"></i></button>
-      </div>
-    </div>
-
-    <div class="categories-layout">
-
-      <!-- Left: Category Icons -->
-      <div class="category-icons">
-        <div class="category-item">
-          <div class="cat-icon">🍲</div>
-          <p>Food Vendors</p>
-        </div>
-        <div class="category-item">
-          <div class="cat-icon">📱</div>
-          <p>Phone & Gadgets</p>
-        </div>
-        <div class="category-item">
-          <div class="cat-icon">⌚</div>
-          <p>Fashion & Jewelry</p>
-        </div>
-        <div class="category-item">
-          <div class="cat-icon">🏠</div>
-          <p>Lodges</p>
-        </div>
-      </div>
-
-      <!-- Right: Event Cards -->
-      <div class="event-cards">
-
-        <div class="event-card event-blue">
-          <div class="event-text">
-            <h3>UNILAG Startup Pitch</h3>
-            <div class="event-tags">
-              <span class="tag-date">▶️ May 20th</span>
-              <span class="tag-loc">Lagos</span>
-            </div>
-            <p>Network and pitch your startup idea!</p>
-            <a href="#" class="btn-see-details">See Details</a>
-          </div>
-          <div class="event-bg event-bg-1"></div>
-        </div>
-
-        <div class="event-card event-beach">
-          <div class="event-text">
-            <h3>DELSU Beach Party</h3>
-            <div class="event-tags">
-              <span class="tag-date">▶️ May 10th</span>
-              <span class="tag-loc">Abraka</span>
-            </div>
-            <p>Don't miss the biggest beach party of the year!</p>
-            <a href="#" class="btn-see-details">See Details</a>
-          </div>
-        </div>
-
-        <div class="event-card event-vendor-cta">
-          <div class="event-text">
-            <h3>Become a Vendor<br/>&amp; Start Selling Today!</h3>
-            <a href="vendor.html" class="btn-see-details">Get Started</a>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== BECOME A VENDOR CTA ========== -->
-  <section class="vendor-cta-banner">
-    <div class="cta-content">
-      <h2>Become a Campus Vendor</h2>
-      <p>Get listed &amp; connect with thousands of students!</p>
-      <div class="cta-pricing">
-        <span class="price">₦5,000 <small>/ 6 Months</small></span>
-        <span class="divider">|</span>
-        <span class="price premium">₦10,000 <small>/ 12 Months Premium</small></span>
-        <a href="vendor.html" class="btn-list-business">List Your Business &rsaquo;</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== FOOTER ========== -->
-  <footer class="footer">
-    <div class="footer-links">
-      <div>
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Vendors</a></li>
-          <li><a href="#">Lodges</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>About Us</h4>
-        <ul>
-          <li><a href="#">Our Story</a></li>
-          <li><a href="#">Team</a></li>
-          <li><a href="#">Careers</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>FAQs</h4>
-        <ul>
-          <li><a href="#">How it Works</a></li>
-          <li><a href="#">Vendor FAQs</a></li>
-          <li><a href="#">Contact Us</a></li>
-        </ul>
-      </div>
-    </div>
-    <p class="footer-copy">&copy; 2026 Inside My Campus. All rights reserved.</p>
-  </footer>
-
-  <script src="search.js"></script>
-<script src="navbar.js"></script>
-<script src="script.js"></script>
-<script src="app.js"></script>
 <script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+
+  // ---- Update topbar if logged in ----
+  if (IMC_API.isLoggedIn()) {
+    var user    = IMC_API.getCurrentUser();
+    var actions = document.getElementById('topbarActions');
+    if (actions && user) {
+      actions.innerHTML =
+        '<span style="color:#fff;font-size:13px;font-weight:600;">' +
+        'Hi, ' + (user.firstName || 'User') + '</span>' +
+        '<button onclick="IMC_API.logout()" class="topbar-btn">' +
+        '<i class="fas fa-sign-out-alt"></i> Logout</button>';
+    }
+  }
+
+  // ---- Tab switching ----
+  var tabs = document.querySelectorAll('.tab-btn');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      filterFeed(this.getAttribute('data-tab'));
+    });
+  });
+
+  // ---- Load data ----
+  await Promise.all([
+    loadNews(),
+    loadVendors(),
+    loadProducts(),
+    loadAds()
+  ]);
+
+  // ---- Search ----
+  document.getElementById('searchBtn').addEventListener('click', function () {
+    var q = document.getElementById('globalSearch').value.trim();
+    if (q) window.location.href = 'vendors-page.html?search=' + encodeURIComponent(q);
+  });
+
+  document.getElementById('globalSearch').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('searchBtn').click();
+  });
+
+});
+
+// ============================================
+//   FILTER FEED BY TAB
+// ============================================
+
+function filterFeed(tab) {
+  var sections = {
+    all:      ['heroSection','newsSection','vendorsSection','sponsoredSection','productsSection','adsSection'],
+    news:     ['newsSection'],
+    vendors:  ['vendorsSection'],
+    products: ['productsSection'],
+    ads:      ['adsSection','sponsoredSection']
+  };
+
+  var all = ['heroSection','newsSection','vendorsSection',
+             'sponsoredSection','productsSection','adsSection'];
+
+  all.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  var show = sections[tab] || sections.all;
+  show.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+  });
+}
+
+// ============================================
+//   LOAD NEWS
+// ============================================
+
+async function loadNews() {
+  var list = document.getElementById('newsList');
+  if (!list) return;
+
+  var result = await IMC_API.getNews();
+
+  if (!result.success || !result.news || result.news.length === 0) {
+    list.innerHTML = '<div class="empty"><i class="fas fa-newspaper"></i>No news yet</div>';
+    return;
+  }
+
+  list.innerHTML = result.news.slice(0, 5).map(function (n) {
+    return '<div class="news-card" onclick="window.location.href=\'campus-news.html\'">' +
+      (n.image
+        ? '<img class="news-card-img" src="' + esc(n.image) +
+          '" onerror="this.style.display=\'none\'" alt=""/>'
+        : '<div class="news-card-img-placeholder">📰</div>') +
+      '<div class="news-card-body">' +
+      '<div class="news-card-tag">' + esc(n.university || 'Campus') + '</div>' +
+      '<div class="news-card-title">' + esc(n.title) + '</div>' +
+      '<div class="news-card-meta">' +
+      '<span><i class="fas fa-eye"></i> ' + (n.views || 0) + '</span>' +
+      '<span>' + fmtDate(n.createdAt) + '</span>' +
+      '</div></div></div>';
+  }).join('');
+}
+
+// ============================================
+//   LOAD VENDORS
+// ============================================
+
+async function loadVendors() {
+  var scroll = document.getElementById('vendorScroll');
+  if (!scroll) return;
+
+  var result = await IMC_API.getVendors();
+
+  if (!result.success || !result.vendors || result.vendors.length === 0) {
+    scroll.innerHTML = '<div class="empty"><i class="fas fa-store"></i>No vendors yet</div>';
+    return;
+  }
+
+  scroll.innerHTML = result.vendors.slice(0, 8).map(function (v) {
+    return '<div class="vendor-card" onclick="window.location.href=\'vendor-profile.html?id=' +
+      v._id + '\'">' +
+      '<div class="vendor-card-cover">🏪</div>' +
+      '<div class="vendor-card-body">' +
+      '<div class="vendor-card-name">' + esc(v.bizName) + '</div>' +
+      '<div class="vendor-card-cat">' + esc(v.category) + '</div>' +
+      '<div class="vendor-card-uni">' + esc(v.university) + '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+// ============================================
+//   LOAD PRODUCTS
+// ============================================
+
+async function loadProducts() {
+  var grid = document.getElementById('productGrid');
+  if (!grid) return;
+
+  var result = await IMC_API.request('GET', '/vendors/products/all', null, false)
+    .catch(function () { return { success: false }; });
+
+  // Fallback if request method not exposed
+  if (!result || !result.success) {
+    try {
+      var res = await fetch(
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+          ? 'http://localhost:5000'
+          : 'https://imc-backend-0y2u.onrender.com') + '/api/vendors/products/all'
+      );
+      result = await res.json();
+    } catch (e) {
+      result = { success: false };
+    }
+  }
+
+  if (!result.success || !result.products || result.products.length === 0) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;">' +
+      '<i class="fas fa-shopping-bag"></i>No products yet</div>';
+    return;
+  }
+
+  grid.innerHTML = result.products.slice(0, 6).map(function (p) {
+    return '<div class="product-card" onclick="window.location.href=' +
+      "'vendor-profile.html?id=" + p.vendorId + "'" + '">' +
+      '<div class="product-card-img">' +
+      (p.image
+        ? '<img src="' + esc(p.image) + '" onerror="this.parentNode.innerHTML=\'🛒\'" alt=""/>'
+        : '🛒') +
+      '</div>' +
+      '<div class="product-card-body">' +
+      '<div class="product-card-name">' + esc(p.name) + '</div>' +
+      '<div class="product-card-price">₦' + (parseInt(p.price)||0).toLocaleString() + '</div>' +
+      '<div class="product-card-vendor">' + esc(p.vendorName || '') + '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+// ============================================
+//   LOAD ADS
+// ============================================
+
+async function loadAds() {
+  var list = document.getElementById('adsList');
+  if (!list) return;
+
+  var result = await IMC_API.getAds();
+
+  if (!result.success || !result.ads || result.ads.length === 0) {
+    list.innerHTML = '<div class="empty"><i class="fas fa-bullhorn"></i>' +
+      'No ads yet. <a href="post-ad.html">Post yours!</a></div>';
+    return;
+  }
+
+  list.innerHTML = result.ads.slice(0, 4).map(function (a) {
+    return '<div class="ad-card">' +
+      (a.image
+        ? '<img class="ad-card-img" src="' + esc(a.image) +
+          '" onerror="this.style.display=\'none\'" alt=""/>'
+        : '') +
+      '<div class="ad-card-body">' +
+      '<div class="ad-card-tag">' + esc(a.category) + ' · ' + (a.duration||7) + ' days</div>' +
+      '<div class="ad-card-title">' + esc(a.title) + '</div>' +
+      '<div class="ad-card-meta">' +
+      '<i class="fas fa-map-marker-alt"></i> ' + esc(a.location) +
+      ' &nbsp;|&nbsp; <i class="fas fa-phone"></i> ' + esc(a.contact) +
+      '</div></div></div>';
+  }).join('');
+}
+
+// ============================================
+//   HELPERS
+// ============================================
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  var dt = new Date(d);
+  var diff = Date.now() - dt.getTime();
+  var h = Math.floor(diff / 3600000);
+  if (h < 1)  return 'Just now';
+  if (h < 24) return h + 'h ago';
+  var days = Math.floor(h / 24);
+  if (days < 7) return days + 'd ago';
+  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+}
+</script>
 </body>
 </html>

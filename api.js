@@ -117,6 +117,14 @@ var IMC_API = (function () {
       { token: token, password: password }, false);
   }
 
+  // ---- Google Auth ----
+async function googleAuth(credential) {
+  console.log('[API] googleAuth called');
+  var result = await request('POST', '/auth/google', { credential: credential }, false);
+  if (result.success) saveAuthData(result.token, result.user);
+  return result;
+}
+
   // ---- VENDORS ----
   async function getVendors(f) {
     var q = f ? '?' + new URLSearchParams(f).toString() : '';

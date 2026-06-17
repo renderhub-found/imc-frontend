@@ -48,6 +48,17 @@
         <span>Login successful! Redirecting...</span>
       </div>
 
+<!-- Add this ABOVE your existing email/password form -->
+
+<!-- Google Sign-In -->
+<div id="googleSignInDiv" style="margin-bottom:16px;"></div>
+
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+  <div style="flex:1;height:1px;background:#e0e0e0;"></div>
+  <span style="font-size:12px;color:#aaa;white-space:nowrap;">or sign in with email</span>
+  <div style="flex:1;height:1px;background:#e0e0e0;"></div>
+</div>
+
       <!-- Login Form -->
       <div class="auth-form">
 
@@ -118,6 +129,77 @@
   <script src="app.js"></script>
   <script src="auth.js"></script>
   <script src="api.js"></script>
+  <!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="api.js"></script>
+<script src="auth.js"></script>
+<script>
+// ---- Google Sign-In callback ----
+window.handleGoogleSignIn = async function (response) {
+  console.log('[Google] Credential received');
+
+  var errBox = document.getElementById('loginError');
+  var errMsg = document.getElementById('loginErrorMsg');
+
+  if (!response || !response.credential) {
+    if (errMsg) errMsg.textContent = 'Google sign-in failed. Please try again.';
+    if (errBox) errBox.style.display = 'flex';
+    return;
+  }
+
+  // Show loading
+  var gDiv = document.getElementById('googleSignInDiv');
+  if (gDiv) gDiv.innerHTML = '<p style="text-align:center;color:#888;font-size:13px;">⏳ Signing in with Google...</p>';
+
+  // Send credential to backend
+  var result = await IMC_API.googleAuth(response.credential);
+
+  console.log('[Google] Auth result:', JSON.stringify(result));
+
+  if (result.success) {
+    window.location.href = 'index.html';
+  } else {
+    if (gDiv) {
+      // Re-render Google button
+      google.accounts.id.renderButton(
+        document.getElementById('googleSignInDiv'),
+        { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' }
+      );
+    }
+    if (errMsg) errMsg.textContent = result.message || 'Google login failed.';
+    if (errBox) errBox.style.display = 'flex';
+  }
+};
+
+// ---- Initialize Google Sign-In ----
+window.addEventListener('load', function () {
+  var clientId = 'YOUR_GOOGLE_CLIENT_ID_HERE';
+
+  if (!clientId || clientId.includes('YOUR_')) {
+    console.warn('[Google] Client ID not set — Google login disabled');
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback:  window.handleGoogleSignIn,
+    auto_select: false,
+    cancel_on_tap_outside: true
+  });
+
+  google.accounts.id.renderButton(
+    document.getElementById('googleSignInDiv'),
+    {
+      theme:  'outline',
+      size:   'large',
+      width:  '100%',
+      text:   'continue_with',
+      shape:  'rectangular',
+      logo_alignment: 'left'
+    }
+  );
+});
+</script>
 
 </body>
 </html>
