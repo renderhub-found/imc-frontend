@@ -7,13 +7,13 @@ var IMC_API = (function () {
   'use strict';
 
   var BASE_URL = (
-    window.location.hostname === '127.0.0.1' ||
-    window.location.hostname === 'localhost'
-  )
-    ? 'http://localhost:5000/api'
-    : 'https://imc-backend-0y2u.onrender.com/api';
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname === 'localhost'
+)
+  ? 'http://localhost:5000/api'
+  : 'https://imc-backend-0y2u.onrender.com/api';
 
-  console.log('[API] BASE_URL:', BASE_URL);
+console.log('[API] BASE_URL:', BASE_URL);
 
   // ---- Helpers ----
   function getToken()  { return localStorage.getItem('imc_token') || null; }
@@ -119,6 +119,7 @@ var IMC_API = (function () {
 
   // ---- Google Auth ----
 async function googleAuth(credential) {
+  console.log('[API] googleAuth called');
   var result = await request('POST', '/auth/google', { credential: credential }, false);
   if (result.success) saveAuthData(result.token, result.user);
   return result;
@@ -150,13 +151,14 @@ async function getMyEvents() {
   return await request('GET', '/events/my-events', null, true);
 }
 
-async function purchaseTicket(eventId, ticketId, paymentRef) {
-  return await request('POST', '/events/' + eventId + '/tickets/' + ticketId + '/purchase',
-    { paymentRef: paymentRef || '' }, true);
-}
-
 async function getMyTickets() {
   return await request('GET', '/events/my-tickets', null, true);
+}
+
+async function googleAuth(credential) {
+  var result = await request('POST', '/auth/google', { credential: credential }, false);
+  if (result.success) saveAuthData(result.token, result.user);
+  return result;
 }
 
 // ---- Notifications ----

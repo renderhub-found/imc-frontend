@@ -1,185 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login – Inside My Campus</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Login — Inside My Campus</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:Inter,sans-serif;
+      background:linear-gradient(135deg,#0a1628 0%,#1a3c8f 100%);
+      min-height:100vh;display:flex;align-items:center;
+      justify-content:center;padding:20px;
+    }
+    .auth-card{
+      background:#fff;border-radius:20px;padding:36px 32px;
+      width:100%;max-width:420px;
+      box-shadow:0 24px 80px rgba(0,0,0,0.3);
+    }
+    .auth-logo{text-align:center;margin-bottom:24px;}
+    .auth-logo-icon{font-size:36px;margin-bottom:8px;}
+    .auth-logo h1{font-size:22px;font-weight:800;color:#1a1a2e;}
+    .auth-logo p{font-size:13px;color:#888;margin-top:3px;}
+    .form-group{margin-bottom:14px;}
+    .form-group label{
+      display:block;font-size:13px;font-weight:600;
+      color:#444;margin-bottom:5px;
+    }
+    .form-input{
+      width:100%;padding:12px 14px;
+      border:1.5px solid #e0e0e0;border-radius:8px;
+      font-size:14px;font-family:Inter,sans-serif;
+      outline:none;transition:border-color .2s;
+    }
+    .form-input:focus{border-color:#1a3c8f;}
+    .input-wrap{position:relative;}
+    .input-wrap .toggle-pw{
+      position:absolute;right:12px;top:50%;transform:translateY(-50%);
+      background:none;border:none;cursor:pointer;color:#888;font-size:14px;
+    }
+    .btn-primary{
+      width:100%;background:#1a3c8f;color:#fff;border:none;
+      padding:13px;border-radius:10px;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:Inter,sans-serif;
+      transition:background .2s;
+    }
+    .btn-primary:hover{background:#0f2456;}
+    .btn-primary:disabled{background:#aaa;cursor:not-allowed;}
+    .auth-error{
+      background:#fff0f0;border:1px solid #f5c6cb;border-radius:8px;
+      padding:10px 14px;font-size:13px;color:#c62828;
+      margin-bottom:14px;display:none;
+    }
+    .auth-success{
+      background:#e8f9ee;border:1px solid #b7e4c7;border-radius:8px;
+      padding:10px 14px;font-size:13px;color:#2d8653;
+      margin-bottom:14px;display:none;
+    }
+    .divider{
+      display:flex;align-items:center;gap:10px;
+      margin:18px 0;
+    }
+    .divider-line{flex:1;height:1px;background:#e8e8e8;}
+    .divider-text{font-size:12px;color:#aaa;white-space:nowrap;}
+    .google-btn{
+      width:100%;display:flex;align-items:center;justify-content:center;
+      gap:10px;padding:12px 16px;
+      background:#fff;border:1.5px solid #e0e0e0;border-radius:10px;
+      font-size:14px;font-weight:600;color:#444;cursor:pointer;
+      font-family:Inter,sans-serif;transition:background .15s,box-shadow .15s;
+      margin-bottom:4px;
+    }
+    .google-btn:hover{background:#f8f9ff;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+    .google-btn:disabled{opacity:0.6;cursor:not-allowed;}
+    .google-logo{width:20px;height:20px;}
+    .auth-links{text-align:center;margin-top:18px;font-size:13px;color:#888;}
+    .auth-links a{color:#1a3c8f;font-weight:600;text-decoration:none;}
+    .forgot-link{
+      text-align:right;margin-top:-8px;margin-bottom:14px;
+    }
+    .forgot-link a{font-size:12px;color:#1a3c8f;text-decoration:none;font-weight:600;}
+  </style>
 </head>
 <body>
 
-  <!-- ========== NAVBAR ========== -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-logo">
-        <a href="index.html" style="display:flex; align-items:center; gap:10px;">
-          <div class="logo-icon">🏫</div>
-          <span class="logo-text">Inside My Campus</span>
-        </a>
-      </div>
-      <div class="auth-buttons">
-        <a href="login.html" class="btn-login">Login</a>
-        <a href="signup.html" class="btn-signup">Sign Up</a>
-      </div>
+<div class="auth-card">
+
+  <div class="auth-logo">
+    <div class="auth-logo-icon">📚</div>
+    <h1>Welcome Back</h1>
+    <p>Sign in to Inside My Campus</p>
+  </div>
+
+  <!-- Google Sign-In Button -->
+  <button class="google-btn" id="googleLoginBtn" type="button">
+    <svg class="google-logo" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>
+    Continue with Google
+  </button>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-text">or sign in with email</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- Error / Success -->
+  <div class="auth-error"   id="loginError"><span id="loginErrorMsg"></span></div>
+  <div class="auth-success" id="loginSuccess">Login successful! Redirecting...</div>
+
+  <!-- Email + Password Form -->
+  <div class="form-group">
+    <label for="loginEmail">Email Address</label>
+    <input type="email" id="loginEmail" class="form-input"
+      placeholder="your@email.com" autocomplete="email"/>
+  </div>
+
+  <div class="form-group">
+    <label for="loginPassword">Password</label>
+    <div class="input-wrap">
+      <input type="password" id="loginPassword" class="form-input"
+        placeholder="Your password" autocomplete="current-password"/>
+      <button type="button" class="toggle-pw" id="toggleLoginPassword">
+        <i class="fas fa-eye" id="toggleLoginIcon"></i>
+      </button>
     </div>
-  </nav>
+  </div>
 
-  <!-- ========== LOGIN SECTION ========== -->
-  <section class="auth-section">
+  <div class="forgot-link">
+    <a href="forgot-password.html">Forgot password?</a>
+  </div>
 
-    <div class="auth-card">
+  <button class="btn-primary" id="loginBtn" type="button">
+    <span id="loginBtnText"><i class="fas fa-sign-in-alt"></i> Sign In</span>
+    <span id="loginSpinner" style="display:none;">⏳ Signing in...</span>
+  </button>
 
-      <!-- Top Icon -->
-      <div class="auth-icon">🏫</div>
-      <h2 class="auth-title">Welcome Back!</h2>
-      <p class="auth-subtitle">Login to your Inside My Campus account</p>
+  <div class="auth-links">
+    Don't have an account? <a href="signup.html">Create one →</a>
+  </div>
 
-      <!-- Error Message Box (hidden by default) -->
-      <div class="auth-error" id="loginError" style="display:none;">
-        <i class="fas fa-exclamation-circle"></i>
-        <span id="loginErrorMsg">Invalid email or password.</span>
-      </div>
-
-      <!-- Success Message Box (hidden by default) -->
-      <div class="auth-success" id="loginSuccess" style="display:none;">
-        <i class="fas fa-check-circle"></i>
-        <span>Login successful! Redirecting...</span>
-      </div>
-
-<!-- Google Sign-In — place above email form -->
-<div id="googleBtnWrap" style="margin-bottom:16px;min-height:44px;"></div>
-
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-  <div style="flex:1;height:1px;background:#e8e8e8;"></div>
-  <span style="font-size:12px;color:#aaa;white-space:nowrap;">or continue with email</span>
-  <div style="flex:1;height:1px;background:#e8e8e8;"></div>
 </div>
 
-      <!-- Login Form -->
-      <div class="auth-form">
-
-        <!-- Email Field -->
-        <div class="form-group">
-          <label for="loginEmail">Email Address</label>
-          <div class="input-wrapper">
-            <i class="fas fa-envelope input-icon"></i>
-            <input
-              type="email"
-              id="loginEmail"
-              placeholder="Enter your email"
-              autocomplete="email"
-            />
-          </div>
-        </div>
-
-        <!-- Password Field -->
-        <div class="form-group">
-          <label for="loginPassword">Password</label>
-          <div class="input-wrapper">
-            <i class="fas fa-lock input-icon"></i>
-            <input
-              type="password"
-              id="loginPassword"
-              placeholder="Enter your password"
-              autocomplete="current-password"
-            />
-            <button class="toggle-password" id="toggleLoginPassword" type="button">
-              <i class="fas fa-eye" id="toggleLoginIcon"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Forgot Password -->
-        <div class="form-options">
-          <a href="#" class="forgot-link">Forgot Password?</a>
-        </div>
-
-        <!-- Submit Button -->
-        <button class="btn-auth-submit" id="loginBtn">
-          <span id="loginBtnText">Login</span>
-          <span id="loginSpinner" style="display:none;">
-            <i class="fas fa-spinner fa-spin"></i> Logging in...
-          </span>
-        </button>
-
-        <!-- Divider -->
-        <div class="auth-divider">
-          <span>Don't have an account?</span>
-        </div>
-
-        <!-- Switch to Signup -->
-        <a href="signup.html" class="btn-auth-switch">
-          Create a Free Account
-        </a>
-
-      </div>
-    </div>
-
-  </section>
-
-  <!-- ========== FOOTER ========== -->
-  <footer class="auth-footer">
-    <p>&copy; 2026 Inside My Campus. All rights reserved.</p>
-  </footer>
-
- <script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="api.js"></script>
 <script src="app.js"></script>
-<script src="auth.js"></script>
 <script>
-// Google Client ID — replace with your real ID
-var GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE';
+document.addEventListener('DOMContentLoaded', function () {
 
-window.handleGoogleResponse = async function (response) {
-  console.log('[Google] Credential received');
-  var errBox = document.getElementById('loginError');
-  var errMsg = document.getElementById('loginErrorMsg');
-  var wrap   = document.getElementById('googleBtnWrap');
+  // ---- Google login ----
+  document.getElementById('googleLoginBtn').addEventListener('click', async function () {
+    var btn = document.getElementById('googleLoginBtn');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Connecting to Google...';
 
-  if (!response || !response.credential) {
-    if (errMsg) errMsg.textContent   = 'Google sign-in failed. Try again.';
-    if (errBox) errBox.style.display = 'flex';
-    return;
-  }
-
-  if (wrap) wrap.innerHTML = '<p style="text-align:center;color:#888;font-size:13px;padding:10px 0;">⏳ Signing in...</p>';
-
-  var result = await IMC_API.googleAuth(response.credential);
-
-  if (result.success) {
-    window.location.href = 'index.html';
-  } else {
-    // Re-render button
-    if (GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.includes('YOUR_')) {
-      google.accounts.id.renderButton(
-        document.getElementById('googleBtnWrap'),
-        { theme: 'outline', size: 'large', width: '100%' }
-      );
+    // Trigger Google One Tap or popup
+    if (typeof google !== 'undefined' && google.accounts) {
+      google.accounts.id.prompt(function (notification) {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // One Tap not shown — use popup flow
+          triggerGooglePopup();
+        }
+      });
+    } else {
+      triggerGooglePopup();
     }
-    if (errMsg) errMsg.textContent   = result.message || 'Google login failed.';
-    if (errBox) errBox.style.display = 'flex';
-  }
-};
 
-window.addEventListener('load', function () {
-  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('YOUR_')) return;
-  if (typeof google === 'undefined') return;
-
-  google.accounts.id.initialize({
-    client_id:              GOOGLE_CLIENT_ID,
-    callback:               window.handleGoogleResponse,
-    auto_select:            false,
-    cancel_on_tap_outside:  true
+    setTimeout(function () {
+      btn.disabled = false;
+      btn.innerHTML =
+        '<svg class="google-logo" viewBox="0 0 24 24">' +
+        '<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>' +
+        '<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>' +
+        '<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>' +
+        '<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>' +
+        '</svg> Continue with Google';
+    }, 3000);
   });
 
-  google.accounts.id.renderButton(
-    document.getElementById('googleBtnWrap'),
-    { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' }
-  );
-});
-</script> 
+  // ---- Google callback ----
+  window.handleGoogleResponse = async function (response) {
+    console.log('[Google] Credential received');
+    if (!response || !response.credential) {
+      showError('Google sign-in failed. Please try again.');
+      return;
+    }
+    showLoading(true);
+    var result = await IMC_API.googleAuth(response.credential);
+    showLoading(false);
 
+    if (result.success) {
+      document.getElementById('loginSuccess').style.display = 'block';
+      setTimeout(function () { window.location.href = 'index.html'; }, 1000);
+    } else {
+      showError(result.message || 'Google login failed.');
+    }
+  };
+
+  function triggerGooglePopup() {
+    var clientId = getGoogleClientId();
+    if (!clientId) {
+      showError('Google login is not configured yet. Please use email login.');
+      return;
+    }
+    // Open Google account chooser
+    var popup = window.open(
+      'https://accounts.google.com/o/oauth2/v2/auth?' +
+      'client_id=' + clientId +
+      '&redirect_uri=' + encodeURIComponent(window.location.origin + '/google-callback.html') +
+      '&response_type=token' +
+      '&scope=email%20profile',
+      'google_login',
+      'width=500,height=600,scrollbars=yes'
+    );
+    if (!popup) showError('Pop-up blocked. Please allow pop-ups for this site.');
+  }
+
+  function getGoogleClientId() {
+    // Read from meta tag or window variable
+    var meta = document.querySelector('meta[name="google-client-id"]');
+    return (meta && meta.content && !meta.content.includes('YOUR_'))
+      ? meta.content
+      : (window.GOOGLE_CLIENT_ID && !window.GOOGLE_CLIENT_ID.includes('YOUR_')
+          ? window.GOOGLE_CLIENT_ID
+          : null);
+  }
+
+  // Initialize Google Identity Services if available
+  window.addEventListener('load', function () {
+    var clientId = getGoogleClientId();
+    if (!clientId || typeof google === 'undefined') return;
+
+    google.accounts.id.initialize({
+      client_id:             clientId,
+      callback:              window.handleGoogleResponse,
+      auto_select:           false,
+      cancel_on_tap_outside: true
+    });
+  });
+
+  // ---- Email login ----
+  document.getElementById('loginBtn').addEventListener('click', doEmailLogin);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doEmailLogin();
+  });
+
+  async function doEmailLogin() {
+    var email    = document.getElementById('loginEmail').value.trim();
+    var password = document.getElementById('loginPassword').value;
+
+    clearMessages();
+
+    if (!email)    { showError('Please enter your email.');    return; }
+    if (!password) { showError('Please enter your password.'); return; }
+
+    showLoading(true);
+
+    var result = await IMC_API.login(email, password);
+
+    showLoading(false);
+
+    if (result.success) {
+      document.getElementById('loginSuccess').style.display = 'block';
+      setTimeout(function () { window.location.href = 'index.html'; }, 1000);
+    } else {
+      showError(result.message || 'Login failed. Please try again.');
+    }
+  }
+
+  // ---- Password toggle ----
+  document.getElementById('toggleLoginPassword').addEventListener('click', function () {
+    var inp  = document.getElementById('loginPassword');
+    var icon = document.getElementById('toggleLoginIcon');
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      inp.type = 'password';
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+  });
+
+  // ---- Helpers ----
+  function showError(msg) {
+    var el = document.getElementById('loginError');
+    document.getElementById('loginErrorMsg').textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function clearMessages() {
+    document.getElementById('loginError').style.display   = 'none';
+    document.getElementById('loginSuccess').style.display = 'none';
+  }
+
+  function showLoading(on) {
+    var btn  = document.getElementById('loginBtn');
+    var txt  = document.getElementById('loginBtnText');
+    var spn  = document.getElementById('loginSpinner');
+    txt.style.display = on ? 'none'   : 'inline';
+    spn.style.display = on ? 'inline' : 'none';
+    btn.disabled      = on;
+  }
+});
+</script>
 </body>
 </html>

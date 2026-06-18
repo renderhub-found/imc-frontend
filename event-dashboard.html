@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Event Dashboard — Inside My Campus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Inter,sans-serif;background:#f0f2f8;color:#1a1a2e;}
+    .dash-header{
+      background:#1a3c8f;padding:16px 20px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .dash-header h1{font-size:18px;font-weight:800;color:#fff;}
+    .btn-new{
+      background:#ffd166;color:#0f2456;border:none;
+      padding:9px 16px;border-radius:8px;font-weight:700;font-size:13px;
+      cursor:pointer;font-family:Inter,sans-serif;
+    }
+    .dash-tabs{
+      display:flex;background:#fff;border-bottom:1px solid #eee;
+      overflow-x:auto;scrollbar-width:none;
+    }
+    .dash-tabs::-webkit-scrollbar{display:none;}
+    .dash-tab{
+      padding:14px 20px;font-size:13px;font-weight:600;cursor:pointer;
+      border-bottom:2px solid transparent;color:#888;white-space:nowrap;
+      transition:all .15s;font-family:Inter,sans-serif;border:none;background:none;
+    }
+    .dash-tab.active{color:#1a3c8f;border-bottom-color:#1a3c8f;}
+    .dash-content{max-width:800px;margin:20px auto;padding:0 16px 60px;}
+
+    /* Form */
+    .form-card{background:#fff;border-radius:16px;padding:24px;
+      box-shadow:0 2px 12px rgba(0,0,0,0.07);margin-bottom:20px;}
+    .form-card h2{font-size:16px;font-weight:700;margin-bottom:18px;
+      padding-bottom:12px;border-bottom:1px solid #f0f0f0;}
+    .form-group{margin-bottom:16px;}
+    .form-group label{display:block;font-size:12px;font-weight:600;
+      color:#555;margin-bottom:5px;}
+    .form-input{width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;
+      border-radius:8px;font-size:14px;font-family:Inter,sans-serif;outline:none;}
+    .form-input:focus{border-color:#1a3c8f;}
+    textarea.form-input{resize:vertical;min-height:90px;}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .radio-group{display:flex;gap:12px;}
+    .radio-option{
+      flex:1;padding:10px;border:1.5px solid #e0e0e0;border-radius:8px;
+      cursor:pointer;text-align:center;transition:all .15s;
+    }
+    .radio-option.selected{border-color:#1a3c8f;background:#f0f4ff;}
+    .radio-option input[type=radio]{display:none;}
+    .radio-option-label{font-size:13px;font-weight:600;}
+
+    /* Ticket builder */
+    .ticket-builder{border:1px solid #e0e0e0;border-radius:10px;
+      padding:14px;margin-top:10px;}
+    .ticket-builder h4{font-size:13px;font-weight:700;margin-bottom:12px;}
+    .ticket-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;
+      gap:8px;align-items:end;margin-bottom:8px;}
+    .btn-add-ticket{background:#e8f0ff;color:#1a3c8f;border:none;
+      padding:8px 14px;border-radius:7px;font-size:12px;font-weight:700;
+      cursor:pointer;font-family:Inter,sans-serif;margin-top:8px;}
+    .btn-remove{background:#fff0f0;color:#c62828;border:none;
+      width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:14px;}
+
+    .btn-submit{
+      width:100%;background:#1a3c8f;color:#fff;border:none;
+      padding:13px;border-radius:10px;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:Inter,sans-serif;
+    }
+    .btn-submit:disabled{background:#aaa;}
+    .msg{padding:11px 14px;border-radius:8px;font-size:13px;
+      margin-bottom:14px;display:none;}
+    .msg.error{background:#fff0f0;color:#c62828;border:1px solid #f5c6cb;}
+    .msg.success{background:#e8f9ee;color:#2d8653;border:1px solid #b7e4c7;}
+
+    /* Events list */
+    .my-event-card{
+      background:#fff;border-radius:14px;padding:16px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;
+    }
+    .my-event-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+    .my-event-meta{font-size:12px;color:#888;margin-bottom:10px;}
+    .my-event-stats{display:flex;gap:16px;margin-bottom:12px;}
+    .stat-box{text-align:center;}
+    .stat-num{font-size:20px;font-weight:800;color:#1a3c8f;}
+    .stat-lbl{font-size:10px;color:#aaa;text-transform:uppercase;}
+    .event-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .btn-action{
+      padding:7px 14px;border:none;border-radius:7px;font-size:12px;
+      font-weight:700;cursor:pointer;font-family:Inter,sans-serif;
+    }
+    .btn-view{background:#e8f0ff;color:#1a3c8f;}
+    .btn-delete{background:#fff0f0;color:#c62828;}
+
+    /* Wallet */
+    .wallet-card{
+      background:linear-gradient(135deg,#1a3c8f,#2d5be3);
+      border-radius:16px;padding:24px;color:#fff;margin-bottom:20px;
+    }
+    .wallet-label{font-size:12px;opacity:0.7;margin-bottom:4px;}
+    .wallet-amount{font-size:34px;font-weight:800;margin-bottom:16px;}
+    .btn-withdraw{
+      background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);
+      padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;
+      cursor:pointer;font-family:Inter,sans-serif;
+    }
+
+    @media(max-width:500px){
+      .row2{grid-template-columns:1fr;}
+      .ticket-row{grid-template-columns:1fr 1fr;gap:6px;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="dash-header">
+  <div>
+    <h1>🎉 Event Dashboard</h1>
+  </div>
+  <a href="events.html" style="color:rgba(255,255,255,0.7);font-size:13px;text-decoration:none;">
+    ← Back to Events
+  </a>
+</div>
+
+<div class="dash-tabs">
+  <button class="dash-tab active" data-tab="create">Create Event</button>
+  <button class="dash-tab" data-tab="my-events">My Events</button>
+  <button class="dash-tab" data-tab="wallet">Wallet</button>
+</div>
+
+<div class="dash-content">
+
+  <!-- CREATE EVENT TAB -->
+  <div id="tab-create">
+    <div class="form-card">
+      <h2><i class="fas fa-calendar-plus"></i> Create New Event</h2>
+
+      <div id="createMsg" class="msg"></div>
+
+      <div class="form-group">
+        <label>Event Title *</label>
+        <input type="text" class="form-input" id="evTitle" placeholder="e.g. Tech Summit 2024"/>
+      </div>
+
+      <div class="form-group">
+        <label>Description *</label>
+        <textarea class="form-input" id="evDesc" placeholder="Describe your event..."></textarea>
+      </div>
+
+      <div class="row2">
+        <div class="form-group">
+          <label>University *</label>
+          <input type="text" class="form-input" id="evUni" placeholder="e.g. UNILAG"/>
+        </div>
+        <div class="form-group">
+          <label>Location *</label>
+          <input type="text" class="form-input" id="evLoc" placeholder="e.g. Main Auditorium"/>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" class="form-input" id="evDate"/>
+        </div>
+        <div class="form-group">
+          <label>Time *</label>
+          <input type="time" class="form-input" id="evTime"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Contact Info</label>
+        <input type="text" class="form-input" id="evContact" placeholder="Phone / WhatsApp / Email"/>
+      </div>
+
+      <div class="form-group">
+        <label>Cover Image URL (optional)</label>
+        <input type="text" class="form-input" id="evCover" placeholder="https://..."/>
+      </div>
+
+      <div class="form-group">
+        <label>Event Type *</label>
+        <div class="radio-group">
+          <div class="radio-option selected" id="typeFree" onclick="setEventType('free')">
+            <input type="radio" name="evType" value="free" checked/>
+            <div class="radio-option-label">🆓 Free</div>
+          </div>
+          <div class="radio-option" id="typePaid" onclick="setEventType('paid')">
+            <input type="radio" name="evType" value="paid"/>
+            <div class="radio-option-label">🎟 Paid</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket Builder — shown for paid events -->
+      <div id="ticketBuilderWrap" style="display:none;">
+        <div class="form-group">
+          <label>Ticket Types</label>
+          <div class="ticket-builder">
+            <h4>Define your ticket types</h4>
+            <div id="ticketRows">
+              <div class="ticket-row" data-idx="0">
+                <div>
+                  <label>Name</label>
+                  <input type="text" class="form-input" placeholder="e.g. General" value="General Admission"/>
+                </div>
+                <div>
+                  <label>Price (₦)</label>
+                  <input type="number" class="form-input" placeholder="0" min="0"/>
+                </div>
+                <div>
+                  <label>Qty</label>
+                  <input type="number" class="form-input" placeholder="100" min="1" value="100"/>
+                </div>
+                <div>
+                  <label>&nbsp;</label>
+                  <button class="btn-remove" onclick="removeTicketRow(this)" title="Remove">✕</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn-add-ticket" type="button" onclick="addTicketRow()">
+              + Add Ticket Type
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="createBtn" type="button">
+        <span id="createBtnText"><i class="fas fa-calendar-plus"></i> Create Event</span>
+        <span id="createSpinner" style="display:none;">⏳ Creating...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MY EVENTS TAB -->
+  <div id="tab-my-events" style="display:none;">
+    <div id="myEventsList">
+      <div style="text-align:center;padding:40px;color:#aaa;">Loading your events...</div>
+    </div>
+  </div>
+
+  <!-- WALLET TAB -->
+  <div id="tab-wallet" style="display:none;">
+    <div class="wallet-card" id="walletCard">
+      <div class="wallet-label">Total Wallet Balance</div>
+      <div class="wallet-amount" id="walletBalance">₦0</div>
+      <button class="btn-withdraw" id="withdrawBtn" onclick="openWithdraw()">
+        <i class="fas fa-money-bill-wave"></i> Request Withdrawal
+      </button>
+    </div>
+    <div id="withdrawForm" style="display:none;">
+      <div class="form-card">
+        <h2>Request Withdrawal</h2>
+        <div id="withdrawMsg" class="msg"></div>
+        <div class="form-group">
+          <label>Amount (₦)</label>
+          <input type="number" class="form-input" id="wAmount" placeholder="Enter amount"/>
+        </div>
+        <div class="form-group">
+          <label>Bank Name</label>
+          <input type="text" class="form-input" id="wBank" placeholder="e.g. GTBank"/>
+        </div>
+        <div class="form-group">
+          <label>Account Name</label>
+          <input type="text" class="form-input" id="wAccName" placeholder="As on bank account"/>
+        </div>
+        <div class="form-group">
+          <label>Account Number</label>
+          <input type="text" class="form-input" id="wAccNum" placeholder="10 digit number" maxlength="10"/>
+        </div>
+        <p style="font-size:12px;color:#aaa;margin-bottom:12px;">
+          Select which event earnings to withdraw from:
+        </p>
+        <select class="form-input" id="wEventSelect" style="margin-bottom:16px;"></select>
+        <button class="btn-submit" onclick="submitWithdrawal()">Submit Request</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+
+var myEvents    = [];
+var eventType   = 'free';
+var ticketRowCount = 1;
+
+document.addEventListener('DOMContentLoaded', async function () {
+  if (!IMC_API.isLoggedIn()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Tab switching
+  document.querySelectorAll('.dash-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.dash-tab').forEach(function (t) { t.classList.remove('active'); });
+      this.classList.add('active');
+
+      var tabId = this.getAttribute('data-tab');
+      document.getElementById('tab-create').style.display    = tabId === 'create'    ? 'block' : 'none';
+      document.getElementById('tab-my-events').style.display = tabId === 'my-events' ? 'block' : 'none';
+      document.getElementById('tab-wallet').style.display    = tabId === 'wallet'    ? 'block' : 'none';
+
+      if (tabId === 'my-events') loadMyEvents();
+      if (tabId === 'wallet')    loadWallet();
+    });
+  });
+
+  // Create button
+  document.getElementById('createBtn').addEventListener('click', createEvent);
+
+  // Set min date to today
+  document.getElementById('evDate').min = new Date().toISOString().split('T')[0];
+});
+
+function setEventType(type) {
+  eventType = type;
+  document.getElementById('typeFree').classList.toggle('selected', type === 'free');
+  document.getElementById('typePaid').classList.toggle('selected', type === 'paid');
+  document.getElementById('ticketBuilderWrap').style.display = type === 'paid' ? 'block' : 'none';
+}
+
+function addTicketRow() {
+  ticketRowCount++;
+  var container = document.getElementById('ticketRows');
+  var div       = document.createElement('div');
+  div.className = 'ticket-row';
+  div.setAttribute('data-idx', ticketRowCount);
+  div.innerHTML =
+    '<div><label>Name</label><input type="text" class="form-input" placeholder="e.g. VIP"/></div>' +
+    '<div><label>Price (₦)</label><input type="number" class="form-input" placeholder="0" min="0"/></div>' +
+    '<div><label>Qty</label><input type="number" class="form-input" placeholder="50" min="1" value="50"/></div>' +
+    '<div><label>&nbsp;</label><button class="btn-remove" onclick="removeTicketRow(this)">✕</button></div>';
+  container.appendChild(div);
+}
+
+function removeTicketRow(btn) {
+  var rows = document.querySelectorAll('#ticketRows .ticket-row');
+  if (rows.length <= 1) return;
+  btn.closest('.ticket-row').remove();
+}
+
+function getTicketTypes() {
+  var rows   = document.querySelectorAll('#ticketRows .ticket-row');
+  var result = [];
+  rows.forEach(function (row) {
+    var inputs = row.querySelectorAll('input');
+    var name   = (inputs[0].value || '').trim();
+    var price  = parseFloat(inputs[1].value) || 0;
+    var qty    = parseInt(inputs[2].value)   || 1;
+    if (name) {
+      result.push({ name: name, price: price, quantity: qty });
+    }
+  });
+  return result;
+}
+
+async function createEvent() {
+  var msgBox = document.getElementById('createMsg');
+  var btn    = document.getElementById('createBtn');
+  var btnTxt = document.getElementById('createBtnText');
+  var btnSpn = document.getElementById('createSpinner');
+  msgBox.style.display = 'none';
+
+  var data = {
+    title:       (document.getElementById('evTitle').value   || '').trim(),
+    description: (document.getElementById('evDesc').value    || '').trim(),
+    university:  (document.getElementById('evUni').value     || '').trim(),
+    location:    (document.getElementById('evLoc').value     || '').trim(),
+    eventDate:   document.getElementById('evDate').value,
+    eventTime:   document.getElementById('evTime').value,
+    contactInfo: (document.getElementById('evContact').value || '').trim(),
+    coverImage:  (document.getElementById('evCover').value   || '').trim(),
+    eventType:   eventType
+  };
+
+  if (eventType === 'paid') {
+    data.ticketTypes = getTicketTypes();
+    if (data.ticketTypes.length === 0) {
+      showMsg(msgBox, 'Please add at least one ticket type for paid events.', 'error');
+      return;
+    }
+  }
+
+  var missing = [];
+  if (!data.title)      missing.push('title');
+  if (!data.description)missing.push('description');
+  if (!data.university) missing.push('university');
+  if (!data.location)   missing.push('location');
+  if (!data.eventDate)  missing.push('date');
+  if (!data.eventTime)  missing.push('time');
+
+  if (missing.length > 0) {
+    showMsg(msgBox, 'Please fill in: ' + missing.join(', '), 'error');
+    return;
+  }
+
+  btn.disabled      = true;
+  btnTxt.style.display = 'none';
+  btnSpn.style.display = 'inline';
+
+  var result = await IMC_API.createEvent(data);
+
+  btn.disabled         = false;
+  btnTxt.style.display = 'inline';
+  btnSpn.style.display = 'none';
+
+  if (result.success) {
+    showMsg(msgBox, '✅ Event created! Redirecting to My Events...', 'success');
+    setTimeout(function () {
+      document.querySelectorAll('.dash-tab')[1].click();
+    }, 1500);
+  } else {
+    showMsg(msgBox, result.message || 'Failed to create event.', 'error');
+  }
+}
+
+async function loadMyEvents() {
+  var list = document.getElementById('myEventsList');
+  list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Loading...</div>';
+
+  var result = await IMC_API.getMyEvents();
+  myEvents   = (result.success && result.events) ? result.events : [];
+
+  if (myEvents.length === 0) {
+    list.innerHTML =
+      '<div style="text-align:center;padding:40px;color:#aaa;">' +
+      '<i class="fas fa-calendar" style="font-size:36px;display:block;margin-bottom:12px;"></i>' +
+      'No events yet. Create your first one!</div>';
+    return;
+  }
+
+  list.innerHTML = myEvents.map(function (ev) {
+    var d    = new Date(ev.eventDate);
+    var date = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
+    return '<div class="my-event-card">' +
+      '<div class="my-event-title">' + esc(ev.title) + '</div>' +
+      '<div class="my-event-meta">' +
+      '<i class="fas fa-calendar"></i> ' + date + ' · ' + esc(ev.eventTime) +
+      ' &nbsp;|&nbsp; <i class="fas fa-map-marker-alt"></i> ' + esc(ev.location) +
+      '</div>' +
+      '<div class="my-event-stats">' +
+      '<div class="stat-box"><div class="stat-num">' + (ev.ticketsSold||0) + '</div><div class="stat-lbl">Sold</div></div>' +
+      '<div class="stat-box"><div class="stat-num">₦' + ((ev.grossRevenue||0)).toLocaleString() + '</div><div class="stat-lbl">Revenue</div></div>' +
+      '<div class="stat-box"><div class="stat-num">' + (ev.views||0) + '</div><div class="stat-lbl">Views</div></div>' +
+      '</div>' +
+      '<div class="event-actions">' +
+      '<button class="btn-action btn-view" onclick="window.location.href=\'event-details.html?id=' + ev._id + '\'">View</button>' +
+      '<button class="btn-action btn-delete" onclick="deleteMyEvent(\'' + ev._id + '\')">Delete</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+async function deleteMyEvent(id) {
+  if (!confirm('Delete this event? This cannot be undone.')) return;
+  var result = await IMC_API.deleteEvent(id);
+  if (result.success) loadMyEvents();
+  else alert(result.message || 'Delete failed.');
+}
+
+async function loadWallet() {
+  var result = await IMC_API.getMyEvents();
+  var events = (result.success && result.events) ? result.events : [];
+  var totalBalance = events.reduce(function (s, ev) {
+    return s + (ev.wallet ? (ev.wallet.balance || 0) : 0);
+  }, 0);
+
+  document.getElementById('walletBalance').textContent = '₦' + totalBalance.toLocaleString();
+
+  // Populate event select for withdrawal
+  var sel = document.getElementById('wEventSelect');
+  sel.innerHTML = events.filter(function (ev) {
+    return ev.wallet && (ev.wallet.balance || 0) > 0;
+  }).map(function (ev) {
+    return '<option value="' + ev._id + '">'+esc(ev.title)+' (₦'+(ev.wallet.balance||0).toLocaleString()+')</option>';
+  }).join('');
+}
+
+function openWithdraw() {
+  document.getElementById('withdrawForm').style.display =
+    document.getElementById('withdrawForm').style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitWithdrawal() {
+  var msgBox  = document.getElementById('withdrawMsg');
+  var eventId = document.getElementById('wEventSelect').value;
+  var amount  = parseFloat(document.getElementById('wAmount').value)  || 0;
+  var bank    = (document.getElementById('wBank').value    || '').trim();
+  var accName = (document.getElementById('wAccName').value || '').trim();
+  var accNum  = (document.getElementById('wAccNum').value  || '').trim();
+
+  msgBox.style.display = 'none';
+
+  if (!eventId || !amount || !bank || !accName || !accNum) {
+    showMsg(msgBox, 'Please fill in all fields.', 'error'); return;
+  }
+
+  var base = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000' : 'https://imc-backend-0y2u.onrender.com';
+
+  var res  = await fetch(base + '/api/events/' + eventId + '/withdraw', {
+    method:  'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+IMC_API.getToken() },
+    body:    JSON.stringify({ amount, bankName: bank, accountName: accName, accountNum: accNum })
+  });
+  var result = await res.json();
+
+  if (result.success) {
+    showMsg(msgBox, '✅ Withdrawal request submitted!', 'success');
+    loadWallet();
+  } else {
+    showMsg(msgBox, result.message || 'Request failed.', 'error');
+  }
+}
+
+function showMsg(el, msg, type) {
+  el.className     = 'msg ' + type;
+  el.textContent   = msg;
+  el.style.display = 'block';
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
