@@ -84,11 +84,14 @@ console.log('[API] BASE_URL:', BASE_URL);
   }
 
   async function login(email, password) {
-    var r = await request('POST', '/auth/login',
-      { email: email, password: password }, false);
-    if (r.success) saveAuthData(r.token, r.user);
-    return r;
-  }
+  console.log('[API] login called — email:', email);
+  var result = await request('POST', '/auth/login', {
+    email:    email,
+    password: password
+  }, false);
+  if (result.success) saveAuthData(result.token, result.user);
+  return result;
+}
 
   function logout() {
     clearAuthData();
