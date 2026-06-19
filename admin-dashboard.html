@@ -3,568 +3,1291 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Dashboard – Inside My Campus</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>Admin Dashboard — Inside My Campus</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-</head>
-<body class="dashboard-body">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --primary:#1a3c8f;
+      --primary-dark:#0f2456;
+      --success:#2d8653;
+      --danger:#e85d04;
+      --warning:#f0a500;
+      --bg:#f0f2f8;
+      --sidebar-w:240px;
+    }
+    body{font-family:Inter,sans-serif;background:var(--bg);color:#1a1a2e;}
 
-  <!-- SIDEBAR -->
-  <div class="dashboard-sidebar admin-sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <span>⚙️</span>
-      <span class="sidebar-logo-text">Admin Panel</span>
-    </div>
-    <nav class="sidebar-nav">
-      <a href="#" class="sidebar-link active" data-tab="overview">
-        <i class="fas fa-chart-pie"></i> Overview
-      </a>
-      <a href="#" class="sidebar-link" data-tab="vendors">
-        <i class="fas fa-store"></i> Vendors
-      </a>
-      <a href="#" class="sidebar-link" data-tab="ambassadors">
-        <i class="fas fa-user-tie"></i> Ambassadors
-      </a>
-      <a href="#" class="sidebar-link" data-tab="users">
-        <i class="fas fa-users"></i> Users
-      </a>
-      <a href="#" class="sidebar-link" data-tab="ads">
-        <i class="fas fa-ad"></i> Ads
-      </a>
-      <a href="#" class="sidebar-link" data-tab="news">
-        <i class="fas fa-newspaper"></i> News
-      </a>
-      <a href="#" class="sidebar-link" data-tab="courses">
-        <i class="fas fa-graduation-cap"></i> Courses
-      </a>
-      <a href="#" class="sidebar-link" data-tab="payments">
-        <i class="fas fa-wallet"></i> Payments
-      </a>
-      <a href="#" class="sidebar-link" data-tab="referrals">
-        <i class="fas fa-share-alt"></i> Referrals
-      </a>
-      <a href="index.html" class="sidebar-link sidebar-logout">
-        <i class="fas fa-sign-out-alt"></i> Exit Admin
-      </a>
-    </nav>
+    /* SIDEBAR */
+    .sidebar{
+      position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+      background:var(--primary-dark);color:#fff;
+      display:flex;flex-direction:column;z-index:100;
+      overflow-y:auto;
+    }
+    .sidebar-logo{
+      padding:24px 20px 16px;
+      border-bottom:1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar-logo h2{font-size:17px;font-weight:800;}
+    .sidebar-logo span{font-size:11px;color:rgba(255,255,255,0.5);display:block;margin-top:2px;}
+    .sidebar-nav{flex:1;padding:12px 0;}
+    .nav-section{
+      font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);
+      letter-spacing:1px;padding:16px 20px 6px;text-transform:uppercase;
+    }
+    .nav-item{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 20px;font-size:13px;font-weight:500;
+      color:rgba(255,255,255,0.75);cursor:pointer;
+      border-left:3px solid transparent;transition:all .15s;
+    }
+    .nav-item:hover,.nav-item.active{
+      background:rgba(255,255,255,0.08);
+      color:#fff;border-left-color:#fff;
+    }
+    .nav-item i{width:16px;text-align:center;opacity:0.7;}
+    .nav-item.active i{opacity:1;}
+    .sidebar-footer{
+      padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);
+    }
+    .admin-info{font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:10px;}
+    .admin-info strong{display:block;color:#fff;font-size:13px;}
+    .btn-logout{
+      width:100%;background:rgba(255,255,255,0.1);color:#fff;border:none;
+      padding:8px;border-radius:6px;font-size:12px;cursor:pointer;
+      font-family:Inter,sans-serif;transition:background .15s;
+    }
+    .btn-logout:hover{background:rgba(255,255,255,0.2);}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);min-height:100vh;}
+    .topbar{
+      background:#fff;padding:16px 24px;display:flex;
+      align-items:center;justify-content:space-between;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06);position:sticky;top:0;z-index:50;
+    }
+    .topbar-title{font-size:18px;font-weight:800;color:#1a1a2e;}
+    .topbar-subtitle{font-size:12px;color:#888;margin-top:2px;}
+    .badge{
+      background:var(--danger);color:#fff;border-radius:20px;
+      font-size:11px;font-weight:700;padding:2px 8px;margin-left:6px;
+    }
+    .content{padding:24px;}
+
+    /* SECTIONS */
+    .section{display:none;}
+    .section.active{display:block;}
+
+    /* STAT CARDS */
+    .stats-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+      gap:16px;margin-bottom:28px;
+    }
+    .stat-card{
+      background:#fff;border-radius:14px;padding:20px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    }
+    .stat-icon{
+      width:40px;height:40px;border-radius:10px;display:flex;
+      align-items:center;justify-content:center;font-size:18px;
+      margin-bottom:12px;
+    }
+    .stat-value{font-size:28px;font-weight:800;color:#1a1a2e;line-height:1;}
+    .stat-label{font-size:12px;color:#888;margin-top:4px;}
+
+    /* TABLE */
+    .table-wrap{
+      background:#fff;border-radius:14px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;
+    }
+    .table-header{
+      padding:16px 20px;display:flex;align-items:center;
+      justify-content:space-between;border-bottom:1px solid #f0f0f0;
+    }
+    .table-title{font-size:15px;font-weight:700;}
+    .table-scroll{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    th{
+      background:#f8f9ff;font-size:11px;font-weight:700;
+      text-transform:uppercase;color:#888;padding:10px 16px;
+      text-align:left;letter-spacing:0.5px;
+    }
+    td{
+      padding:12px 16px;font-size:13px;border-bottom:1px solid #f5f5f5;
+      vertical-align:middle;
+    }
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:#fafbff;}
+
+    /* STATUS BADGES */
+    .status{
+      display:inline-block;padding:3px 10px;border-radius:20px;
+      font-size:11px;font-weight:700;
+    }
+    .status.approved,.status.active,.status.paid{background:#e8f9ee;color:#2d8653;}
+    .status.pending{background:#fff8e8;color:#b07d00;}
+    .status.rejected,.status.suspended{background:#fff0f0;color:#c62828;}
+    .status.expired{background:#f0f0f0;color:#888;}
+
+    /* BUTTONS */
+    .btn{
+      padding:6px 14px;border:none;border-radius:6px;font-size:12px;
+      font-weight:600;cursor:pointer;font-family:Inter,sans-serif;
+      transition:opacity .15s;
+    }
+    .btn:hover{opacity:0.85;}
+    .btn-success{background:var(--success);color:#fff;}
+    .btn-danger{background:#e85d04;color:#fff;}
+    .btn-warning{background:var(--warning);color:#fff;}
+    .btn-primary{background:var(--primary);color:#fff;}
+    .btn-ghost{background:#f0f0f0;color:#444;}
+    .btn-sm{padding:4px 10px;font-size:11px;}
+    .btn-group{display:flex;gap:6px;flex-wrap:wrap;}
+
+    /* SEARCH */
+    .search-input{
+      padding:8px 14px;border:1.5px solid #e0e0e0;border-radius:8px;
+      font-size:13px;font-family:Inter,sans-serif;outline:none;width:220px;
+    }
+    .search-input:focus{border-color:var(--primary);}
+
+    /* FILTER TABS */
+    .filter-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .filter-tab{
+      padding:6px 14px;border:1.5px solid #e0e0e0;background:#fff;
+      border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+      color:#666;transition:all .15s;
+    }
+    .filter-tab.active{border-color:var(--primary);background:var(--primary);color:#fff;}
+
+    /* EMPTY STATE */
+    .empty{text-align:center;padding:40px;color:#aaa;}
+    .empty i{font-size:36px;margin-bottom:12px;display:block;}
+
+    /* REVENUE CARD */
+    .revenue-card{
+      background:linear-gradient(135deg,var(--primary),#2d5be3);
+      color:#fff;border-radius:14px;padding:24px;
+      margin-bottom:20px;
+    }
+    .revenue-card h3{font-size:13px;opacity:0.8;margin-bottom:8px;}
+    .revenue-card .amount{font-size:36px;font-weight:800;}
+
+    /* MOBILE */
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);transition:transform .3s;}
+      .sidebar.open{transform:translateX(0);}
+      .main{margin-left:0;}
+      .topbar{padding:12px 16px;}
+      .content{padding:16px;}
+      .stats-grid{grid-template-columns:repeat(2,1fr);}
+      .mobile-toggle{
+        display:flex;align-items:center;justify-content:center;
+        width:36px;height:36px;background:var(--primary);color:#fff;
+        border:none;border-radius:8px;cursor:pointer;font-size:16px;
+      }
+    }
+    @media(min-width:769px){
+      .mobile-toggle{display:none;}
+    }
+
+    /* MODAL */
+    .modal-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;
+      display:flex;align-items:center;justify-content:center;padding:20px;
+    }
+    .modal{
+      background:#fff;border-radius:16px;padding:28px 24px;
+      max-width:480px;width:100%;max-height:80vh;overflow-y:auto;
+    }
+    .modal h3{font-size:17px;font-weight:700;margin-bottom:16px;}
+    .modal-footer{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+    .form-row{margin-bottom:14px;}
+    .form-row label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:5px;}
+    .form-row input,.form-row select,.form-row textarea{
+      width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:8px;
+      font-size:13px;font-family:Inter,sans-serif;outline:none;
+    }
+    .form-row textarea{resize:vertical;min-height:80px;}
+    .form-row input:focus,.form-row select:focus{border-color:var(--primary);}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h2><i class="fas fa-shield-alt" style="margin-right:8px;"></i>IMC Admin</h2>
+    <span>Inside My Campus</span>
   </div>
 
-  <!-- MOBILE TOPBAR -->
-  <div class="dashboard-topbar">
-    <button class="sidebar-toggle-btn" id="sidebarToggle">
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" data-section="overview">
+      <i class="fas fa-chart-pie"></i> Overview
+    </div>
+
+    <div class="nav-section">People</div>
+    <div class="nav-item" data-section="users">
+      <i class="fas fa-users"></i> Users
+    </div>
+    <div class="nav-item" data-section="vendors">
+      <i class="fas fa-store"></i> Vendors
+      <span class="badge" id="badgeVendors" style="display:none;margin-left:auto;"></span>
+    </div>
+    <div class="nav-item" data-section="ambassadors">
+      <i class="fas fa-star"></i> Ambassadors
+    </div>
+
+    <div class="nav-section">Content</div>
+    <div class="nav-item" data-section="ads">
+      <i class="fas fa-bullhorn"></i> Ads
+      <span class="badge" id="badgeAds" style="display:none;margin-left:auto;"></span>
+    </div>
+    <div class="nav-item" data-section="news">
+      <i class="fas fa-newspaper"></i> News
+      <span class="badge" id="badgeNews" style="display:none;margin-left:auto;"></span>
+    </div>
+    <div class="nav-item" data-section="courses">
+      <i class="fas fa-graduation-cap"></i> Courses
+    </div>
+
+    <div class="nav-section">Finance</div>
+    <div class="nav-item" data-section="payments">
+      <i class="fas fa-credit-card"></i> Payments
+    </div>
+    <div class="nav-item" data-section="withdrawals">
+      <i class="fas fa-money-bill-wave"></i> Withdrawals
+      <span class="badge" id="badgeWithdrawals" style="display:none;margin-left:auto;"></span>
+    </div>
+
+    <div class="nav-section">System</div>
+    <div class="nav-item" data-section="logs">
+      <i class="fas fa-list-alt"></i> Audit Logs
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <strong id="adminName">Admin</strong>
+      <span id="adminEmail">Loading...</span>
+    </div>
+    <button class="btn-logout" id="logoutBtn">
+      <i class="fas fa-sign-out-alt"></i> Sign Out
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbarTitle">Overview</div>
+      <div class="topbar-subtitle" id="topbarSub">Platform statistics</div>
+    </div>
+    <button class="mobile-toggle" id="mobileToggle">
       <i class="fas fa-bars"></i>
     </button>
-    <span class="topbar-title">⚙️ Admin Dashboard</span>
   </div>
 
-  <!-- MAIN -->
-  <div class="dashboard-main">
+  <div class="content">
 
-    <!-- ===== OVERVIEW ===== -->
-    <div class="dash-tab active" id="tab-overview">
-      <h2 class="dash-title">Platform Overview</h2>
-      <p class="dash-subtitle">
-        All activity across Inside My Campus.
-      </p>
-      <div class="stats-grid" id="overviewStats"></div>
-      <div class="admin-charts-row" id="recentActivity"></div>
-    </div>
-
-    <!-- ===== VENDORS ===== -->
-    <div class="dash-tab" id="tab-vendors">
-      <div class="admin-tab-header">
-        <div>
-          <h2 class="dash-title">Vendor Management</h2>
-          <p class="dash-subtitle">Approve, reject or manage vendors.</p>
+    <!-- OVERVIEW -->
+    <div class="section active" id="section-overview">
+      <div class="revenue-card">
+        <h3>Total Revenue</h3>
+        <div class="amount" id="totalRevenue">₦0</div>
+      </div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f0ff;">👥</div>
+          <div class="stat-value" id="stat-users">—</div>
+          <div class="stat-label">Total Users</div>
         </div>
-        <div class="admin-filter-row">
-          <select id="vendorStatusFilter" class="filter-select">
-            <option value="">All Vendors</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f9ee;">🏪</div>
+          <div class="stat-value" id="stat-vendors">—</div>
+          <div class="stat-label">Vendors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff8e8;">⏳</div>
+          <div class="stat-value" id="stat-pending-vendors">—</div>
+          <div class="stat-label">Pending Vendors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0f0ff;">⭐</div>
+          <div class="stat-value" id="stat-ambassadors">—</div>
+          <div class="stat-label">Ambassadors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff0f5;">📢</div>
+          <div class="stat-value" id="stat-ads">—</div>
+          <div class="stat-label">Total Ads</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fff8;">📰</div>
+          <div class="stat-value" id="stat-news">—</div>
+          <div class="stat-label">News</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff8f0;">🎓</div>
+          <div class="stat-value" id="stat-courses">—</div>
+          <div class="stat-label">Courses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f5f0ff;">💸</div>
+          <div class="stat-value" id="stat-withdrawals">—</div>
+          <div class="stat-label">Pending Payouts</div>
         </div>
       </div>
-      <div class="payment-table-wrap" id="vendorsTable"></div>
     </div>
 
-    <!-- ===== AMBASSADORS ===== -->
-    <div class="dash-tab" id="tab-ambassadors">
-      <h2 class="dash-title">Ambassador Management</h2>
-      <p class="dash-subtitle">View all campus ambassadors.</p>
-      <div class="payment-table-wrap" id="ambassadorsTable"></div>
-    </div>
-
-    <!-- ===== USERS ===== -->
-    <div class="dash-tab" id="tab-users">
-      <div class="admin-tab-header">
-        <div>
-          <h2 class="dash-title">User Management</h2>
-          <p class="dash-subtitle">
-            Block, unblock and manage user roles.
-          </p>
+    <!-- USERS -->
+    <div class="section" id="section-users">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">All Users</div>
+          <input type="text" class="search-input" id="userSearch" placeholder="Search users..."/>
         </div>
-        <input type="text" id="userSearch"
-          class="admin-search-input"
-          placeholder="🔍 Search users..."/>
-      </div>
-      <div class="payment-table-wrap" id="usersTable"></div>
-    </div>
-
-    <!-- ===== ADS ===== -->
-    <div class="dash-tab" id="tab-ads">
-      <div class="admin-tab-header">
-        <div>
-          <h2 class="dash-title">Ad Management</h2>
-          <p class="dash-subtitle">
-            Review and approve submitted ads.
-          </p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Name</th><th>Email</th><th>Role</th>
+              <th>University</th><th>Status</th><th>Joined</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="7" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
         </div>
-        <select id="adStatusFilter" class="filter-select">
-          <option value="">All Ads</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
       </div>
-      <div id="adsAdminList"></div>
     </div>
 
-    <!-- ===== NEWS ===== -->
-<div class="dash-tab" id="tab-news">
-  <div class="admin-tab-header">
-    <div>
-      <h2 class="dash-title">News Management</h2>
-      <p class="dash-subtitle">
-        Post, approve, reject and pin campus news.
-      </p>
+    <!-- VENDORS -->
+    <div class="section" id="section-vendors">
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">All</div>
+        <div class="filter-tab" data-filter="pending">Pending</div>
+        <div class="filter-tab" data-filter="approved">Approved</div>
+        <div class="filter-tab" data-filter="rejected">Rejected</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">Vendors</div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Business</th><th>Owner</th><th>University</th>
+              <th>Category</th><th>Payment</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="vendorsTableBody">
+              <tr><td colspan="7" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <select id="newsStatusFilter" class="filter-select">
-        <option value="">All News</option>
-        <option value="pending">Pending</option>
-        <option value="approved">Approved</option>
-        <option value="rejected">Rejected</option>
+
+    <!-- AMBASSADORS -->
+    <div class="section" id="section-ambassadors">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">Ambassadors</div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Name</th><th>Username</th><th>University</th>
+              <th>Ref Code</th><th>Earnings</th><th>Referrals</th>
+              <th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="ambassadorsTableBody">
+              <tr><td colspan="8" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADS -->
+    <div class="section" id="section-ads">
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">All</div>
+        <div class="filter-tab" data-filter="pending">Pending</div>
+        <div class="filter-tab" data-filter="approved">Approved</div>
+        <div class="filter-tab" data-filter="rejected">Rejected</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">Advertisements</div></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Title</th><th>Category</th><th>Owner</th>
+              <th>Duration</th><th>Payment</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="adsTableBody">
+              <tr><td colspan="7" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWS -->
+    <div class="section" id="section-news">
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">All</div>
+        <div class="filter-tab" data-filter="pending">Pending</div>
+        <div class="filter-tab" data-filter="approved">Approved</div>
+        <div class="filter-tab" data-filter="rejected">Rejected</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">Campus News</div></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Title</th><th>University</th><th>Author</th>
+              <th>Views</th><th>Pinned</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="newsTableBody">
+              <tr><td colspan="7" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- COURSES -->
+    <div class="section" id="section-courses">
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">Courses</div>
+          <button class="btn btn-primary" id="createCourseBtn">
+            <i class="fas fa-plus"></i> Add Course
+          </button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Title</th><th>Category</th><th>Price</th>
+              <th>Level</th><th>Students</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="coursesTableBody">
+              <tr><td colspan="6" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="section" id="section-payments">
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">Payment History</div></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Type</th><th>Name</th><th>Email</th>
+              <th>Amount</th><th>Reference</th><th>Date</th>
+            </tr></thead>
+            <tbody id="paymentsTableBody">
+              <tr><td colspan="6" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- WITHDRAWALS -->
+    <div class="section" id="section-withdrawals">
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">Withdrawal Requests</div></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Ambassador</th><th>Bank</th><th>Account</th>
+              <th>Amount</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="withdrawalsTableBody">
+              <tr><td colspan="7" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT LOGS -->
+    <div class="section" id="section-logs">
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">Audit Logs</div></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Admin</th><th>Action</th><th>Target</th>
+              <th>Details</th><th>IP</th><th>Time</th><th>Status</th>
+            </tr></thead>
+            <tbody id="logsTableBody">
+              <tr><td colspan="7" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CREATE COURSE MODAL -->
+<div id="courseModal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <h3 id="courseModalTitle">Add New Course</h3>
+    <div class="form-row">
+      <label>Title *</label>
+      <input type="text" id="courseTitle" placeholder="Course title"/>
+    </div>
+    <div class="form-row">
+      <label>Category *</label>
+      <input type="text" id="courseCategory" placeholder="e.g. Business, Tech, Finance"/>
+    </div>
+    <div class="form-row">
+      <label>Description *</label>
+      <textarea id="courseDescription" placeholder="Course description"></textarea>
+    </div>
+    <div class="form-row">
+      <label>Price (₦) — enter 0 for free</label>
+      <input type="number" id="coursePrice" placeholder="0" min="0"/>
+    </div>
+    <div class="form-row">
+      <label>File URL * (Google Drive, Dropbox, etc.)</label>
+      <input type="text" id="courseFileUrl" placeholder="https://..."/>
+    </div>
+    <div class="form-row">
+      <label>Image URL</label>
+      <input type="text" id="courseImage" placeholder="https://..."/>
+    </div>
+    <div class="form-row">
+      <label>Duration</label>
+      <input type="text" id="courseDuration" placeholder="e.g. 3 hours"/>
+    </div>
+    <div class="form-row">
+      <label>Number of Lessons</label>
+      <input type="number" id="courseLessons" placeholder="10" min="1"/>
+    </div>
+    <div class="form-row">
+      <label>Level</label>
+      <select id="courseLevel">
+        <option value="Beginner">Beginner</option>
+        <option value="Intermediate">Intermediate</option>
+        <option value="Advanced">Advanced</option>
+        <option value="All Levels">All Levels</option>
       </select>
-      <button class="btn-admin-add" id="showPostNewsForm">
-        <i class="fas fa-plus"></i> Post News
-      </button>
     </div>
-  </div>
-
-  <!-- Admin Post News Form -->
-  <div id="adminPostNewsForm" class="dash-form-card"
-    style="display:none;margin-bottom:24px;">
-    <h3 style="font-size:16px;font-weight:700;
-      margin-bottom:18px;">
-      📰 Post Campus News
-    </h3>
-
-    <div class="auth-error" id="adminNewsError"
-      style="display:none;">
-      <i class="fas fa-exclamation-circle"></i>
-      <span id="adminNewsErrorMsg"></span>
+    <div id="courseModalError" style="color:#e85d04;font-size:13px;margin-top:8px;display:none;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="courseModalCancel">Cancel</button>
+      <button class="btn btn-primary" id="courseModalSave">Save Course</button>
     </div>
-
-    <div class="form-group">
-      <label>News Title</label>
-      <div class="input-wrapper">
-        <i class="fas fa-heading input-icon"></i>
-        <input type="text" id="adminNewsTitle"
-          placeholder="e.g. UNILAG Announces New Policy"/>
-      </div>
-    </div>
-
-    <div class="name-row">
-      <div class="form-group">
-        <label>University</label>
-        <div class="input-wrapper">
-          <i class="fas fa-university input-icon"></i>
-          <input type="text" id="adminNewsUni"
-            placeholder="e.g. UNILAG, UNN..."/>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Pin this news?</label>
-        <div class="input-wrapper">
-          <i class="fas fa-thumbtack input-icon"></i>
-          <select id="adminNewsPin" class="form-select">
-            <option value="no">No — Regular post</option>
-            <option value="yes">Yes — Pin to top</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Image Upload -->
-    <div class="form-group">
-      <label>News Image</label>
-      <div class="file-upload-area">
-        <input type="file" id="adminNewsImageFile"
-          accept="image/*" style="display:none;"/>
-        <div class="file-upload-placeholder"
-          id="adminNewsImgPlaceholder"
-          onclick="document.getElementById('adminNewsImageFile').click()">
-          <i class="fas fa-image"></i>
-          <p>Click to upload image</p>
-          <span>JPG, PNG, WEBP — Max 5MB</span>
-        </div>
-        <div id="adminNewsImgPreviewWrap" style="display:none;">
-          <img id="adminNewsImgPreview" src=""
-            class="upload-preview-img" alt="Preview"/>
-          <button class="btn-remove-upload" type="button"
-            onclick="removeAdminNewsUpload()">
-            <i class="fas fa-times"></i> Remove
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Video Upload (optional) -->
-    <div class="form-group">
-      <label>News Video
-        <span style="color:#aaa;font-weight:400;">(optional)</span>
-      </label>
-      <div class="file-upload-area">
-        <input type="file" id="adminNewsVideoFile"
-          accept="video/*" style="display:none;"/>
-        <div class="file-upload-placeholder"
-          id="adminNewsVidPlaceholder"
-          onclick="document.getElementById('adminNewsVideoFile').click()">
-          <i class="fas fa-video"></i>
-          <p>Click to upload video</p>
-          <span>MP4, MOV — Max 50MB</span>
-        </div>
-        <div id="adminNewsVidPreviewWrap" style="display:none;">
-          <video id="adminNewsVidPreview" controls
-            class="upload-preview-video"></video>
-          <button class="btn-remove-upload" type="button"
-            onclick="removeAdminNewsVideoUpload()">
-            <i class="fas fa-times"></i> Remove
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>News Content</label>
-      <textarea class="form-textarea" id="adminNewsContent"
-        rows="5"
-        placeholder="Write the full news story here...">
-      </textarea>
-    </div>
-
-    <div style="display:flex;gap:10px;">
-      <button class="btn-auth-submit"
-        id="saveAdminNewsBtn"
-        style="background:#1a3c8f;margin-bottom:0;">
-        <i class="fas fa-save"></i> Publish News
-      </button>
-      <button class="btn-auth-switch"
-        id="cancelAdminNewsForm"
-        style="padding:12px 20px;font-size:14px;">
-        Cancel
-      </button>
-    </div>
-  </div>
-
-  <!-- News list -->
-  <div id="newsAdminList"></div>
-</div>
-    
-    <!-- ===== COURSES ===== -->
-    <div class="dash-tab" id="tab-courses">
-      <div class="admin-tab-header">
-        <div>
-          <h2 class="dash-title">Course Management</h2>
-          <p class="dash-subtitle">Add and manage online courses.</p>
-        </div>
-        <button class="btn-admin-add" id="showAddCourseForm">
-          <i class="fas fa-plus"></i> Add Course
-        </button>
-      </div>
-
-      <!-- Add Course Form -->
-      <div id="addCourseForm"
-        class="dash-form-card" style="display:none;margin-bottom:24px;">
-        <h3 style="font-size:16px;font-weight:700;
-          margin-bottom:18px;">➕ Add New Course</h3>
-
-        <div class="auth-error" id="courseFormError"
-          style="display:none;">
-          <i class="fas fa-exclamation-circle"></i>
-          <span id="courseFormErrorMsg"></span>
-        </div>
-
-        <div class="name-row">
-          <div class="form-group">
-            <label>Course Title</label>
-            <div class="input-wrapper">
-              <i class="fas fa-book input-icon"></i>
-              <input type="text" id="newCourseTitle"
-                placeholder="Course title"/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Category</label>
-            <div class="input-wrapper">
-              <i class="fas fa-tag input-icon"></i>
-              <select id="newCourseCategory" class="form-select">
-                <option value="">Select...</option>
-                <option value="Business">Business</option>
-                <option value="Technology">Technology</option>
-                <option value="Design">Design</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Finance">Finance</option>
-                <option value="Personal Development">
-                  Personal Development
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="name-row">
-          <div class="form-group">
-            <label>Price (₦) — enter 0 for free</label>
-            <div class="input-wrapper">
-              <i class="fas fa-tag input-icon"></i>
-              <input type="number" id="newCoursePrice"
-                placeholder="e.g. 1000"/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Level</label>
-            <div class="input-wrapper">
-              <i class="fas fa-signal input-icon"></i>
-              <select id="newCourseLevel" class="form-select">
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-                <option value="All Levels">All Levels</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="name-row">
-          <div class="form-group">
-            <label>Duration</label>
-            <div class="input-wrapper">
-              <i class="fas fa-clock input-icon"></i>
-              <input type="text" id="newCourseDuration"
-                placeholder="e.g. 3 hours"/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Number of Lessons</label>
-            <div class="input-wrapper">
-              <i class="fas fa-list input-icon"></i>
-              <input type="number" id="newCourseLessons"
-                placeholder="e.g. 12"/>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Course Image URL</label>
-          <div class="input-wrapper">
-            <i class="fas fa-image input-icon"></i>
-            <input type="url" id="newCourseImage"
-              placeholder="https://..."/>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Course File / Download URL</label>
-          <div class="input-wrapper">
-            <i class="fas fa-file-pdf input-icon"></i>
-            <input type="url" id="newCourseFile"
-              placeholder="https://... (PDF or download link)"/>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Course Description</label>
-          <textarea class="form-textarea" id="newCourseDesc"
-            rows="3"
-            placeholder="Describe what students will learn...">
-          </textarea>
-        </div>
-
-        <div style="display:flex;gap:10px;">
-          <button class="btn-auth-submit"
-            id="saveCourseBtn"
-            style="background:#1a3c8f;margin-bottom:0;">
-            <i class="fas fa-save"></i> Save Course
-          </button>
-          <button class="btn-auth-switch"
-            id="cancelCourseForm"
-            style="padding:12px 20px;font-size:14px;">
-            Cancel
-          </button>
-        </div>
-      </div>
-
-      <!-- Courses Table -->
-      <div class="payment-table-wrap" id="coursesAdminTable"></div>
-    </div>
-
-    <!-- ===== PAYMENTS ===== -->
-    <div class="dash-tab" id="tab-payments">
-      <h2 class="dash-title">Payment Records</h2>
-      <p class="dash-subtitle">
-        All platform payments in one place.
-      </p>
-      <div class="payment-table-wrap" id="paymentsAdminTable"></div>
-    </div>
-
-    <!-- ===== REFERRALS ===== -->
-    <div class="dash-tab" id="tab-referrals">
-      <h2 class="dash-title">Referral Tracking</h2>
-      <p class="dash-subtitle">
-        Track ambassador referrals and commissions.
-      </p>
-      <div class="payment-table-wrap" id="referralsAdminTable"></div>
-    </div>
-
-<a href="#" class="sidebar-link" data-tab="withdrawals">
-  <i class="fas fa-money-bill-wave"></i> Withdrawals
-</a>
-<a href="#" class="sidebar-link" data-tab="notifications">
-  <i class="fas fa-bell"></i> Notifications
-  <span class="notif-badge" id="adminNotifBadge"
-    style="display:none;">0</span>
-</a>
-<a href="#" class="sidebar-link" data-tab="settings">
-  <i class="fas fa-cog"></i> Settings
-</a>
-
-<!-- ===== WITHDRAWALS ===== -->
-<div class="dash-tab" id="tab-withdrawals">
-  <h2 class="dash-title">Withdrawal Requests</h2>
-  <p class="dash-subtitle">
-    Review and process ambassador withdrawal requests.
-  </p>
-  <div id="withdrawalRequestsList"></div>
-</div>
-
-<!-- ===== NOTIFICATIONS ===== -->
-<div class="dash-tab" id="tab-notifications">
-  <div style="display:flex;justify-content:space-between;
-    align-items:center;margin-bottom:20px;">
-    <div>
-      <h2 class="dash-title">Notifications</h2>
-      <p class="dash-subtitle">
-        Platform activity and alerts.
-      </p>
-    </div>
-    <button class="btn-view-detail"
-      onclick="clearAllNotifications()">
-      <i class="fas fa-check-double"></i>
-      Mark All Read
-    </button>
-  </div>
-  <div id="adminNotificationsList"></div>
-</div>
-
-<!-- ===== SETTINGS ===== -->
-<div class="dash-tab" id="tab-settings">
-  <h2 class="dash-title">Platform Settings</h2>
-  <p class="dash-subtitle">
-    Configure your platform information and preferences.
-  </p>
-
-  <div class="dash-form-card" style="max-width:600px;">
-    <h3 style="font-size:15px;font-weight:700;
-      margin-bottom:20px;">
-      🌐 Platform Information
-    </h3>
-
-    <div class="form-group">
-      <label>Platform Name</label>
-      <div class="input-wrapper">
-        <i class="fas fa-globe input-icon"></i>
-        <input type="text" id="settingsPlatformName"
-          placeholder="Inside My Campus"/>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Contact Email</label>
-      <div class="input-wrapper">
-        <i class="fas fa-envelope input-icon"></i>
-        <input type="email" id="settingsEmail"
-          placeholder="hello@insidemycampus.com"/>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>WhatsApp Number</label>
-      <div class="input-wrapper">
-        <i class="fab fa-whatsapp input-icon"></i>
-        <input type="tel" id="settingsWhatsApp"
-          placeholder="+2348012345678"/>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Instagram Handle</label>
-      <div class="input-wrapper">
-        <i class="fab fa-instagram input-icon"></i>
-        <input type="text" id="settingsInstagram"
-          placeholder="@insidemycampus"/>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Twitter / X Handle</label>
-      <div class="input-wrapper">
-        <i class="fab fa-twitter input-icon"></i>
-        <input type="text" id="settingsTwitter"
-          placeholder="@insidemycampus"/>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Vendor Registration Fee (₦)</label>
-      <div class="input-wrapper">
-        <i class="fas fa-money-bill input-icon"></i>
-        <input type="number" id="settingsVendorFee"
-          placeholder="5000"/>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Ambassador Commission Per Referral (₦)</label>
-      <div class="input-wrapper">
-        <i class="fas fa-coins input-icon"></i>
-        <input type="number" id="settingsAmbComm"
-          placeholder="500"/>
-      </div>
-    </div>
-
-    <div class="auth-success" id="settingsSuccess"
-      style="display:none;">
-      <i class="fas fa-check-circle"></i>
-      <span>Settings saved successfully!</span>
-    </div>
-
-    <button class="btn-auth-submit"
-      id="saveSettingsBtn"
-      style="background:#1a3c8f;">
-      <i class="fas fa-save"></i> Save Settings
-    </button>
   </div>
 </div>
 
-  </div><!-- end dashboard-main -->
+<script src="api.js"></script>
+<script>
+// ================================================
+//   ADMIN DASHBOARD SCRIPT
+// ================================================
 
-  <script src="script.js"></script>
-  <script src="navbar.js"></script>
-<script src="admin-dashboard.js"></script>
+var ADMIN_TOKEN = null;
+var ADMIN_USER  = null;
+var allVendors  = [];
+var allAds      = [];
+var allNews     = [];
+var editingCourseId = null;
 
+document.addEventListener('DOMContentLoaded', async function () {
+
+  // ---- Auth check ----
+  ADMIN_TOKEN = IMC_API.getToken();
+  ADMIN_USER  = IMC_API.getCurrentUser();
+
+  if (!ADMIN_TOKEN || !ADMIN_USER || ADMIN_USER.role !== 'admin') {
+    window.location.href = 'admin-login.html';
+    return;
+  }
+
+  // ---- Fill admin info ----
+  var nameEl  = document.getElementById('adminName');
+  var emailEl = document.getElementById('adminEmail');
+  if (nameEl)  nameEl.textContent  = ADMIN_USER.firstName + ' ' + (ADMIN_USER.lastName || '');
+  if (emailEl) emailEl.textContent = ADMIN_USER.email;
+
+  // ---- Sidebar navigation ----
+  document.querySelectorAll('.nav-item').forEach(function (item) {
+    item.addEventListener('click', function () {
+      var section = this.getAttribute('data-section');
+      if (!section) return;
+      switchSection(section, this.textContent.trim());
+    });
+  });
+
+  // ---- Mobile toggle ----
+  var mobileBtn = document.getElementById('mobileToggle');
+  var sidebar   = document.getElementById('sidebar');
+  if (mobileBtn) {
+    mobileBtn.addEventListener('click', function () {
+      sidebar.classList.toggle('open');
+    });
+  }
+
+  // ---- Logout ----
+  document.getElementById('logoutBtn').addEventListener('click', function () {
+    IMC_API.logout();
+  });
+
+  // ---- Filter tabs ----
+  document.querySelectorAll('.filter-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var section = this.closest('.section');
+      section.querySelectorAll('.filter-tab').forEach(function (t) {
+        t.classList.remove('active');
+      });
+      this.classList.add('active');
+      var filter = this.getAttribute('data-filter');
+      var secId  = section.id.replace('section-', '');
+      applyFilter(secId, filter);
+    });
+  });
+
+  // ---- Course modal ----
+  document.getElementById('createCourseBtn').addEventListener('click', function () {
+    openCourseModal(null);
+  });
+  document.getElementById('courseModalCancel').addEventListener('click', function () {
+    document.getElementById('courseModal').style.display = 'none';
+  });
+  document.getElementById('courseModalSave').addEventListener('click', saveCourse);
+
+  // ---- User search ----
+  var userSearch = document.getElementById('userSearch');
+  if (userSearch) {
+    userSearch.addEventListener('input', function () {
+      loadUsers(this.value);
+    });
+  }
+
+  // ---- Load overview ----
+  await loadStats();
+});
+
+// ================================================
+//   SECTION SWITCHING
+// ================================================
+
+function switchSection(name, label) {
+  document.querySelectorAll('.section').forEach(function (s) {
+    s.classList.remove('active');
+  });
+  document.querySelectorAll('.nav-item').forEach(function (n) {
+    n.classList.remove('active');
+    if (n.getAttribute('data-section') === name) n.classList.add('active');
+  });
+
+  var sec = document.getElementById('section-' + name);
+  if (sec) sec.classList.add('active');
+
+  var titles = {
+    overview:    ['Overview',    'Platform statistics'],
+    users:       ['Users',       'All registered users'],
+    vendors:     ['Vendors',     'Vendor management'],
+    ambassadors: ['Ambassadors', 'Ambassador management'],
+    ads:         ['Ads',         'Advertisement management'],
+    news:        ['News',        'Campus news management'],
+    courses:     ['Courses',     'Course management'],
+    payments:    ['Payments',    'Transaction history'],
+    withdrawals: ['Withdrawals', 'Payout requests'],
+    logs:        ['Audit Logs',  'Admin activity log']
+  };
+
+  var t = titles[name] || [name, ''];
+  document.getElementById('topbarTitle').textContent = t[0];
+  document.getElementById('topbarSub').textContent   = t[1];
+
+  // Load data for section
+  var loaders = {
+    users:       function(){ loadUsers(''); },
+    vendors:     loadVendors,
+    ambassadors: loadAmbassadors,
+    ads:         loadAds,
+    news:        loadNews,
+    courses:     loadCourses,
+    payments:    loadPayments,
+    withdrawals: loadWithdrawals,
+    logs:        loadLogs
+  };
+  if (loaders[name]) loaders[name]();
+
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// ================================================
+//   ADMIN API HELPER
+// ================================================
+
+async function adminRequest(method, endpoint, data) {
+  try {
+    var opts = {
+      method:  method,
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + ADMIN_TOKEN
+      }
+    };
+    if (data && (method === 'POST' || method === 'PUT')) {
+      opts.body = JSON.stringify(data);
+    }
+    var res  = await fetch(
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5000'
+        : 'https://imc-backend-0y2u.onrender.com') + '/api/admin' + endpoint,
+      opts
+    );
+    var text = await res.text();
+    try { return JSON.parse(text); } catch(e) { return { success: false, message: text }; }
+  } catch (err) {
+    console.error('[Admin]', endpoint, err.message);
+    return { success: false, message: err.message };
+  }
+}
+
+// ================================================
+//   STATS
+// ================================================
+
+async function loadStats() {
+  var r = await adminRequest('GET', '/stats');
+  if (!r.success) return;
+  var s = r.stats;
+
+  setText('stat-users',           s.totalUsers);
+  setText('stat-vendors',         s.totalVendors);
+  setText('stat-pending-vendors', s.pendingVendors);
+  setText('stat-ambassadors',     s.totalAmbassadors);
+  setText('stat-ads',             s.totalAds || 0);
+  setText('stat-news',            s.totalNews);
+  setText('stat-courses',         s.totalCourses || 0);
+  setText('stat-withdrawals',     s.pendingWithdrawals || 0);
+  setText('totalRevenue',         '₦' + (s.revenue.total || 0).toLocaleString());
+
+  // Update sidebar badges
+  setBadge('badgeVendors',    s.pendingVendors);
+  setBadge('badgeAds',        s.pendingAds || 0);
+  setBadge('badgeNews',       s.pendingNews);
+  setBadge('badgeWithdrawals', s.pendingWithdrawals || 0);
+}
+
+// ================================================
+//   USERS
+// ================================================
+
+async function loadUsers(search) {
+  var r = await adminRequest('GET', '/users?limit=50');
+  if (!r.success) { setTbody('usersTableBody', '<tr><td colspan="7" class="empty">Failed to load users</td></tr>'); return; }
+
+  var users = r.users || [];
+  if (search) {
+    var q = search.toLowerCase();
+    users = users.filter(function (u) {
+      return (u.firstName + ' ' + u.lastName).toLowerCase().includes(q) ||
+             u.email.toLowerCase().includes(q);
+    });
+  }
+
+  if (users.length === 0) {
+    setTbody('usersTableBody', '<tr><td colspan="7" class="empty"><i class="fas fa-users"></i><br/>No users found</td></tr>');
+    return;
+  }
+
+  setTbody('usersTableBody', users.map(function (u) {
+    return '<tr>' +
+      '<td>' + esc(u.firstName + ' ' + (u.lastName || '')) + '</td>' +
+      '<td>' + esc(u.email) + '</td>' +
+      '<td><span class="status ' + u.role + '">' + u.role + '</span></td>' +
+      '<td>' + esc(u.university || '—') + '</td>' +
+      '<td>' + (u.isBlocked
+        ? '<span class="status rejected">Blocked</span>'
+        : '<span class="status approved">Active</span>') + '</td>' +
+      '<td>' + fmtDate(u.createdAt) + '</td>' +
+      '<td><div class="btn-group">' +
+        '<button class="btn btn-sm ' + (u.isBlocked ? 'btn-success' : 'btn-warning') + '" ' +
+        'onclick="toggleUserBlock(\'' + u._id + '\',' + !u.isBlocked + ')">' +
+        (u.isBlocked ? 'Unblock' : 'Block') + '</button>' +
+        (u.role !== 'admin'
+          ? '<button class="btn btn-sm btn-primary" onclick="makeAdmin(\'' + u._id + '\')">' +
+            'Make Admin</button>'
+          : '') +
+        '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + u._id + '\',\'' +
+        esc(u.email) + '\')">' + 'Delete</button>' +
+      '</div></td>' +
+      '</tr>';
+  }).join(''));
+}
+
+async function toggleUserBlock(id, block) {
+  if (!confirm((block ? 'Block' : 'Unblock') + ' this user?')) return;
+  var r = await adminRequest('PUT', '/users/' + id + '/block', { isBlocked: block });
+  if (r.success) loadUsers('');
+  else alert(r.message);
+}
+
+async function makeAdmin(id) {
+  if (!confirm('Make this user an admin? This grants full access.')) return;
+  var r = await adminRequest('PUT', '/users/' + id + '/role', { role: 'admin' });
+  if (r.success) loadUsers('');
+  else alert(r.message);
+}
+
+async function deleteUser(id, email) {
+  if (!confirm('Permanently delete user: ' + email + '?')) return;
+  var r = await adminRequest('DELETE', '/users/' + id);
+  if (r.success) loadUsers('');
+  else alert(r.message);
+}
+
+// ================================================
+//   VENDORS
+// ================================================
+
+async function loadVendors() {
+  var r = await adminRequest('GET', '/vendors');
+  if (!r.success) return;
+  allVendors = r.vendors || [];
+  renderVendors('all');
+}
+
+function renderVendors(filter) {
+  var data = filter === 'all'
+    ? allVendors
+    : allVendors.filter(function (v) { return v.status === filter; });
+
+  if (data.length === 0) {
+    setTbody('vendorsTableBody', '<tr><td colspan="7" class="empty"><i class="fas fa-store"></i><br/>No vendors</td></tr>');
+    return;
+  }
+
+  setTbody('vendorsTableBody', data.map(function (v) {
+    return '<tr>' +
+      '<td><strong>' + esc(v.bizName) + '</strong><br/>' +
+      '<span style="font-size:11px;color:#888;">' + esc(v.category) + '</span></td>' +
+      '<td>' + esc(v.fullName) + '<br/><span style="font-size:11px;color:#888;">' + esc(v.email) + '</span></td>' +
+      '<td>' + esc(v.university) + '</td>' +
+      '<td>' + esc(v.category) + '</td>' +
+      '<td><span class="status ' + v.paymentStatus + '">' + v.paymentStatus + '</span></td>' +
+      '<td><span class="status ' + v.status + '">' + v.status + '</span></td>' +
+      '<td><div class="btn-group">' +
+        (v.status !== 'approved'
+          ? '<button class="btn btn-sm btn-success" onclick="updateVendor(\'' +
+            v._id + '\',\'approved\')">Approve</button>'
+          : '') +
+        (v.status !== 'rejected'
+          ? '<button class="btn btn-sm btn-danger" onclick="updateVendor(\'' +
+            v._id + '\',\'rejected\')">Reject</button>'
+          : '') +
+      '</div></td></tr>';
+  }).join(''));
+}
+
+async function updateVendor(id, status) {
+  var r = await adminRequest('PUT', '/vendors/' + id + '/status', { status: status });
+  if (r.success) loadVendors();
+  else alert(r.message);
+}
+
+function applyFilter(section, filter) {
+  if (section === 'vendors')     renderVendors(filter);
+  if (section === 'ads')         renderAds(filter);
+  if (section === 'news')        renderNews(filter);
+}
+
+// ================================================
+//   AMBASSADORS
+// ================================================
+
+async function loadAmbassadors() {
+  var r = await adminRequest('GET', '/ambassadors');
+  if (!r.success) return;
+  var ambs = r.ambassadors || [];
+
+  if (ambs.length === 0) {
+    setTbody('ambassadorsTableBody', '<tr><td colspan="8" class="empty">No ambassadors</td></tr>');
+    return;
+  }
+
+  setTbody('ambassadorsTableBody', ambs.map(function (a) {
+    return '<tr>' +
+      '<td>' + esc(a.fullName) + '</td>' +
+      '<td>@' + esc(a.username) + '</td>' +
+      '<td>' + esc(a.university) + '</td>' +
+      '<td><code style="font-size:11px;background:#f0f0f0;padding:2px 6px;border-radius:4px;">' +
+      esc(a.refCode) + '</code></td>' +
+      '<td>₦' + (a.earnings || 0).toLocaleString() + '</td>' +
+      '<td>' + (a.referrals || []).length + '</td>' +
+      '<td><span class="status ' + a.status + '">' + a.status + '</span></td>' +
+      '<td><div class="btn-group">' +
+        (a.status === 'active'
+          ? '<button class="btn btn-sm btn-warning" onclick="updateAmbassador(\'' +
+            a._id + '\',\'suspended\')">Suspend</button>'
+          : '<button class="btn btn-sm btn-success" onclick="updateAmbassador(\'' +
+            a._id + '\',\'active\')">Activate</button>') +
+      '</div></td></tr>';
+  }).join(''));
+}
+
+async function updateAmbassador(id, status) {
+  var r = await adminRequest('PUT', '/ambassadors/' + id + '/status', { status: status });
+  if (r.success) loadAmbassadors();
+  else alert(r.message);
+}
+
+// ================================================
+//   ADS
+// ================================================
+
+async function loadAds() {
+  var r = await adminRequest('GET', '/ads');
+  if (!r.success) return;
+  allAds = r.ads || [];
+  renderAds('all');
+}
+
+function renderAds(filter) {
+  var data = filter === 'all'
+    ? allAds
+    : allAds.filter(function (a) { return a.status === filter; });
+
+  if (data.length === 0) {
+    setTbody('adsTableBody', '<tr><td colspan="7" class="empty"><i class="fas fa-bullhorn"></i><br/>No ads</td></tr>');
+    return;
+  }
+
+  setTbody('adsTableBody', data.map(function (a) {
+    return '<tr>' +
+      '<td><strong>' + esc(a.title) + '</strong></td>' +
+      '<td>' + esc(a.category) + '</td>' +
+      '<td>' + esc(a.ownerEmail || a.ownerName || '—') + '</td>' +
+      '<td>' + (a.duration || 7) + ' days</td>' +
+      '<td><span class="status ' + a.paymentStatus + '">' + a.paymentStatus + '</span></td>' +
+      '<td><span class="status ' + a.status + '">' + a.status + '</span></td>' +
+      '<td><div class="btn-group">' +
+        (a.status !== 'approved'
+          ? '<button class="btn btn-sm btn-success" onclick="updateAd(\'' +
+            a._id + '\',\'approved\')">Approve</button>'
+          : '') +
+        (a.status !== 'rejected'
+          ? '<button class="btn btn-sm btn-danger" onclick="updateAd(\'' +
+            a._id + '\',\'rejected\')">Reject</button>'
+          : '') +
+        '<button class="btn btn-sm btn-ghost" onclick="deleteAd(\'' + a._id + '\')">Delete</button>' +
+      '</div></td></tr>';
+  }).join(''));
+}
+
+async function updateAd(id, status) {
+  var r = await adminRequest('PUT', '/ads/' + id + '/status', { status: status });
+  if (r.success) loadAds();
+  else alert(r.message);
+}
+
+async function deleteAd(id) {
+  if (!confirm('Delete this ad?')) return;
+  var r = await adminRequest('DELETE', '/ads/' + id);
+  if (r.success) loadAds();
+  else alert(r.message);
+}
+
+// ================================================
+//   NEWS
+// ================================================
+
+async function loadNews() {
+  var r = await adminRequest('GET', '/news');
+  if (!r.success) return;
+  allNews = r.news || [];
+  renderNews('all');
+}
+
+function renderNews(filter) {
+  var data = filter === 'all'
+    ? allNews
+    : allNews.filter(function (n) { return n.status === filter; });
+
+  if (data.length === 0) {
+    setTbody('newsTableBody', '<tr><td colspan="7" class="empty"><i class="fas fa-newspaper"></i><br/>No news</td></tr>');
+    return;
+  }
+
+  setTbody('newsTableBody', data.map(function (n) {
+    return '<tr>' +
+      '<td><strong>' + esc(n.title) + '</strong></td>' +
+      '<td>' + esc(n.university) + '</td>' +
+      '<td>' + esc(n.authorName || '—') + '</td>' +
+      '<td>' + (n.views || 0) + '</td>' +
+      '<td>' + (n.pinned ? '📌' : '—') + '</td>' +
+      '<td><span class="status ' + n.status + '">' + n.status + '</span></td>' +
+      '<td><div class="btn-group">' +
+        (n.status !== 'approved'
+          ? '<button class="btn btn-sm btn-success" onclick="updateNews(\'' +
+            n._id + '\',\'approved\')">Approve</button>'
+          : '') +
+        (n.status !== 'rejected'
+          ? '<button class="btn btn-sm btn-danger" onclick="updateNews(\'' +
+            n._id + '\',\'rejected\')">Reject</button>'
+          : '') +
+        '<button class="btn btn-sm btn-ghost" onclick="deleteNews(\'' + n._id + '\')">Delete</button>' +
+      '</div></td></tr>';
+  }).join(''));
+}
+
+async function updateNews(id, status) {
+  var r = await adminRequest('PUT', '/news/' + id + '/status', { status: status });
+  if (r.success) loadNews();
+  else alert(r.message);
+}
+
+async function deleteNews(id) {
+  if (!confirm('Delete this news article?')) return;
+  var r = await adminRequest('DELETE', '/news/' + id);
+  if (r.success) loadNews();
+  else alert(r.message);
+}
+
+// ================================================
+//   COURSES
+// ================================================
+
+async function loadCourses() {
+  var r = await adminRequest('GET', '/courses');
+  if (!r.success) return;
+  var courses = r.courses || [];
+
+  if (courses.length === 0) {
+    setTbody('coursesTableBody', '<tr><td colspan="6" class="empty"><i class="fas fa-graduation-cap"></i><br/>No courses</td></tr>');
+    return;
+  }
+
+  setTbody('coursesTableBody', courses.map(function (c) {
+    return '<tr>' +
+      '<td><strong>' + esc(c.title) + '</strong></td>' +
+      '<td>' + esc(c.category) + '</td>' +
+      '<td>' + (c.isFree || c.price === 0
+        ? '<span class="status approved">FREE</span>'
+        : '₦' + (c.price || 0).toLocaleString()) + '</td>' +
+      '<td>' + esc(c.level || 'Beginner') + '</td>' +
+      '<td>' + (c.students || 0) + '</td>' +
+      '<td><div class="btn-group">' +
+        '<button class="btn btn-sm btn-primary" onclick="openCourseModal(\'' +
+        c._id + '\')">Edit</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteCourse(\'' +
+        c._id + '\')">Delete</button>' +
+      '</div></td></tr>';
+  }).join(''));
+}
+
+function openCourseModal(courseId) {
+  editingCourseId = courseId;
+  document.getElementById('courseModalTitle').textContent =
+    courseId ? 'Edit Course' : 'Add New Course';
+  document.getElementById('courseModalError').style.display = 'none';
+  if (!courseId) {
+    ['courseTitle','courseCategory','courseDescription','coursePrice',
+     'courseFileUrl','courseImage','courseDuration','courseLessons'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  }
+  document.getElementById('courseModal').style.display = 'flex';
+}
+
+async function saveCourse() {
+  var errEl = document.getElementById('courseModalError');
+  errEl.style.display = 'none';
+
+  var data = {
+    title:       (document.getElementById('courseTitle').value        || '').trim(),
+    category:    (document.getElementById('courseCategory').value     || '').trim(),
+    description: (document.getElementById('courseDescription').value  || '').trim(),
+    price:       parseFloat(document.getElementById('coursePrice').value) || 0,
+    fileUrl:     (document.getElementById('courseFileUrl').value      || '').trim(),
+    image:       (document.getElementById('courseImage').value        || '').trim(),
+    duration:    (document.getElementById('courseDuration').value     || '').trim(),
+    lessons:     parseInt(document.getElementById('courseLessons').value) || 10,
+    level:       document.getElementById('courseLevel').value
+  };
+
+  if (!data.title || !data.category || !data.description || !data.fileUrl) {
+    errEl.textContent    = 'Please fill in all required fields.';
+    errEl.style.display  = 'block';
+    return;
+  }
+
+  var r = editingCourseId
+    ? await adminRequest('PUT', '/courses/' + editingCourseId, data)
+    : await adminRequest('POST', '/courses', data);
+
+  if (r.success) {
+    document.getElementById('courseModal').style.display = 'none';
+    loadCourses();
+  } else {
+    errEl.textContent   = r.message || 'Failed to save course.';
+    errEl.style.display = 'block';
+  }
+}
+
+async function deleteCourse(id) {
+  if (!confirm('Delete this course?')) return;
+  var r = await adminRequest('DELETE', '/courses/' + id);
+  if (r.success) loadCourses();
+  else alert(r.message);
+}
+
+// ================================================
+//   PAYMENTS
+// ================================================
+
+async function loadPayments() {
+  var r = await adminRequest('GET', '/payments');
+  if (!r.success) return;
+  var payments = r.payments || [];
+
+  if (payments.length === 0) {
+    setTbody('paymentsTableBody', '<tr><td colspan="6" class="empty">No payments yet</td></tr>');
+    return;
+  }
+
+  setTbody('paymentsTableBody', payments.map(function (p) {
+    return '<tr>' +
+      '<td><span class="status approved">' + esc(p.type) + '</span></td>' +
+      '<td>' + esc(p.name || '—') + '</td>' +
+      '<td>' + esc(p.email || '—') + '</td>' +
+      '<td><strong>₦' + (p.amount || 0).toLocaleString() + '</strong></td>' +
+      '<td><code style="font-size:11px;">' + esc(p.ref || '—') + '</code></td>' +
+      '<td>' + fmtDate(p.date) + '</td></tr>';
+  }).join(''));
+}
+
+// ================================================
+//   WITHDRAWALS
+// ================================================
+
+async function loadWithdrawals() {
+  var r = await adminRequest('GET', '/withdrawals');
+  if (!r.success) return;
+  var ws = r.withdrawals || [];
+
+  if (ws.length === 0) {
+    setTbody('withdrawalsTableBody', '<tr><td colspan="7" class="empty">No withdrawal requests</td></tr>');
+    return;
+  }
+
+  setTbody('withdrawalsTableBody', ws.map(function (w) {
+    return '<tr>' +
+      '<td>' + esc(w.ambName) + '<br/>' +
+      '<span style="font-size:11px;color:#888;">' + esc(w.ambEmail) + '</span></td>' +
+      '<td>' + esc(w.bankName) + '</td>' +
+      '<td>' + esc(w.accountNum) + '<br/>' +
+      '<span style="font-size:11px;color:#888;">' + esc(w.accountName) + '</span></td>' +
+      '<td><strong>₦' + (w.amount || 0).toLocaleString() + '</strong></td>' +
+      '<td><span class="status ' + w.status + '">' + w.status + '</span></td>' +
+      '<td>' + fmtDate(w.date) + '</td>' +
+      '<td><div class="btn-group">' +
+        (w.status === 'pending'
+          ? '<button class="btn btn-sm btn-success" onclick="updateWithdrawal(\'' +
+            w.ambId + '\',\'' + w._id + '\',\'approved\')">Approve</button>' +
+            '<button class="btn btn-sm btn-danger" onclick="updateWithdrawal(\'' +
+            w.ambId + '\',\'' + w._id + '\',\'rejected\')">Reject</button>'
+          : w.status === 'approved'
+          ? '<button class="btn btn-sm btn-primary" onclick="updateWithdrawal(\'' +
+            w.ambId + '\',\'' + w._id + '\',\'paid\')">Mark Paid</button>'
+          : '—') +
+      '</div></td></tr>';
+  }).join(''));
+}
+
+async function updateWithdrawal(ambId, withdrawalId, status) {
+  var r = await adminRequest('PUT', '/withdrawals/' + ambId + '/' + withdrawalId, { status: status });
+  if (r.success) loadWithdrawals();
+  else alert(r.message);
+}
+
+// ================================================
+//   AUDIT LOGS
+// ================================================
+
+async function loadLogs() {
+  var r = await adminRequest('GET', '/logs?limit=100');
+  if (!r.success) return;
+  var logs = r.logs || [];
+
+  if (logs.length === 0) {
+    setTbody('logsTableBody', '<tr><td colspan="7" class="empty">No audit logs</td></tr>');
+    return;
+  }
+
+  setTbody('logsTableBody', logs.map(function (l) {
+    return '<tr>' +
+      '<td>' + esc(l.adminEmail) + '</td>' +
+      '<td><code style="font-size:11px;background:#f0f0f0;padding:2px 6px;border-radius:4px;">' +
+      esc(l.action) + '</code></td>' +
+      '<td>' + esc(l.target || '—') + '</td>' +
+      '<td>' + esc(l.details || '—') + '</td>' +
+      '<td style="font-size:11px;color:#888;">' + esc(l.ip || '—') + '</td>' +
+      '<td>' + fmtDate(l.createdAt) + '</td>' +
+      '<td><span class="status ' + l.status + '">' + l.status + '</span></td>' +
+      '</tr>';
+  }).join(''));
+}
+
+// ================================================
+//   HELPERS
+// ================================================
+
+function setText(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function setTbody(id, html) {
+  var el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+function setBadge(id, count) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (count > 0) {
+    el.textContent    = count;
+    el.style.display  = 'inline';
+  } else {
+    el.style.display  = 'none';
+  }
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', {
+    day:'2-digit', month:'short', year:'numeric'
+  });
+}
+
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
 </body>
 </html>
