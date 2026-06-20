@@ -1,153 +1,96 @@
 // ================================================
 //   AMBASSADOR REGISTRATION — ambassador.js
+//   Single clean submit handler — no duplicates
 // ================================================
 
-window.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+  'use strict';
 
-  const loggedIn    = localStorage.getItem('imc_logged_in');
-  const currentUser = JSON.parse(localStorage.getItem('imc_user') || 'null');
-
-  const formBox         = document.getElementById('ambassadorFormBox');
-  const alreadyBox      = document.getElementById('alreadyAmbassadorBox');
-  const notLoggedInBox  = document.getElementById('notLoggedInBox');
-
-  // ---- Not logged in ----
-  if (!loggedIn || !currentUser) {
-    formBox.style.display        = 'none';
-    notLoggedInBox.style.display = 'flex';
+  if (!IMC_API.isLoggedIn()) {
+    window.location.href = 'login.html';
     return;
   }
 
-  // ---- Already an ambassador ----
-  const ambassadors    = JSON.parse(
-    localStorage.getItem('imc_ambassadors') || '[]'
-  );
-  const existingAmbassador = ambassadors.find(
-    a => a.email === currentUser.email
-  );
-
-  if (existingAmbassador) {
-    formBox.style.display   = 'none';
-    alreadyBox.style.display = 'flex';
+  // Check if already an ambassador
+  var profileResult = await IMC_API.getMyAmbassadorProfile();
+  if (profileResult.success && profileResult.isAmbassador) {
+    window.location.href = 'ambassador-dashboard.html';
     return;
   }
 
-  // ---- Handle form submission ----
-  const submitBtn = document.getElementById('ambSubmitBtn');
+  var submitBtn = document.getElementById('ambSubmitBtn');
+  if (!submitBtn) return;
 
-  submitBtn.addEventListener('click', function () {
+  submitBtn.addEventListener('click', async function (e) {
+    e.preventDefault();
 
-    const fullName   = document.getElementById('ambFullName').value.trim();
-    const university = document.getElementById('ambUniversity').value.trim();
-    const username   = document.getElementById('ambUsername').value.trim()
-                        .replace(/\s+/g, '_').toLowerCase();
-    const whatsApp   = document.getElementById('ambWhatsApp').value.trim();
-    const social     = document.getElementById('ambSocial').value.trim();
-    const reason     = document.getElementById('ambReason').value.trim();
+    var fullName   = getVal('ambFullName');
+    var university  = getVal('ambUniversity');
+    var username    = getVal('ambUsername');
+    var whatsApp    = getVal('ambWhatsApp');
+    var social      = getVal('ambSocial');
+    var reason      = getVal('ambReason');
 
-    const errorBox = document.getElementById('ambError');
-    const errorMsg = document.getElementById('ambErrorMsg');
+    var errorBox = document.getElementById('ambError');
+    var errorMsg = document.getElementById('ambErrorMsg');
+    if (errorBox) errorBox.style.display = 'none';
 
-    // Hide previous errors
-    errorBox.style.display = 'none';
-
-    // ---- Validate ----
-    if (!fullName) {
-      errorMsg.textContent = 'Please enter your full name.';
-      errorBox.style.display = 'flex'; return;
-    }
-    if (!university) {
-      errorMsg.textContent = 'Please enter your university name.';
-      errorBox.style.display = 'flex'; return;
-    }
-    if (!username) {
-      errorMsg.textContent = 'Please enter a username.';
-      errorBox.style.display = 'flex'; return;
-    }
-    if (username.length < 3) {
-      errorMsg.textContent = 'Username must be at least 3 characters.';
-      errorBox.style.display = 'flex'; return;
-    }
-    if (!whatsApp) {
-      errorMsg.textContent = 'Please enter your WhatsApp number.';
-      errorBox.style.display = 'flex'; return;
-    }
-    if (!social) {
-      errorMsg.textContent = 'Please enter your social media handle.';
-      errorBox.style.display = 'flex'; return;
-    }
-    if (!reason) {
-      errorMsg.textContent = 'Please tell us why you want to be an ambassador.';
-      errorBox.style.display = 'flex'; return;
+    function showErr(msg) {
+      if (errorMsg) errorMsg.textContent   = msg;
+      if (errorBox) errorBox.style.display = 'flex';
     }
 
-    // ---- Check username is unique ----
-    const allAmbassadors = JSON.parse(
-      localStorage.getItem('imc_ambassadors') || '[]'
-    );
-    const usernameTaken = allAmbassadors.find(
-      a => a.username === username
-    );
-    if (usernameTaken) {
-      errorMsg.textContent =
-        'That username is already taken. Please choose another.';
-      errorBox.style.display = 'flex'; return;
-    }
+    if (!fullName)   { showErr('Please enter your full name.');     return; }
+    if (!university) { showErr('Please enter your university.');    return; }
+    if (!username)   { showErr('Please choose a username.');        return; }
+    if (!whatsApp)    { showErr('Please enter your WhatsApp number.'); return; }
+    if (!social)      { showErr('Please enter your social handle.'); return; }
+    if (!reason)      { showErr('Please tell us why you want to join.'); return; }
 
-    // ---- Show spinner ----
-    document.getElementById('ambBtnText').style.display  = 'none';
-    document.getElementById('ambSpinner').style.display  = 'inline';
+    var btnText = document.getElementById('ambBtnText');
+    var spinner = document.getElementById('ambSpinner');
+    if (btnText) btnText.style.display = 'none';
+    if (spinner) spinner.style.display = 'inline';
     submitBtn.disabled = true;
 
-    // ---- Build ambassador object ----
-    // Generate unique referral code: AMB-username
-    const refCode = 'AMB-' + username.toUpperCase();
+    console.log('[Ambassador] Submitting registration...');
 
-    const newAmbassador = {
-      id:          'AMB-' + Date.now(),
-      email:       currentUser.email,
-      fullName:    fullName,
-      university:  university,
-      username:    username,
-      whatsApp:    whatsApp,
-      social:      social,
-      reason:      reason,
-      refCode:     refCode,
-      referrals:   [],        // vendors referred
-      earnings:    0,         // commission earned
-      tasksDone:   [],        // completed task IDs
-      newsCount:   0,         // news submitted
-      status:      'active',
-      joinedDate:  new Date().toLocaleDateString()
-    };
+    var result = await IMC_API.registerAmbassador({
+      fullName:   fullName,
+      university: university,
+      username:   username,
+      whatsApp:   whatsApp,
+      social:     social,
+      reason:     reason
+    });
 
-    // ---- Save ambassador ----
-    allAmbassadors.push(newAmbassador);
-    localStorage.setItem(
-      'imc_ambassadors', JSON.stringify(allAmbassadors)
-    );
+    console.log('[Ambassador] Registration result:', JSON.stringify(result));
 
-    // ---- Update current user role ----
-    currentUser.role        = 'ambassador';
-    currentUser.ambassadorId = newAmbassador.id;
-    currentUser.refCode      = refCode;
-    localStorage.setItem('imc_user', JSON.stringify(currentUser));
-
-    // ---- Update in users array ----
-    const users = JSON.parse(localStorage.getItem('imc_users') || '[]');
-    const userIndex = users.findIndex(u => u.email === currentUser.email);
-    if (userIndex !== -1) {
-      users[userIndex].role        = 'ambassador';
-      users[userIndex].ambassadorId = newAmbassador.id;
-      users[userIndex].refCode      = refCode;
-      localStorage.setItem('imc_users', JSON.stringify(users));
+    if (result.success) {
+      var user = IMC_API.getCurrentUser();
+      if (user) {
+        user.role = 'ambassador';
+        localStorage.setItem('imc_user', JSON.stringify(user));
+      }
+      console.log('[Ambassador] Redirecting to ambassador-dashboard.html');
+      window.location.href = 'ambassador-dashboard.html';
+      return;
     }
 
-    // ---- Redirect after short delay ----
-    setTimeout(function () {
+    // Already registered — still send to dashboard, not an error
+    if (result.message && result.message.toLowerCase().indexOf('already') !== -1) {
       window.location.href = 'ambassador-dashboard.html';
-    }, 1200);
+      return;
+    }
 
+    showErr(result.message || 'Registration failed. Please try again.');
+    if (btnText) btnText.style.display = 'inline';
+    if (spinner) spinner.style.display = 'none';
+    submitBtn.disabled = false;
   });
-
 });
+
+function getVal(id) {
+  var el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
