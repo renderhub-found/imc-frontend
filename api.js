@@ -158,6 +158,15 @@ async function getMyTickets() {
   return await request('GET', '/events/my-tickets', null, true);
 }
 
+async function purchaseTicket(eventId, ticketTypeId, data) {
+    return await request(
+      'POST',
+      '/events/' + eventId + '/tickets/' + ticketTypeId + '/purchase',
+      data,
+      true
+    );
+  }
+
 async function googleAuth(credential) {
   var result = await request('POST', '/auth/google', { credential: credential }, false);
   if (result.success) saveAuthData(result.token, result.user);
