@@ -11,7 +11,7 @@ var IMC_API = (function () {
   window.location.hostname === 'localhost'
 )
   ? 'http://localhost:5000/api'
-  : 'https://imc-backend-0i5i.onrender.com';
+  : 'https://imc-backend-0i5i.onrender.com/api';
 
 console.log('[API] BASE_URL:', BASE_URL);
 
