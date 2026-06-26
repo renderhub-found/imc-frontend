@@ -232,62 +232,68 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
 
-    // ---- Ad posting ----
+   // ---- Ad posting ----
     if (type === 'ad_posting') {
-  // Try to get saved ad form
-  var adForm = null;
-  try {
-    adForm = JSON.parse(localStorage.getItem('imc_ad_form') || 'null');
-  } catch (e) { adForm = null; }
+      var adForm = null;
+      try {
+        adForm = JSON.parse(localStorage.getItem('imc_ad_form') || 'null');
+      } catch (e) { adForm = null; }
 
-  // Verify payment
-  var adVerify = await IMC_API.verifyPayment(
-    reference, 'ad_posting', pending.metadata || {}, null
-  );
+      // Already created during verify
+      if (ur.updated === 'ad') {
+        localStorage.removeItem('imc_ad_form');
+        ok('Ad Submitted! 📢',
+           'Your ad is pending approval and goes live within 24 hours.',
+           reference, 'post-ad.html', 3000);
+        return;
+      }
 
-  if (!adVerify.success) {
-    if (adVerify.message && adVerify.message.toLowerCase().includes('not completed')) {
-      pendingState(reference);
-    } else {
-      errorState(adVerify.message || 'Verification failed');
+      // Create ad now if form data available
+      if (adForm && adForm.title) {
+        step('Submitting your ad...');
+
+        var adResult = await IMC_API.submitAd({
+          title:       adForm.title,
+          category:    adForm.category,
+          location:    adForm.location,
+          contact:     adForm.contact,
+          description: adForm.description,
+          duration:    adForm.duration,
+          image:       adForm.image || '',
+          paymentRef:  reference
+        });
+
+        localStorage.removeItem('imc_ad_form');
+
+        if (adResult.success) {
+          ok('Ad Submitted! 📢',
+             'Your ad is pending approval and goes live within 24 hours.',
+             reference, 'post-ad.html', 3000);
+        } else {
+          err(
+            'Payment confirmed but ad creation failed.<br>' +
+            '<strong>' + (adResult.message || 'Unknown error') + '</strong><br><br>' +
+            'Contact support. Reference: <strong>' + reference + '</strong>', ''
+          );
+        }
+        return;
+      }
+
+      ok('Ad Payment Received! 📢',
+         'Thank you. Your payment was received.',
+         reference, 'post-ad.html', 3000);
+      return;
     }
-    return;
+
+    ok('Payment Successful!', 'Thank you.', reference, 'index.html', 3000);
   }
 
-  // If ad already created during verify, done
-  if (adVerify.updateResult && adVerify.updateResult.updated === 'ad') {
-    localStorage.removeItem('imc_ad_form');
-    successAndRedirect('Ad Submitted!', 'post-ad.html');
-    return;
-  }
+  await doVerify();
 
-  // Create ad now if form data available
-  if (adForm && adForm.title) {
-    var adResult = await IMC_API.submitAd({
-      title:       adForm.title,
-      category:    adForm.category,
-      location:    adForm.location,
-      contact:     adForm.contact,
-      description: adForm.description,
-      duration:    adForm.duration,
-      image:       adForm.image || '',
-      paymentRef:  reference
-    });
+  var retryBtn = document.getElementById('retryBtn');
+  if (retryBtn) retryBtn.addEventListener('click', doVerify);
 
-    localStorage.removeItem('imc_ad_form');
-
-    if (adResult.success) {
-      successAndRedirect('Ad Posted!', 'post-ad.html');
-    } else {
-      errorState('Ad creation failed: ' + (adResult.message || 'Error') +
-                 '. Reference: ' + reference);
-    }
-  } else {
-    successAndRedirect('Ad payment received!', 'post-ad.html');
-  }
-}
-
-});
+}); 
 </script>
 </body>
 </html>
