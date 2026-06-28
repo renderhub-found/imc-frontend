@@ -1082,6 +1082,107 @@ function initAdminNewsForm() {
   }
 }
 
+function initNewsAdminCreate() {
+  var imgInput = document.getElementById('newsAdminImageFile');
+  var vidInput = document.getElementById('newsAdminVideoFile');
+
+  if (imgInput) {
+    imgInput.addEventListener('change', function () {
+      var file = this.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); this.value=''; return; }
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById('newsAdminImagePreview').src = e.target.result;
+        document.getElementById('newsAdminImagePlaceholder').style.display = 'none';
+        document.getElementById('newsAdminImagePreviewWrap').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (vidInput) {
+    vidInput.addEventListener('change', function () {
+      var file = this.files[0];
+      if (!file) return;
+      if (file.size > 50 * 1024 * 1024) { alert('Video must be under 50MB.'); this.value=''; return; }
+      var url = URL.createObjectURL(file);
+      document.getElementById('newsAdminVideoPreview').src = url;
+      document.getElementById('newsAdminVideoPlaceholder').style.display = 'none';
+      document.getElementById('newsAdminVideoPreviewWrap').style.display = 'block';
+    });
+  }
+
+  function doPublish(status) {
+    var title    = document.getElementById('newsAdminTitle').value.trim();
+    var category = document.getElementById('newsAdminCategory').value.trim();
+    var content  = document.getElementById('newsAdminContent').value.trim();
+
+    var errBox = document.getElementById('createNewsError');
+    var errMsg = document.getElementById('createNewsErrorMsg');
+    var okBox  = document.getElementById('createNewsSuccess');
+    errBox.style.display = 'none';
+    okBox.style.display  = 'none';
+
+    if (!title)   { errMsg.textContent = 'Please enter a title.';   errBox.style.display='flex'; return; }
+    if (!content) { errMsg.textContent = 'Please write the content.'; errBox.style.display='flex'; return; }
+
+    var formData = new FormData();
+    formData.append('title', title);
+    formData.append('category', category);
+    formData.append('content', content);
+    formData.append('status', status);
+
+    var imgFile = imgInput && imgInput.files[0];
+    var vidFile = vidInput && vidInput.files[0];
+    if (imgFile) formData.append('image', imgFile);
+    if (vidFile) formData.append('video', vidFile);
+
+    var btnText = document.getElementById('newsAdminPublishText');
+    var spinner = document.getElementById('newsAdminPublishSpinner');
+    btnText.style.display = 'none';
+    spinner.style.display = 'inline';
+
+    IMC_API.createNewsAdmin(formData).then(function (result) {
+      btnText.style.display = 'inline';
+      spinner.style.display = 'none';
+
+      if (result.success) {
+        okBox.style.display = 'flex';
+        document.getElementById('newsAdminTitle').value = '';
+        document.getElementById('newsAdminCategory').value = '';
+        document.getElementById('newsAdminContent').value = '';
+        if (imgInput) imgInput.value = '';
+        if (vidInput) vidInput.value = '';
+        document.getElementById('newsAdminImagePlaceholder').style.display = 'flex';
+        document.getElementById('newsAdminImagePreviewWrap').style.display = 'none';
+        document.getElementById('newsAdminVideoPlaceholder').style.display = 'flex';
+        document.getElementById('newsAdminVideoPreviewWrap').style.display = 'none';
+      } else {
+        errMsg.textContent = result.message || 'Could not publish news.';
+        errBox.style.display = 'flex';
+      }
+    });
+  }
+
+  var pubBtn = document.getElementById('newsAdminPublishBtn');
+  var draftBtn = document.getElementById('newsAdminDraftBtn');
+  if (pubBtn) pubBtn.addEventListener('click', function () { doPublish('approved'); });
+  if (draftBtn) draftBtn.addEventListener('click', function () { doPublish('draft'); });
+}
+
+function removeNewsAdminImage() {
+  document.getElementById('newsAdminImageFile').value = '';
+  document.getElementById('newsAdminImagePlaceholder').style.display = 'flex';
+  document.getElementById('newsAdminImagePreviewWrap').style.display = 'none';
+}
+
+function removeNewsAdminVideo() {
+  document.getElementById('newsAdminVideoFile').value = '';
+  document.getElementById('newsAdminVideoPlaceholder').style.display = 'flex';
+  document.getElementById('newsAdminVideoPreviewWrap').style.display = 'none';
+}
+
 function removeAdminNewsUpload() {
   var fi = document.getElementById('adminNewsImageFile');
   var pi = document.getElementById('adminNewsImgPreview');

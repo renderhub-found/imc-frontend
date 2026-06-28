@@ -116,6 +116,23 @@ document.addEventListener('DOMContentLoaded', function () {
       contactInfo: document.getElementById('evContact').value.trim()
     };
 
+    async function createEvent(data) {
+  var token = getToken();
+  var isFormData = data instanceof FormData;
+  var options = {
+    method:  'POST',
+    headers: isFormData ? {} : { 'Content-Type': 'application/json' }
+  };
+  if (token) options.headers['Authorization'] = 'Bearer ' + token;
+  options.body = isFormData ? data : JSON.stringify(data);
+
+  var response = await fetch(BASE_URL + '/events', options);
+  var text     = await response.text();
+  try { return JSON.parse(text); } catch (e) {
+    return { success: false, message: 'Unexpected server response.' };
+  }
+}
+
     var missing = [];
     if (!data.title)       missing.push('title');
     if (!data.description) missing.push('description');

@@ -272,12 +272,35 @@
         <p>No orders yet. Orders will appear here when customers contact you.</p>
       </div>
     </div>
-
+<div id="vendorLeadsContainer">
+  <!-- Populated by JS -->
+</div>
     <!-- ===== TAB: PROFILE ===== -->
     <div class="dash-tab" id="tab-profile">
       <h2 class="dash-title">Vendor Profile</h2>
       <p class="dash-subtitle">Your registered business information.</p>
       <div class="profile-card" id="vendorProfileCard">
+        <div class="form-group" style="margin-bottom:14px;">
+  <label>Profile Picture</label>
+  <div class="file-upload-area">
+    <input type="file" id="vendorProfilePicFile" accept="image/*" style="display:none;"/>
+    <div class="file-upload-placeholder" id="vendorProfilePicPlaceholder"
+      onclick="document.getElementById('vendorProfilePicFile').click()">
+      <i class="fas fa-camera"></i>
+      <p>📷 Upload Image</p>
+      <span>Tap to choose a photo</span>
+    </div>
+    <div id="vendorProfilePicPreviewWrap" style="display:none;">
+      <img id="vendorProfilePicPreview" src="" alt="Profile"
+        style="width:100px;height:100px;border-radius:50%;object-fit:cover;"/>
+    </div>
+  </div>
+</div>
+
+<div class="form-group" style="margin-bottom:14px;">
+  <label>Campus Location</label>
+  <input type="text" id="vendorCampusLocation" placeholder="e.g. Behind Faculty of Engineering"/>
+</div>
         <!-- Filled by JS -->
       </div>
     </div>

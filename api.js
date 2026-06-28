@@ -11,7 +11,7 @@ var IMC_API = (function () {
   window.location.hostname === 'localhost'
 )
   ? 'http://localhost:5000/api'
-  : 'https://imc-backend-0i5i.onrender.com/api';
+  : 'https:// -0i5i.onrender.com/api';
 
 console.log('[API] BASE_URL:', BASE_URL);
 
@@ -190,6 +190,24 @@ async function markAllNotificationsRead() {
   return await request('PUT', '/notifications/read-all', null, true);
 }
 
+async function getNews(filters) {
+    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+    return await request('GET', '/news' + q, null, false);
+  }
+
+  async function getAllProducts() {
+    return await request('GET', '/vendors/products/all', null, false);
+  }
+
+  async function logProductLead(productId, customerName) {
+    return await request('POST', '/vendors/products/' + productId + '/lead',
+      { customerName: customerName }, false);
+  }
+
+  async function getMyNotifications() {
+    return await request('GET', '/notifications', null, true);
+  }
+
   // ---- VENDORS ----
   async function getVendors(f) {
     var q = f ? '?' + new URLSearchParams(f).toString() : '';
@@ -292,6 +310,29 @@ async function markAllNotificationsRead() {
     }, true);
   }
 
+async function loadTrendingVendors() {
+  var container = document.getElementById('trendingVendorsContainer');
+  if (!container) return;
+
+  var result = await IMC_API.getVendors();
+  if (!result.success || !result.vendors.length) return;
+
+  var vendors = result.vendors.slice(0, 6);
+
+  container.innerHTML = vendors.map(function (v) {
+    var pic = v.profilePicture || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(v.bizName);
+    return '<div class="vendor-card">' +
+      '<div class="vendor-img"><img src="' + pic + '" alt="' + v.bizName + '"/></div>' +
+      '<div class="vendor-info">' +
+      '<h3>' + v.bizName + '</h3>' +
+      '<p>' + v.university + (v.campusLocation ? ' · ' + v.campusLocation : '') + '</p>' +
+      '<a href="vendor-profile.html?id=' + v._id + '" class="btn-view-profile">View Profile</a>' +
+      '</div></div>';
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', loadTrendingVendors);
+
   // ---- ADMIN ----
   async function getAdminStats() {
     return await request('GET', '/admin/stats', null, true);
@@ -299,6 +340,26 @@ async function markAllNotificationsRead() {
 
   async function updateVendorStatus(id, status) {
     return await request('PUT', '/admin/vendors/' + id, { status: status }, true);
+  }
+
+// ---- Admin: Create News (with files) ----
+  async function createNewsAdmin(formData) {
+    return await request('POST', '/news/admin/create', formData, true);
+  }
+
+  // ---- Vendor: Upload Profile Picture ----
+  async function uploadVendorProfilePicture(formData) {
+    return await request('PUT', '/vendors/profile-picture', formData, true);
+  }
+
+  // ---- Vendor: Add Product (with files) ----
+  async function addProductWithFiles(formData) {
+    return await request('POST', '/vendors/products', formData, true);
+  }
+
+  // ---- Create Event (with cover image file) ----
+  async function createEventWithFile(formData) {
+    return await request('POST', '/events', formData, true);
   }
 
   async function checkHealth() {
@@ -319,6 +380,7 @@ getMyEvents, purchaseTicket, getMyTickets,
 // Notifications
 getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead,
 
+getNews, getALLproducts, LogProductLead, getMyNotifications,
 // Google
 googleAuth,
     // Ambassadors
@@ -333,6 +395,9 @@ googleAuth,
     initializePayment, verifyPayment,
     // Admin
     getAdminStats, updateVendorStatus,
+
+    createNewsAdmin, uploadVendorProfilePicture,
+    addProductWithFiles, createEventWithFile,
     // Health
     checkHealth
   };

@@ -9,7 +9,7 @@ var AMBASSADOR_TASKS = [
   {
     id: 'T001',
     title: 'Share referral link on WhatsApp Status',
-    reward: 200,
+    reward: 100,
     icon: '📲',
     desc: 'Post your referral link on WhatsApp Status for 24 hours.',
     link: 'https://wa.me/?text=Join%20Inside%20My%20Campus!',
@@ -18,7 +18,7 @@ var AMBASSADOR_TASKS = [
   {
     id: 'T002',
     title: 'Refer your first vendor',
-    reward: 500,
+    reward: 2000,
     icon: '🏪',
     desc: 'Get one business owner to register as a vendor.',
     link: null,
@@ -27,7 +27,7 @@ var AMBASSADOR_TASKS = [
   {
     id: 'T003',
     title: 'Submit a campus news article',
-    reward: 300,
+    reward: 100,
     icon: '📰',
     desc: 'Submit one news article about your university.',
     link: null,
@@ -36,7 +36,7 @@ var AMBASSADOR_TASKS = [
   {
     id: 'T004',
     title: 'Get 3 vendor referrals',
-    reward: 1000,
+    reward: 6000,
     icon: '🎯',
     desc: 'Refer 3 different vendors using your referral link.',
     link: null,
@@ -54,7 +54,7 @@ var AMBASSADOR_TASKS = [
   {
     id: 'T006',
     title: 'Refer 5 vendors — Superstar Task',
-    reward: 2000,
+    reward: 10000,
     icon: '⭐',
     desc: 'Refer 5 vendors and claim your superstar reward.',
     link: null,

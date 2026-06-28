@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   var base = (window.location.hostname === 'localhost' ||
               window.location.hostname === '127.0.0.1')
     ? 'http://localhost:5000'
-    : 'https://imc-backend-0y2u.onrender.com';
+    : 'https://imc-backend-0i5i.onrender.com';
 
   try {
     var res    = await fetch(base + '/api/events/' + eventId);
@@ -290,6 +290,13 @@ function renderTickets() {
       '</div>';
   }).join('');
 
+if (event.eventType === 'free') {
+  // POST /api/events/:id/tickets/:freeTicketTypeId/purchase with amount 0
+} else {
+  // open Paystack via IMCPaystack.openPayment(...), then on success
+  // POST /api/events/:id/tickets/:ticketTypeId/purchase with paymentRef
+}
+
   buyBtn.style.display = 'block';
   buyBtn.addEventListener('click', handleBuyTicket);
 }
@@ -337,7 +344,7 @@ async function handleBuyTicket() {
   var base = (window.location.hostname === 'localhost' ||
               window.location.hostname === '127.0.0.1')
     ? 'http://localhost:5000'
-    : 'https://imc-backend-0y2u.onrender.com';
+    : 'https://imc-backend-0i5i.onrender.com';
 
   var ticketTypeId = selectedTicket._id;
   var paymentRef   = (selectedTicket.isFree || selectedTicket.price === 0) ? 'FREE' : '';

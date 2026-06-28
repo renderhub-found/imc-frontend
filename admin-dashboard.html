@@ -418,6 +418,88 @@
     <div class="section" id="section-ads">
       <div class="filter-tabs">
         <div class="filter-tab active" data-filter="all">All</div>
+        <!-- Create News Form -->
+<div class="dash-form-card" style="margin-bottom:24px;">
+  <h3 style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:16px;">
+    <i class="fas fa-pen"></i> Create News
+  </h3>
+
+  <div id="createNewsError" class="auth-error" style="display:none;margin-bottom:14px;">
+    <i class="fas fa-exclamation-circle"></i>
+    <span id="createNewsErrorMsg"></span>
+  </div>
+  <div id="createNewsSuccess" class="auth-success" style="display:none;margin-bottom:14px;">
+    <i class="fas fa-check-circle"></i>
+    <span>News published successfully!</span>
+  </div>
+
+  <div class="form-group" style="margin-bottom:14px;">
+    <label>News Title</label>
+    <input type="text" id="newsAdminTitle" placeholder="Enter news title"/>
+  </div>
+
+  <div class="form-group" style="margin-bottom:14px;">
+    <label>Category</label>
+    <input type="text" id="newsAdminCategory" placeholder="e.g. UNILAG, Events, Academics"/>
+  </div>
+
+  <div class="form-group" style="margin-bottom:14px;">
+    <label>Content</label>
+    <textarea id="newsAdminContent" rows="5" placeholder="Write the news content..."></textarea>
+  </div>
+
+  <!-- Featured Image Upload -->
+  <div class="form-group" style="margin-bottom:14px;">
+    <label>Featured Image</label>
+    <div class="file-upload-area">
+      <input type="file" id="newsAdminImageFile" accept="image/*" style="display:none;"/>
+      <div class="file-upload-placeholder" id="newsAdminImagePlaceholder"
+        onclick="document.getElementById('newsAdminImageFile').click()">
+        <i class="fas fa-image"></i>
+        <p>📷 Upload Image</p>
+        <span>Tap to choose a photo from your device</span>
+      </div>
+      <div id="newsAdminImagePreviewWrap" style="display:none;">
+        <img id="newsAdminImagePreview" src="" alt="Preview"
+          style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;"/>
+        <button class="btn-remove-upload" type="button" onclick="removeNewsAdminImage()">
+          <i class="fas fa-times"></i> Remove
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Upload -->
+  <div class="form-group" style="margin-bottom:14px;">
+    <label>Video <span style="color:#aaa;font-weight:400;">(optional)</span></label>
+    <div class="file-upload-area">
+      <input type="file" id="newsAdminVideoFile" accept="video/mp4,video/quicktime,video/webm" style="display:none;"/>
+      <div class="file-upload-placeholder" id="newsAdminVideoPlaceholder"
+        onclick="document.getElementById('newsAdminVideoFile').click()">
+        <i class="fas fa-video"></i>
+        <p>🎥 Upload Video</p>
+        <span>MP4, MOV, or WEBM</span>
+      </div>
+      <div id="newsAdminVideoPreviewWrap" style="display:none;">
+        <video id="newsAdminVideoPreview" controls style="width:100%;max-height:200px;border-radius:8px;"></video>
+        <button class="btn-remove-upload" type="button" onclick="removeNewsAdminVideo()">
+          <i class="fas fa-times"></i> Remove
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;">
+    <button id="newsAdminPublishBtn" class="btn-view-profile" style="flex:1;border:none;cursor:pointer;">
+      <span id="newsAdminPublishText"><i class="fas fa-bullhorn"></i> Publish</span>
+      <span id="newsAdminPublishSpinner" style="display:none;">Publishing...</span>
+    </button>
+    <button id="newsAdminDraftBtn" class="btn-view-profile"
+      style="flex:1;border:none;cursor:pointer;background:#888;">
+      Save as Draft
+    </button>
+  </div>
+</div>
         <div class="filter-tab" data-filter="pending">Pending</div>
         <div class="filter-tab" data-filter="approved">Approved</div>
         <div class="filter-tab" data-filter="rejected">Rejected</div>
@@ -753,7 +835,7 @@ async function adminRequest(method, endpoint, data) {
     var res  = await fetch(
       (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:5000'
-        : 'https://imc-backend-0y2u.onrender.com') + '/api/admin' + endpoint,
+        : 'https://imc-backend-0i5i.onrender.com') + '/api/admin' + endpoint,
       opts
     );
     var text = await res.text();

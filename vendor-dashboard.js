@@ -160,6 +160,28 @@
     }
   }
 
+async function renderVendorLeads() {
+  var container = document.getElementById('vendorLeadsContainer');
+  if (!container) return;
+
+  var result = await IMC_API.getMyNotifications();
+  if (!result.success) return;
+
+  var leads = result.notifications.filter(function (n) { return n.type === 'order_lead'; });
+
+  if (leads.length === 0) {
+    container.innerHTML = '<div class="empty-state-card"><p>No customer inquiries yet.</p></div>';
+    return;
+  }
+
+  container.innerHTML = leads.map(function (n) {
+    return '<div class="withdraw-history-card">' +
+      '<div class="withdraw-history-info">' +
+      '<h4>' + n.customerName + '</h4>' +
+      '<p>' + n.message + '</p>' +
+      '</div></div>';
+  }).join('');
+}
 
   // ================================================
   //   POST PRODUCT
@@ -347,6 +369,40 @@
   }
 
 
+function initVendorProfilePicture(vendor) {
+  var fileInput = document.getElementById('vendorProfilePicFile');
+  if (!fileInput) return;
+
+  // Show existing picture if set
+  if (vendor.profilePicture) {
+    document.getElementById('vendorProfilePicPreview').src = vendor.profilePicture;
+    document.getElementById('vendorProfilePicPlaceholder').style.display = 'none';
+    document.getElementById('vendorProfilePicPreviewWrap').style.display = 'block';
+  }
+
+  fileInput.addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); this.value=''; return; }
+
+    var formData = new FormData();
+    formData.append('image', file);
+
+    IMC_API.uploadVendorProfilePicture(formData).then(function (result) {
+      if (result.success) {
+        document.getElementById('vendorProfilePicPreview').src = result.profilePicture;
+        document.getElementById('vendorProfilePicPlaceholder').style.display = 'none';
+        document.getElementById('vendorProfilePicPreviewWrap').style.display = 'block';
+        vendor.profilePicture = result.profilePicture;
+      } else {
+        alert(result.message || 'Could not upload picture.');
+      }
+    });
+  });
+}
+
+
+initVendorProfilePicture(vendorData);
   // ================================================
   //   FILL PAYMENTS TAB
   // ================================================
