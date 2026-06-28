@@ -7,13 +7,13 @@ var IMC_API = (function () {
   'use strict';
 
   var BASE_URL = (
-  window.location.hostname === '127.0.0.1' ||
-  window.location.hostname === 'localhost'
-)
-  ? 'http://localhost:5000/api'
-  : 'https:// -0i5i.onrender.com/api';
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === 'localhost'
+  )
+    ? 'http://localhost:5000/api'
+    : 'https://imc-backend-0i5i.onrender.com/api';
 
-console.log('[API] BASE_URL:', BASE_URL);
+  console.log('[API] BASE_URL:', BASE_URL);
 
   // ---- Helpers ----
   function getToken()  { return localStorage.getItem('imc_token') || null; }
@@ -43,10 +43,17 @@ console.log('[API] BASE_URL:', BASE_URL);
   // ---- Core request ----
   async function request(method, endpoint, data, auth) {
     try {
+      var isFormData = data instanceof FormData;
+
       var options = {
         method:  method,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {}
       };
+
+      if (!isFormData) {
+        options.headers['Content-Type'] = 'application/json';
+      }
+      // FormData sets its own Content-Type with boundary automatically — never set it manually
 
       if (auth) {
         var token = getToken();
@@ -57,7 +64,7 @@ console.log('[API] BASE_URL:', BASE_URL);
       }
 
       if (data && (method === 'POST' || method === 'PUT')) {
-        options.body = JSON.stringify(data);
+        options.body = isFormData ? data : JSON.stringify(data);
       }
 
       var response = await fetch(BASE_URL + endpoint, options);
@@ -84,14 +91,14 @@ console.log('[API] BASE_URL:', BASE_URL);
   }
 
   async function login(email, password) {
-  console.log('[API] login called — email:', email);
-  var result = await request('POST', '/auth/login', {
-    email:    email,
-    password: password
-  }, false);
-  if (result.success) saveAuthData(result.token, result.user);
-  return result;
-}
+    console.log('[API] login called — email:', email);
+    var result = await request('POST', '/auth/login', {
+      email:    email,
+      password: password
+    }, false);
+    if (result.success) saveAuthData(result.token, result.user);
+    return result;
+  }
 
   function logout() {
     clearAuthData();
@@ -121,44 +128,44 @@ console.log('[API] BASE_URL:', BASE_URL);
   }
 
   // ---- Google Auth ----
-async function googleAuth(credential) {
-  console.log('[API] googleAuth called');
-  var result = await request('POST', '/auth/google', { credential: credential }, false);
-  if (result.success) saveAuthData(result.token, result.user);
-  return result;
-}
+  async function googleAuth(credential) {
+    console.log('[API] googleAuth called');
+    var result = await request('POST', '/auth/google', { credential: credential }, false);
+    if (result.success) saveAuthData(result.token, result.user);
+    return result;
+  }
 
-// ---- Events ----
-async function getEvents(filters) {
-  var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
-  return await request('GET', '/events' + q, null, false);
-}
+  // ---- Events ----
+  async function getEvents(filters) {
+    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
+    return await request('GET', '/events' + q, null, false);
+  }
 
-async function getEventById(id) {
-  return await request('GET', '/events/' + id, null, false);
-}
+  async function getEventById(id) {
+    return await request('GET', '/events/' + id, null, false);
+  }
 
-async function createEvent(data) {
-  return await request('POST', '/events', data, true);
-}
+  async function createEvent(data) {
+    return await request('POST', '/events', data, true);
+  }
 
-async function updateEvent(id, data) {
-  return await request('PUT', '/events/' + id, data, true);
-}
+  async function updateEvent(id, data) {
+    return await request('PUT', '/events/' + id, data, true);
+  }
 
-async function deleteEvent(id) {
-  return await request('DELETE', '/events/' + id, null, true);
-}
+  async function deleteEvent(id) {
+    return await request('DELETE', '/events/' + id, null, true);
+  }
 
-async function getMyEvents() {
-  return await request('GET', '/events/my-events', null, true);
-}
+  async function getMyEvents() {
+    return await request('GET', '/events/my-events', null, true);
+  }
 
-async function getMyTickets() {
-  return await request('GET', '/events/my-tickets', null, true);
-}
+  async function getMyTickets() {
+    return await request('GET', '/events/my-tickets', null, true);
+  }
 
-async function purchaseTicket(eventId, ticketTypeId, data) {
+  async function purchaseTicket(eventId, ticketTypeId, data) {
     return await request(
       'POST',
       '/events/' + eventId + '/tickets/' + ticketTypeId + '/purchase',
@@ -167,45 +174,25 @@ async function purchaseTicket(eventId, ticketTypeId, data) {
     );
   }
 
-async function googleAuth(credential) {
-  var result = await request('POST', '/auth/google', { credential: credential }, false);
-  if (result.success) saveAuthData(result.token, result.user);
-  return result;
-}
-
-// ---- Notifications ----
-async function getNotifications() {
-  return await request('GET', '/notifications', null, true);
-}
-
-async function getUnreadCount() {
-  return await request('GET', '/notifications/unread-count', null, true);
-}
-
-async function markNotificationRead(id) {
-  return await request('PUT', '/notifications/' + id + '/read', null, true);
-}
-
-async function markAllNotificationsRead() {
-  return await request('PUT', '/notifications/read-all', null, true);
-}
-
-async function getNews(filters) {
-    var q = filters ? '?' + new URLSearchParams(filters).toString() : '';
-    return await request('GET', '/news' + q, null, false);
-  }
-
-  async function getAllProducts() {
-    return await request('GET', '/vendors/products/all', null, false);
-  }
-
-  async function logProductLead(productId, customerName) {
-    return await request('POST', '/vendors/products/' + productId + '/lead',
-      { customerName: customerName }, false);
+  // ---- Notifications ----
+  async function getNotifications() {
+    return await request('GET', '/notifications', null, true);
   }
 
   async function getMyNotifications() {
     return await request('GET', '/notifications', null, true);
+  }
+
+  async function getUnreadCount() {
+    return await request('GET', '/notifications/unread-count', null, true);
+  }
+
+  async function markNotificationRead(id) {
+    return await request('PUT', '/notifications/' + id + '/read', null, true);
+  }
+
+  async function markAllNotificationsRead() {
+    return await request('PUT', '/notifications/read-all', null, true);
   }
 
   // ---- VENDORS ----
@@ -227,8 +214,25 @@ async function getNews(filters) {
     return await request('POST', '/vendors/products', data, true);
   }
 
+  async function addProductWithFiles(formData) {
+    return await request('POST', '/vendors/products', formData, true);
+  }
+
   async function deleteProduct(id) {
     return await request('DELETE', '/vendors/products/' + id, null, true);
+  }
+
+  async function getAllProducts() {
+    return await request('GET', '/vendors/products/all', null, false);
+  }
+
+  async function logProductLead(productId, customerName) {
+    return await request('POST', '/vendors/products/' + productId + '/lead',
+      { customerName: customerName }, false);
+  }
+
+  async function uploadVendorProfilePicture(formData) {
+    return await request('PUT', '/vendors/profile-picture', formData, true);
   }
 
   // ---- AMBASSADORS ----
@@ -275,6 +279,10 @@ async function getNews(filters) {
     return await request('POST', '/news', data, true);
   }
 
+  async function createNewsAdmin(formData) {
+    return await request('POST', '/news/admin/create', formData, true);
+  }
+
   // ---- COURSES ----
   async function getCourses(f) {
     var q = f ? '?' + new URLSearchParams(f).toString() : '';
@@ -310,29 +318,6 @@ async function getNews(filters) {
     }, true);
   }
 
-async function loadTrendingVendors() {
-  var container = document.getElementById('trendingVendorsContainer');
-  if (!container) return;
-
-  var result = await IMC_API.getVendors();
-  if (!result.success || !result.vendors.length) return;
-
-  var vendors = result.vendors.slice(0, 6);
-
-  container.innerHTML = vendors.map(function (v) {
-    var pic = v.profilePicture || 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(v.bizName);
-    return '<div class="vendor-card">' +
-      '<div class="vendor-img"><img src="' + pic + '" alt="' + v.bizName + '"/></div>' +
-      '<div class="vendor-info">' +
-      '<h3>' + v.bizName + '</h3>' +
-      '<p>' + v.university + (v.campusLocation ? ' · ' + v.campusLocation : '') + '</p>' +
-      '<a href="vendor-profile.html?id=' + v._id + '" class="btn-view-profile">View Profile</a>' +
-      '</div></div>';
-  }).join('');
-}
-
-document.addEventListener('DOMContentLoaded', loadTrendingVendors);
-
   // ---- ADMIN ----
   async function getAdminStats() {
     return await request('GET', '/admin/stats', null, true);
@@ -342,22 +327,7 @@ document.addEventListener('DOMContentLoaded', loadTrendingVendors);
     return await request('PUT', '/admin/vendors/' + id, { status: status }, true);
   }
 
-// ---- Admin: Create News (with files) ----
-  async function createNewsAdmin(formData) {
-    return await request('POST', '/news/admin/create', formData, true);
-  }
-
-  // ---- Vendor: Upload Profile Picture ----
-  async function uploadVendorProfilePicture(formData) {
-    return await request('PUT', '/vendors/profile-picture', formData, true);
-  }
-
-  // ---- Vendor: Add Product (with files) ----
-  async function addProductWithFiles(formData) {
-    return await request('POST', '/vendors/products', formData, true);
-  }
-
-  // ---- Create Event (with cover image file) ----
+  // ---- EVENT IMAGE UPLOAD ----
   async function createEventWithFile(formData) {
     return await request('POST', '/events', formData, true);
   }
@@ -371,33 +341,30 @@ document.addEventListener('DOMContentLoaded', loadTrendingVendors);
     register, login, logout, getProfile,
     updateProfile, changePassword, forgotPassword, resetPassword,
     isLoggedIn, getCurrentUser, getToken, saveAuthData, clearAuthData,
+    // Google
+    googleAuth,
     // Vendors
-    getVendors, registerVendor, getMyVendorProfile, addProduct, deleteProduct,
+    getVendors, registerVendor, getMyVendorProfile,
+    addProduct, addProductWithFiles, deleteProduct,
+    getAllProducts, logProductLead, uploadVendorProfilePicture,
     // Events
-getEvents, getEventById, createEvent, updateEvent, deleteEvent,
-getMyEvents, purchaseTicket, getMyTickets,
-
-// Notifications
-getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead,
-
-getNews, getALLproducts, LogProductLead, getMyNotifications,
-// Google
-googleAuth,
+    getEvents, getEventById, createEvent, createEventWithFile, updateEvent, deleteEvent,
+    getMyEvents, purchaseTicket, getMyTickets,
+    // Notifications
+    getNotifications, getMyNotifications, getUnreadCount,
+    markNotificationRead, markAllNotificationsRead,
     // Ambassadors
     registerAmbassador, getMyAmbassadorProfile, requestWithdrawal, claimTaskReward,
     // Ads
     getAds, getMyAds, submitAd,
     // News
-    getNews, submitNews,
+    getNews, submitNews, createNewsAdmin,
     // Courses
     getCourses, getCourseById, getMyCourses,
     // Payments
     initializePayment, verifyPayment,
     // Admin
     getAdminStats, updateVendorStatus,
-
-    createNewsAdmin, uploadVendorProfilePicture,
-    addProductWithFiles, createEventWithFile,
     // Health
     checkHealth
   };
