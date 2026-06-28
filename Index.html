@@ -52,11 +52,11 @@
           <a href="post-ad.html">
             <i class="fas fa-ad"></i> Post Ad
           </a>
-          <li><a href="events.html"><i class="fas fa-calendar"></i> Events</a></li>
+          <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
           <a href="online-courses.html">
             <i class="fas fa-graduation-cap"></i> Online Courses
           </a>
-          <a href="contact.html">
+          <a href="contact-us.html">
             <i class="fas fa-envelope"></i> Contact
           </a>
           <a href="#" id="logoutBtn" class="logout-link">
@@ -122,11 +122,10 @@
 
     <div class="vendor-cards-wrapper">
       <div class="vendor-cards" id="vendorCards">
+        <!-- Populated dynamically by app.js: loadTrendingVendors() -->
+        <!-- Falls back to sample cards below only if no approved vendors exist yet -->
 
-        <!-- Card 1 -->
-        <div class="vendor-cards" id="trendingVendorsContainer">
-  <!-- Populated by JS -->
-</div>
+        <div class="vendor-card">
           <div class="vendor-img">
             <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop" alt="Jay Sneakers Hub"/>
           </div>
@@ -138,10 +137,7 @@
           </div>
         </div>
 
-        <!-- Card 2 -->
-        <div class="vendor-cards" id="trendingVendorsContainer">
-  <!-- Populated by JS -->
-</div>
+        <div class="vendor-card">
           <div class="vendor-img">
             <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=300&h=200&fit=crop" alt="Tasty Bites Kitchen"/>
           </div>
@@ -154,26 +150,20 @@
           </div>
         </div>
 
-        <!-- Card 3 -->
-        <div class="vendor-cards" id="trendingVendorsContainer">
-  <!-- Populated by JS -->
-</div>
+        <div class="vendor-card">
           <div class="vendor-img">
             <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=300&h=200&fit=crop" alt="Grace Villa Lodge"/>
           </div>
           <div class="vendor-info">
             <h3>Grace Villa Lodge</h3>
             <p class="vendor-uni"><i class="fas fa-map-marker-alt verified green"></i> DELSU</p>
-            <p class="vendor-desc">Podaes & Jhinegar</p>
+            <p class="vendor-desc">Pots & Hangers</p>
              <a href="vendor-profile.html?id=VND-SAMPLE-3"
              class="btn-view-profile">View Profile</a>
           </div>
         </div>
 
-        <!-- Card 4 -->
-        <div class="vendor-cards" id="trendingVendorsContainer">
-  <!-- Populated by JS -->
-</div>
+        <div class="vendor-card">
           <div class="vendor-img">
             <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=200&fit=crop" alt="Glitz Jewelry"/>
           </div>
@@ -186,10 +176,7 @@
           </div>
         </div>
 
-        <!-- Card 5 -->
-        <div class="vendor-cards" id="trendingVendorsContainer">
-  <!-- Populated by JS -->
-</div>
+        <div class="vendor-card">
           <div class="vendor-img">
             <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&h=200&fit=crop" alt="Campus Cuts Barber"/>
           </div>
@@ -209,88 +196,55 @@
 <!-- ================================================
      CAMPUS NEWS — Horizontal Scroll
 ================================================ -->
-<div class="section">
+<section class="section">
   <div class="section-header">
     <h2>Campus News</h2>
   </div>
   <div class="vendor-cards" id="homeNewsContainer" style="overflow-x:auto;">
-    <!-- Populated by JS -->
+    <!-- Populated by JS: loadHomeNews() -->
   </div>
   <div style="text-align:center;margin-top:16px;">
     <a href="campus-news.html" class="btn-view-profile" style="display:inline-block;padding:10px 24px;">
       See All News
     </a>
   </div>
-</div>
+</section>
 
 <!-- ================================================
-     MARKETPLACE
+     MARKETPLACE — hidden automatically by app.js if empty
 ================================================ -->
-<div class="section">
+<section class="section" id="marketplaceSection">
   <div class="section-header">
     <h2>Marketplace</h2>
   </div>
   <div class="vendor-cards" id="homeMarketplaceContainer">
-    <!-- Populated by JS -->
+    <!-- Populated by JS: loadHomeMarketplace() -->
   </div>
-</div>
+</section>
 
 <!-- ================================================
-     EVENTS
+     EVENTS — hidden automatically by app.js if empty
 ================================================ -->
-<div class="section">
+<section class="section" id="eventsSection">
   <div class="section-header">
     <h2>Campus Events</h2>
   </div>
   <div class="event-cards" id="homeEventsContainer">
-    <!-- Populated by JS -->
+    <!-- Populated by JS: loadHomeEvents() -->
   </div>
-</div>
+</section>
 
 <!-- ================================================
-     SPONSORED ADS
+     SPONSORED ADS — hidden automatically by app.js if empty
 ================================================ -->
-<div class="section">
+<section class="section" id="adsSection">
   <div class="section-header">
     <h2>Sponsored</h2>
   </div>
   <div class="vendor-cards" id="homeAdsContainer">
-    <!-- Populated by JS -->
+    <!-- Populated by JS: loadHomeAds() -->
   </div>
-</div>
-
-  <!-- ========== CAMPUS UPDATES ========== -->
-  <section class="section campus-updates">
-    <div class="section-header">
-      <h2>Campus Updates</h2>
-      <div class="scroll-arrows">
-        <button class="arrow-btn"><i class="fas fa-chevron-left"></i></button>
-        <button class="arrow-btn"><i class="fas fa-chevron-right"></i></button>
-      </div>
-    </div>
-
-    <div class="updates-grid">
-
-      <div class="update-card">
-        <div class="update-content">
-          <h3><span class="dot"></span> UNILAG Exam Timetable Released</h3>
-          <p class="update-date">April 27, 2024</p>
-          <p>The new examination timetable for UNILAG students has been published. Check out the schedule...</p>
-        </div>
-        <div class="update-icon"><i class="fas fa-university"></i></div>
-      </div>
-
-      <div class="update-card">
-        <div class="update-content">
-          <h3><span class="dot"></span> How to Balance Studies & Side Hustles</h3>
-          <p class="update-date">April 26, 2024</p>
-          <p>Here are some tips on how to effectively balance academics with a side hustle as a student.</p>
-        </div>
-        <a href="#" class="btn-read-more">Read More &rsaquo;</a>
-      </div>
-
-    </div>
-  </section>
+</section>
 
   <!-- ========== EXPLORE CATEGORIES ========== -->
   <section class="section explore-categories">
@@ -306,59 +260,32 @@
 
       <!-- Left: Category Icons -->
       <div class="category-icons">
-        <div class="category-item">
+        <a href="vendors-page.html?cat=Food" class="category-item">
           <div class="cat-icon">🍲</div>
           <p>Food Vendors</p>
-        </div>
-        <div class="category-item">
+        </a>
+        <a href="vendors-page.html?cat=Gadgets" class="category-item">
           <div class="cat-icon">📱</div>
           <p>Phone & Gadgets</p>
-        </div>
-        <div class="category-item">
+        </a>
+        <a href="vendors-page.html?cat=Fashion" class="category-item">
           <div class="cat-icon">⌚</div>
           <p>Fashion & Jewelry</p>
-        </div>
-        <div class="category-item">
+        </a>
+        <a href="vendors-page.html?cat=Lodges" class="category-item">
           <div class="cat-icon">🏠</div>
           <p>Lodges</p>
-        </div>
+        </a>
       </div>
 
-      <!-- Right: Event Cards -->
+      <!-- Right: Become a Vendor CTA (replaces removed fake event cards) -->
       <div class="event-cards">
-
-        <div class="event-card event-blue">
-          <div class="event-text">
-            <h3>UNILAG Startup Pitch</h3>
-            <div class="event-tags">
-              <span class="tag-date">▶️ May 20th</span>
-              <span class="tag-loc">Lagos</span>
-            </div>
-            <p>Network and pitch your startup idea!</p>
-            <a href="#" class="btn-see-details">See Details</a>
-          </div>
-          <div class="event-bg event-bg-1"></div>
-        </div>
-
-        <div class="event-card event-beach">
-          <div class="event-text">
-            <h3>DELSU Beach Party</h3>
-            <div class="event-tags">
-              <span class="tag-date">▶️ May 10th</span>
-              <span class="tag-loc">Abraka</span>
-            </div>
-            <p>Don't miss the biggest beach party of the year!</p>
-            <a href="#" class="btn-see-details">See Details</a>
-          </div>
-        </div>
-
         <div class="event-card event-vendor-cta">
           <div class="event-text">
             <h3>Become a Vendor<br/>&amp; Start Selling Today!</h3>
             <a href="vendor.html" class="btn-see-details">Get Started</a>
           </div>
         </div>
-
       </div>
     </div>
   </section>
@@ -383,35 +310,36 @@
       <div>
         <h4>Quick Links</h4>
         <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Vendors</a></li>
-          <li><a href="#">Lodges</a></li>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="vendors-page.html">Vendors</a></li>
+          <li><a href="vendors-page.html?cat=Lodges">Lodges</a></li>
         </ul>
       </div>
       <div>
         <h4>About Us</h4>
         <ul>
-          <li><a href="#">Our Story</a></li>
-          <li><a href="#">Team</a></li>
-          <li><a href="#">Careers</a></li>
+          <li><a href="our-story.html">Our Story</a></li>
+          <li><a href="team.html">Team</a></li>
+          <li><a href="careers.html">Careers</a></li>
         </ul>
       </div>
       <div>
         <h4>FAQs</h4>
         <ul>
-          <li><a href="#">How it Works</a></li>
-          <li><a href="#">Vendor FAQs</a></li>
-          <li><a href="#">Contact Us</a></li>
+          <li><a href="how-it-works.html">How it Works</a></li>
+          <li><a href="vendor-faqs.html">Vendor FAQs</a></li>
+          <li><a href="contact-us.html">Contact Us</a></li>
         </ul>
       </div>
     </div>
     <p class="footer-copy">&copy; 2026 Inside My Campus. All rights reserved.</p>
   </footer>
 
+  <!-- api.js MUST load first — every other script depends on IMC_API existing -->
+  <script src="api.js"></script>
   <script src="search.js"></script>
-<script src="navbar.js"></script>
-<script src="script.js"></script>
-<script src="app.js"></script>
-<script src="api.js"></script>
+  <script src="navbar.js"></script>
+  <script src="script.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
