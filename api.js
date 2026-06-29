@@ -174,6 +174,31 @@ var IMC_API = (function () {
     );
   }
 
+// ---- Ticket verification ----
+  async function verifyTicket(eventId, ticketCode) {
+    return await request('POST', '/events/' + eventId + '/verify-ticket',
+      { ticketCode: ticketCode }, true);
+  }
+
+  // ---- Admin: Events + Notifications ----
+  async function getAdminEvents() {
+    return await request('GET', '/admin/events', null, true);
+  }
+
+  async function getAdminNotifications() {
+    return await request('GET', '/admin/notifications', null, true);
+  }
+
+  // ---- Ambassador withdrawals ----
+  async function getMyWithdrawals() {
+    return await request('GET', '/ambassadors/my-withdrawals', null, true);
+  }
+
+  // ---- Ambassador news with file upload ----
+  async function submitNewsWithFiles(formData) {
+    return await request('POST', '/news', formData, true);
+  }
+
   // ---- Notifications ----
   async function getNotifications() {
     return await request('GET', '/notifications', null, true);
@@ -350,6 +375,8 @@ var IMC_API = (function () {
     // Events
     getEvents, getEventById, createEvent, createEventWithFile, updateEvent, deleteEvent,
     getMyEvents, purchaseTicket, getMyTickets,
+    verifyTicket, getAdminEvents, getAdminNotifications,
+    getMyWithdrawals, submitNewsWithFiles,
     // Notifications
     getNotifications, getMyNotifications, getUnreadCount,
     markNotificationRead, markAllNotificationsRead,
