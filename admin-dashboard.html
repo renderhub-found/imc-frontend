@@ -227,6 +227,14 @@
       <i class="fas fa-graduation-cap"></i> Courses
     </div>
 
+    <div class="nav-item" data-section="events">
+      <i class="fas fa-calendar"></i> Events
+    </div>
+    <div class="nav-item" data-section="notifications">
+      <i class="fas fa-bell"></i> Notifications
+      <span class="badge" id="badgeNotifications" style="display:none;margin-left:auto;"></span>
+    </div>
+
     <div class="nav-section">Finance</div>
     <div class="nav-item" data-section="payments">
       <i class="fas fa-credit-card"></i> Payments
@@ -519,6 +527,51 @@
             </tr></thead>
             <tbody id="coursesTableBody">
               <tr><td colspan="6" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+<!-- EVENTS -->
+    <div class="section" id="section-events">
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">All Events</div></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Title</th><th>University</th><th>Date</th>
+              <th>Type</th><th>Tickets Sold</th><th>Status</th>
+            </tr></thead>
+            <tbody id="eventsTableBody">
+              <tr><td colspan="6" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="section" id="section-notifications">
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin-bottom:20px;">
+        <div class="stat-card">
+          <div class="stat-value" id="notif-total">—</div>
+          <div class="stat-label">Total Notifications</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="notif-unread">—</div>
+          <div class="stat-label">Unread</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">Recent Notifications</div></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Type</th><th>Message</th><th>Status</th><th>Date</th>
+            </tr></thead>
+            <tbody id="notificationsTableBody">
+              <tr><td colspan="4" class="empty">Loading...</td></tr>
             </tbody>
           </table>
         </div>
@@ -830,6 +883,8 @@ function switchSection(name, label) {
     ads:         ['Ads',         'Advertisement management'],
     news:        ['News',        'Campus news management'],
     courses:     ['Courses',     'Course management'],
+    events:      ['Events', 'Event moitoring'],
+    notifications:['Notifications', 'system notifications'],
     payments:    ['Payments',    'Transaction history'],
     withdrawals: ['Withdrawals', 'Payout requests'],
     logs:        ['Audit Logs',  'Admin activity log']
@@ -846,9 +901,11 @@ function switchSection(name, label) {
     ads:         loadAds,
     news:        loadNews,
     courses:     loadCourses,
+    events:      loadAdminEvents,
+    notifications: loadAdminNotifications,
     payments:    loadPayments,
     withdrawals: loadWithdrawals,
-    logs:        loadLogs
+    logs:        loadLogs,
   };
   if (loaders[name]) loaders[name]();
 
@@ -1233,6 +1290,53 @@ async function saveCourse() {
     errEl.textContent   = r.message || 'Failed to save course.';
     errEl.style.display = 'block';
   }
+}
+
+async function loadAdminEvents() {
+  var r = await adminRequest('GET', '/events');
+  if (!r.success) return;
+  var events = r.events || [];
+
+  if (events.length === 0) {
+    setTbody('eventsTableBody', '<tr><td colspan="6" class="empty"><i class="fas fa-calendar"></i><br/>No events</td></tr>');
+    return;
+  }
+
+  setTbody('eventsTableBody', events.map(function (e) {
+    return '<tr>' +
+      '<td><strong>' + esc(e.title) + '</strong></td>' +
+      '<td>' + esc(e.university || '—') + '</td>' +
+      '<td>' + fmtDate(e.eventDate) + '</td>' +
+      '<td>' + esc(e.eventType || '—') + '</td>' +
+      '<td>' + (e.ticketsSold || 0) + '</td>' +
+      '<td><span class="status approved">' + esc(e.status || 'active') + '</span></td>' +
+      '</tr>';
+  }).join(''));
+}
+
+async function loadAdminNotifications() {
+  var r = await adminRequest('GET', '/notifications');
+  if (!r.success) return;
+  var notifs = r.notifications || [];
+
+  setText('notif-total', r.totalCount || notifs.length);
+  setText('notif-unread', r.unreadCount || 0);
+
+  if (notifs.length === 0) {
+    setTbody('notificationsTableBody', '<tr><td colspan="4" class="empty">No notifications</td></tr>');
+    return;
+  }
+
+  setTbody('notificationsTableBody', notifs.map(function (n) {
+    return '<tr>' +
+      '<td><span class="status pending">' + esc(n.type || 'general') + '</span></td>' +
+      '<td>' + esc(n.message || '—') + '</td>' +
+      '<td>' + (n.read
+        ? '<span class="status approved">Read</span>'
+        : '<span class="status pending">Unread</span>') + '</td>' +
+      '<td>' + fmtDate(n.createdAt) + '</td>' +
+      '</tr>';
+  }).join(''));
 }
 
 async function deleteCourse(id) {
