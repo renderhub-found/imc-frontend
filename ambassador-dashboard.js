@@ -625,6 +625,75 @@ function progressBar(label, pct, color) {
     '</div>';
 }
 
+async function loadWithdrawSection() {
+  var result = await IMC_API.getMyWithdrawals();
+  if (!result.success) return;
+
+  var balanceEl = document.getElementById('ambWithdrawBalance');
+  if (balanceEl) balanceEl.textContent = '₦' + (result.earnings || 0).toLocaleString();
+
+  var historyContainer = document.getElementById('withdrawHistoryContainer');
+  if (!historyContainer) return;
+
+  var withdrawals = result.withdrawals || [];
+  if (withdrawals.length === 0) {
+    historyContainer.innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;padding:20px;">No withdrawal requests yet.</p>';
+    return;
+  }
+
+  historyContainer.innerHTML = withdrawals.slice().reverse().map(function (w) {
+    var statusClass = w.status === 'paid' ? 'approved' : w.status === 'rejected' ? 'rejected' : 'pending';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0;">' +
+      '<div>' +
+      '<strong>₦' + (w.amount || 0).toLocaleString() + '</strong><br/>' +
+      '<span style="font-size:12px;color:#888;">' + (w.bankName || '') + ' · ' + new Date(w.date).toLocaleDateString() + '</span>' +
+      '</div>' +
+      '<span class="status ' + statusClass + '" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">' + w.status + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+function initWithdrawForm() {
+  var btn = document.getElementById('withdrawSubmitBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async function () {
+    var amount      = parseFloat(document.getElementById('withdrawAmount').value);
+    var bankName    = document.getElementById('withdrawBankName').value.trim();
+    var accountNum  = document.getElementById('withdrawAccountNum').value.trim();
+    var accountName = document.getElementById('withdrawAccountName').value.trim();
+
+    var errBox = document.getElementById('withdrawError');
+    var okBox  = document.getElementById('withdrawSuccess');
+    errBox.style.display = 'none';
+    okBox.style.display  = 'none';
+
+    if (!amount || amount <= 0) { errBox.textContent = 'Enter a valid amount.'; errBox.style.display = 'block'; return; }
+    if (!bankName || !accountNum || !accountName) {
+      errBox.textContent = 'Please fill in all bank details.';
+      errBox.style.display = 'block';
+      return;
+    }
+
+    var result = await IMC_API.requestWithdrawal({
+      amount: amount, bankName: bankName,
+      accountNum: accountNum, accountName: accountName
+    });
+
+    if (result.success) {
+      okBox.textContent = 'Withdrawal request submitted!';
+      okBox.style.display = 'block';
+      document.getElementById('withdrawAmount').value = '';
+      document.getElementById('withdrawBankName').value = '';
+      document.getElementById('withdrawAccountNum').value = '';
+      document.getElementById('withdrawAccountName').value = '';
+      loadWithdrawSection();
+    } else {
+      errBox.textContent = result.message || 'Withdrawal request failed.';
+      errBox.style.display = 'block';
+    }
+  });
+}
 
 // ================================================
 //   PROFILE TAB

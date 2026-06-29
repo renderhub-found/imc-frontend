@@ -27,6 +27,9 @@
       <a href="#" class="sidebar-link" data-tab="earnings">
         <i class="fas fa-wallet"></i> Earnings
       </a>
+      <div class="nav-item" data-tab="withdraw">
+    <i class="fas fa-money-bill-wave"></i> Withdraw
+    </div>
       <a href="#" class="sidebar-link" data-tab="tasks">
         <i class="fas fa-tasks"></i> Campus Tasks
       </a>
@@ -259,6 +262,50 @@
         <!-- Filled by JS -->
       </div>
     </div>
+
+<div class="tab-section" id="tab-withdraw" style="display:none;">
+
+  <div class="dash-form-card" style="margin-bottom:20px;text-align:center;">
+    <p style="font-size:13px;color:#888;margin-bottom:6px;">Available Earnings</p>
+    <h2 id="ambWithdrawBalance" style="font-size:32px;font-weight:800;color:#2d8653;">₦0</h2>
+  </div>
+
+  <div class="dash-form-card" style="margin-bottom:20px;">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Request Withdrawal</h3>
+
+    <div id="withdrawError" style="display:none;margin-bottom:12px;color:#c62828;font-size:13px;background:#fff0f0;padding:10px;border-radius:8px;"></div>
+    <div id="withdrawSuccess" style="display:none;margin-bottom:12px;color:#2d8653;font-size:13px;background:#e8f9ee;padding:10px;border-radius:8px;"></div>
+
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>Amount (₦)</label>
+      <input type="number" id="withdrawAmount" placeholder="Enter amount" min="100"/>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>Bank Name</label>
+      <input type="text" id="withdrawBankName" placeholder="e.g. GTBank"/>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>Account Number</label>
+      <input type="text" id="withdrawAccountNum" placeholder="10-digit account number"/>
+    </div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label>Account Name</label>
+      <input type="text" id="withdrawAccountName" placeholder="Name on the account"/>
+    </div>
+
+    <button id="withdrawSubmitBtn" class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:12px;">
+      Request Withdrawal
+    </button>
+  </div>
+
+  <div class="dash-form-card">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">Withdrawal History</h3>
+    <div id="withdrawHistoryContainer">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+</div>
 
   </div><!-- end dashboard-main -->
 
