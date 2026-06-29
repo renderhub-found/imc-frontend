@@ -329,6 +329,24 @@ function setEventType(type) {
   document.getElementById('ticketBuilderWrap').style.display = type === 'paid' ? 'block' : 'none';
 }
 
+document.getElementById('verifyTicketBtn').addEventListener('click', async function () {
+  var code = document.getElementById('verifyTicketCodeInput').value.trim();
+  var resultBox = document.getElementById('verifyTicketResult');
+  if (!code) return;
+
+  var result = await IMC_API.verifyTicket(currentEventId, code);  // currentEventId from your page context
+
+  if (result.status === 'valid') {
+    resultBox.innerHTML = '<div style="background:#e8f9ee;color:#2d8653;padding:12px;border-radius:8px;">✅ ' + result.message + '</div>';
+  } else if (result.status === 'used') {
+    resultBox.innerHTML = '<div style="background:#fff8e8;color:#b07d00;padding:12px;border-radius:8px;">⚠️ ' + result.message + '</div>';
+  } else {
+    resultBox.innerHTML = '<div style="background:#fff0f0;color:#c62828;padding:12px;border-radius:8px;">❌ Invalid ticket.</div>';
+  }
+
+  document.getElementById('verifyTicketCodeInput').value = '';
+});
+
 function addTicketRow() {
   ticketRowCount++;
   var container = document.getElementById('ticketRows');
@@ -449,6 +467,16 @@ async function loadMyEvents() {
       '<i class="fas fa-calendar"></i> ' + date + ' · ' + esc(ev.eventTime) +
       ' &nbsp;|&nbsp; <i class="fas fa-map-marker-alt"></i> ' + esc(ev.location) +
       '</div>' +
+<div class="dash-form-card" style="margin-top:16px;">
+  <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Verify Ticket</h3>
+  <input type="text" id="verifyTicketCodeInput" placeholder="Enter Ticket ID (e.g. IMC-TKT-XXXXXX)"
+    style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:10px;"/>
+  <button id="verifyTicketBtn" class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:12px;">
+    Verify
+  </button>
+  <div id="verifyTicketResult" style="margin-top:12px;"></div>
+</div>
+
       '<div class="my-event-stats">' +
       '<div class="stat-box"><div class="stat-num">' + (ev.ticketsSold||0) + '</div><div class="stat-lbl">Sold</div></div>' +
       '<div class="stat-box"><div class="stat-num">₦' + ((ev.grossRevenue||0)).toLocaleString() + '</div><div class="stat-lbl">Revenue</div></div>' +
