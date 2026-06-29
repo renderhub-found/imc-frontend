@@ -740,8 +740,29 @@ function initNewsSubmit(ambassador) {
     var title      = getVal('newsTitle');
     var university = getVal('newsUniversity');
     var content    = getVal('newsContent');
-    var imgFile    = document.getElementById('newsImageFile');
-    var vidFile    = document.getElementById('newsVideoFile');
+    var formData = new FormData();
+formData.append('title', title);
+formData.append('university', university);
+formData.append('content', content);
+
+var imgFile = document.getElementById('ambNewsImageFile').files[0];
+var vidFile = document.getElementById('ambNewsVideoFile').files[0];
+if (imgFile) formData.append('image', imgFile);
+if (vidFile) formData.append('video', vidFile);
+
+var result = await IMC_API.submitNewsWithFiles(formData);
+
+document.getElementById('ambNewsImageFile').addEventListener('change', function () {
+  var file = this.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    document.getElementById('ambNewsImagePreview').src = e.target.result;
+    document.getElementById('ambNewsImagePlaceholder').style.display = 'none';
+    document.getElementById('ambNewsImagePreviewWrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
 
     var errBox = document.getElementById('newsError');
     var errMsg = document.getElementById('newsErrorMsg');
