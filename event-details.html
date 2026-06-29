@@ -160,11 +160,48 @@
             Save this code — present it at the event entrance.
           </p>
         </div>
-        <div class="ticket-list" id="ticketList"></div>
-        <button class="btn-buy" id="buyBtn" style="display:none;">
-          <span id="buyBtnText">Get Ticket</span>
-          <span id="buySpinner" style="display:none;">⏳ Processing...</span>
-        </button>
+        <div id="ticketTypesContainer">
+  <!-- Populated by JS -->
+</div>
+
+<!-- Payment Modal -->
+<div id="ticketPaymentModal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:24px;max-width:420px;width:100%;">
+    <h3 style="font-size:17px;font-weight:700;margin-bottom:16px;">Complete Payment</h3>
+
+    <div style="background:#f8f9ff;border-radius:10px;padding:16px;margin-bottom:16px;font-size:13px;line-height:1.8;">
+      <div><strong>Event:</strong> <span id="payModalEvent"></span></div>
+      <div><strong>Ticket:</strong> <span id="payModalTicketType"></span></div>
+      <div><strong>Amount:</strong> ₦<span id="payModalAmount"></span></div>
+      <hr style="margin:10px 0;border:none;border-top:1px solid #e0e0e0;"/>
+      <div><strong>Bank Name:</strong> <span id="payModalBankName">—</span></div>
+      <div><strong>Account Name:</strong> <span id="payModalAccName">—</span></div>
+      <div><strong>Account Number:</strong> <span id="payModalAccNum" style="cursor:pointer;color:#1a3c8f;" onclick="copyAccNum()">—</span> <small>(tap to copy)</small></div>
+    </div>
+
+    <button id="payViaPaystackBtn" class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:12px;margin-bottom:8px;">
+      Pay with Card (Paystack)
+    </button>
+    <button id="closeTicketModalBtn" style="width:100%;background:#f0f0f0;border:none;border-radius:10px;padding:12px;cursor:pointer;">
+      Cancel
+    </button>
+  </div>
+</div>
+
+<!-- Ticket Success Modal -->
+<div id="ticketSuccessModal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:24px;max-width:380px;width:100%;text-align:center;">
+    <div style="font-size:48px;margin-bottom:10px;">🎉</div>
+    <h3 style="font-size:18px;font-weight:800;margin-bottom:6px;">Ticket Confirmed!</h3>
+    <img id="ticketQrImage" src="" style="width:180px;height:180px;margin:14px auto;display:block;"/>
+    <p style="font-size:13px;color:#666;">Ticket ID</p>
+    <p id="ticketCodeDisplay" style="font-size:16px;font-weight:800;color:#1a3c8f;font-family:monospace;margin-bottom:16px;"></p>
+    <button onclick="document.getElementById('ticketSuccessModal').style.display='none'"
+      style="width:100%;background:#1a3c8f;color:#fff;border:none;border-radius:10px;padding:12px;cursor:pointer;font-weight:700;">
+      Done
+    </button>
+  </div>
+</div>
 
       </div>
     </div>
@@ -254,6 +291,93 @@ function renderEvent() {
 
   // Tickets
   renderTickets();
+}
+
+var IMC_BANK_DETAILS = {
+  bankName: 'GTBank',
+  accountName: 'Inside My Campus',
+  accountNumber: '0123456789'  // ← replace with your real account
+};
+
+var selectedTicketType = null;
+
+function renderTicketTypes(event) {
+  var container = document.getElementById('ticketTypesContainer');
+  if (!container) return;
+
+  if (event.eventType === 'free') {
+    container.innerHTML = '<button class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:14px;" ' +
+      'onclick="registerFreeEvent(\'' + event._id + '\')">Register (Free)</button>';
+    return;
+  }
+
+  var types = event.ticketTypes || [];
+  if (types.length === 0) {
+    container.innerHTML = '<p style="color:#aaa;">No tickets available yet.</p>';
+    return;
+  }
+
+  container.innerHTML = types.map(function (t) {
+    return '<button class="ticket-type-btn" style="width:100%;text-align:left;padding:14px;margin-bottom:8px;' +
+      'border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;" ' +
+      'onclick="selectTicketType(\'' + event._id + '\',\'' + t._id + '\',\'' + t.name + '\',' + t.price + ',\'' + event.title.replace(/'/g,"\\'") + '\')">' +
+      '<strong>' + t.name + '</strong><br/>' +
+      '<span style="color:#2d8653;font-weight:700;">₦' + t.price.toLocaleString() + '</span>' +
+      '</button>';
+  }).join('');
+}
+
+function selectTicketType(eventId, ticketTypeId, ticketName, price, eventTitle) {
+  selectedTicketType = { eventId: eventId, ticketTypeId: ticketTypeId, ticketName: ticketName, price: price, eventTitle: eventTitle };
+
+  document.getElementById('payModalEvent').textContent      = eventTitle;
+  document.getElementById('payModalTicketType').textContent = ticketName;
+  document.getElementById('payModalAmount').textContent     = price.toLocaleString();
+  document.getElementById('payModalBankName').textContent   = IMC_BANK_DETAILS.bankName;
+  document.getElementById('payModalAccName').textContent    = IMC_BANK_DETAILS.accountName;
+  document.getElementById('payModalAccNum').textContent     = IMC_BANK_DETAILS.accountNumber;
+
+  document.getElementById('ticketPaymentModal').style.display = 'flex';
+}
+
+function copyAccNum() {
+  navigator.clipboard.writeText(IMC_BANK_DETAILS.accountNumber);
+  alert('Account number copied!');
+}
+
+document.getElementById('closeTicketModalBtn').addEventListener('click', function () {
+  document.getElementById('ticketPaymentModal').style.display = 'none';
+});
+
+document.getElementById('payViaPaystackBtn').addEventListener('click', function () {
+  if (!selectedTicketType) return;
+
+  IMCPaystack.openPayment({
+    amount: selectedTicketType.price,
+    type: 'event_ticket',
+    description: selectedTicketType.eventTitle + ' - ' + selectedTicketType.ticketName,
+    metadata: {
+      eventId: selectedTicketType.eventId,
+      ticketTypeId: selectedTicketType.ticketTypeId,
+      ticketTypeName: selectedTicketType.ticketName
+    }
+  });
+});
+
+async function registerFreeEvent(eventId) {
+  var result = await IMC_API.purchaseTicket(eventId, 'free', { amount: 0 });
+  if (result.success) {
+    showTicketSuccess(result.ticket);
+  } else {
+    alert(result.message || 'Registration failed.');
+  }
+}
+
+function showTicketSuccess(ticket) {
+  document.getElementById('ticketQrImage').src = ticket.qrData;
+  document.getElementById('ticketCodeDisplay').textContent = ticket.ticketCode;
+  document.getElementById('ticketSuccessModal').style.display = 'flex';
+  document.getElementById('ticketPaymentModal').style.display = 'none';
 }
 
 function renderTickets() {
