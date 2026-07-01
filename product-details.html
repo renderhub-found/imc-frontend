@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product — Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .product-page{max-width:900px;margin:32px auto;padding:0 16px;}
+    .product-layout{
+      display:grid;grid-template-columns:1fr 1fr;gap:28px;
+      background:#fff;border-radius:20px;padding:28px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.08);
+    }
+    .product-img-main{
+      width:100%;aspect-ratio:1;object-fit:cover;
+      border-radius:14px;background:#f4f6fb;
+    }
+    .product-info{padding:8px 0;}
+    .product-vendor-tag{
+      display:inline-flex;align-items:center;gap:6px;
+      background:#e8f0ff;color:#1a3c8f;border-radius:20px;
+      padding:5px 12px;font-size:12px;font-weight:700;margin-bottom:14px;
+    }
+    .product-title{font-size:22px;font-weight:800;color:#1a1a2e;margin-bottom:8px;}
+    .product-price{font-size:28px;font-weight:800;color:#2d8653;margin-bottom:12px;}
+    .product-meta{font-size:13px;color:#888;margin-bottom:16px;line-height:1.8;}
+    .product-desc{
+      font-size:14px;color:#444;line-height:1.7;
+      background:#f8f9ff;border-radius:10px;padding:14px;
+      margin-bottom:20px;
+    }
+    .btn-whatsapp{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      width:100%;padding:15px;background:#25D366;color:#fff;
+      border:none;border-radius:12px;font-size:16px;font-weight:700;
+      cursor:pointer;text-decoration:none;font-family:Inter,sans-serif;
+      transition:opacity .15s;margin-bottom:10px;
+    }
+    .btn-whatsapp:hover{opacity:0.9;}
+    .btn-view-vendor{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      width:100%;padding:13px;background:#f0f4ff;color:#1a3c8f;
+      border:none;border-radius:12px;font-size:14px;font-weight:700;
+      cursor:pointer;text-decoration:none;font-family:Inter,sans-serif;
+    }
+    .product-breadcrumb{
+      font-size:13px;color:#888;margin-bottom:20px;
+    }
+    .product-breadcrumb a{color:#1a3c8f;text-decoration:none;}
+    @media(max-width:640px){
+      .product-layout{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="vendors-page.html">Vendors</a></li>
+        <li><a href="marketplace.html">Marketplace</a></li>
+        <li><a href="campus-news.html">Campus News</a></li>
+        <li><a href="events.html">Events</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="auth-buttons" id="authButtons">
+          <a href="login.html" class="btn-login">Login</a>
+          <a href="signup.html" class="btn-signup">Sign Up</a>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="product-page">
+    <div class="product-breadcrumb">
+      <a href="index.html">Home</a> ›
+      <a href="marketplace.html">Marketplace</a> ›
+      <span id="breadcrumbProduct">Product</span>
+    </div>
+
+    <div class="product-layout" id="productLayout">
+      <div style="text-align:center;padding:40px;grid-column:1/-1;color:#aaa;">
+        <i class="fas fa-spinner fa-spin" style="font-size:28px;"></i>
+        <p style="margin-top:12px;">Loading product...</p>
+      </div>
+    </div>
+
+    <!-- Related products -->
+    <div style="margin-top:32px;">
+      <h3 style="font-size:17px;font-weight:700;color:#1a1a2e;margin-bottom:16px;">
+        More from this vendor
+      </h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;"
+        id="relatedProducts"></div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      var params    = new URLSearchParams(window.location.search);
+      var productId = params.get('id') || '';
+
+      if (!productId) {
+        window.location.href = 'marketplace.html';
+        return;
+      }
+
+      var result = await IMC_API.getAllProducts();
+      if (!result.success) return;
+
+      var product = (result.products || []).find(function (p) {
+        return p._id === productId;
+      });
+
+      if (!product) {
+        window.location.href = 'marketplace.html';
+        return;
+      }
+
+      document.title = product.name + ' — Inside My Campus';
+      document.getElementById('breadcrumbProduct').textContent = product.name;
+
+      var img = product.image ||
+        'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&h=600&fit=crop';
+
+      var phone = (product.vendorWhatsApp || '').replace(/[^0-9]/g, '');
+      if (phone.startsWith('0')) phone = '234' + phone.substring(1);
+
+      var waMsg  = encodeURIComponent(
+        'Hi! I saw "' + product.name + '" on Inside My Campus and I\'m interested. Is it still available?'
+      );
+      var waLink = phone ? 'https://wa.me/' + phone + '?text=' + waMsg : '#';
+
+      document.getElementById('productLayout').innerHTML =
+        '<div>' +
+        '<img class="product-img-main" src="' + img + '" alt="' + esc(product.name) + '"/>' +
+        '</div>' +
+        '<div class="product-info">' +
+        '<div class="product-vendor-tag">' +
+        '<i class="fas fa-store"></i>' + esc(product.vendorName || 'Vendor') +
+        '</div>' +
+        '<h1 class="product-title">' + esc(product.name) + '</h1>' +
+        '<div class="product-price">₦' + parseFloat(product.price || 0).toLocaleString() + '</div>' +
+        '<div class="product-meta">' +
+        '<i class="fas fa-university" style="color:#1a3c8f;margin-right:6px;"></i>' + esc(product.university || '') +
+        (product.category ? ' &nbsp;·&nbsp; <i class="fas fa-tag" style="color:#2d8653;margin-right:4px;"></i>' + esc(product.category) : '') +
+        '</div>' +
+        (product.description
+          ? '<div class="product-desc">' + esc(product.description) + '</div>'
+          : '') +
+        '<a class="btn-whatsapp" href="' + waLink + '" target="_blank" ' +
+        (phone ? '' : 'onclick="alert(\'Vendor WhatsApp not available.\');return false;"') + '>' +
+        '<i class="fab fa-whatsapp" style="font-size:20px;"></i>' +
+        'Order on WhatsApp' +
+        '</a>' +
+        '<a class="btn-view-vendor" href="vendor-profile.html?id=' + esc(product.vendorId || '') + '">' +
+        '<i class="fas fa-store"></i> View Vendor Profile' +
+        '</a>' +
+        '</div>';
+
+      // Related products from same vendor
+      var related = (result.products || []).filter(function (p) {
+        return p.vendorId === product.vendorId && p._id !== productId;
+      }).slice(0, 4);
+
+      if (related.length) {
+        document.getElementById('relatedProducts').innerHTML = related.map(function (p) {
+          var ri = p.image || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&h=200&fit=crop';
+          return '<a href="product-details.html?id=' + p._id + '" ' +
+            'style="background:#fff;border-radius:12px;overflow:hidden;' +
+            'box-shadow:0 2px 10px rgba(0,0,0,0.07);text-decoration:none;color:inherit;display:block;">' +
+            '<img src="' + ri + '" style="width:100%;height:130px;object-fit:cover;" loading="lazy"/>' +
+            '<div style="padding:10px;">' +
+            '<div style="font-size:13px;font-weight:700;color:#1a1a2e;">' + esc(p.name) + '</div>' +
+            '<div style="font-size:13px;font-weight:800;color:#2d8653;margin-top:4px;">₦' + parseFloat(p.price || 0).toLocaleString() + '</div>' +
+            '</div></a>';
+        }).join('');
+      }
+    });
+
+    function esc(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>

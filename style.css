@@ -4809,3 +4809,90 @@ img, video {
     font-size: 16px !important; /* Prevents iOS zoom on focus */
   }
 }
+
+/* ================================================
+   SPONSORED CAROUSEL
+================================================ */
+.sponsored-carousel-wrap {
+  position: relative;
+  overflow: hidden;
+  padding: 0 16px;
+}
+.sponsored-carousel {
+  display: flex;
+  gap: 16px;
+  transition: transform 0.4s ease;
+}
+.sponsored-card {
+  min-width: 280px;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+  flex-shrink: 0;
+}
+.sponsored-img-wrap {
+  position: relative;
+  height: 170px;
+}
+.sponsored-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sponsored-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(26,60,143,0.85);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+.sponsored-body {
+  padding: 14px;
+}
+.sponsored-body h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+.sponsored-body p {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+.carousel-prev,
+.carousel-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(26,60,143,0.85);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.carousel-prev { left: 2px; }
+.carousel-next { right: 2px; }
+
+/* ================================================
+   MARKETPLACE CARD (homepage preview)
+================================================ */
+.market-preview-card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}

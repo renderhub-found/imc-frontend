@@ -7,20 +7,193 @@
   <link rel="stylesheet" href="style.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .vendor-profile-hero {
+      background: linear-gradient(135deg, #1a3c8f, #011B33);
+      padding: 40px 20px;
+      color: #fff;
+    }
+    .vendor-profile-hero-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .vendor-avatar-large {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 3px solid rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .vendor-avatar-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .vendor-hero-info h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .vendor-hero-info p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 4px;
+    }
+    .vendor-hero-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-whatsapp-contact {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #25D366;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .btn-back-vendors {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .vendor-about-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 24px;
+    }
+    .vendor-about-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 10px;
+    }
+    .vendor-about-card > p {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .vendor-about-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .about-info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #f8f9ff;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .about-info-item i {
+      color: #1a3c8f;
+      margin-top: 2px;
+      width: 16px;
+    }
+    .about-info-item span {
+      display: block;
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 2px;
+    }
+    .about-info-item strong {
+      font-size: 13px;
+      color: #1a1a2e;
+    }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .product-card {
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .product-card-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+    .product-card-body {
+      padding: 12px;
+    }
+    .product-card-body h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 4px;
+    }
+    .product-price {
+      font-size: 15px;
+      font-weight: 800;
+      color: #2d8653;
+      margin-bottom: 6px;
+    }
+    .product-desc {
+      font-size: 12px;
+      color: #888;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .empty-state-card {
+      text-align: center;
+      padding: 40px;
+      color: #aaa;
+      grid-column: 1/-1;
+    }
+    @media(max-width:600px){
+      .vendor-profile-hero-inner { flex-direction: column; text-align: center; }
+      .vendor-hero-btns { justify-content: center; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
 </head>
 <body>
 
+  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="nav-container">
       <div class="nav-logo">
-        <a href="index.html"
-          style="display:flex;align-items:center;gap:10px;">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;">
           <div class="logo-icon">🏫</div>
           <span class="logo-text">Inside My Campus</span>
         </a>
       </div>
       <ul class="nav-links" id="navLinks">
         <li><a href="vendors-page.html">Vendors</a></li>
+        <li><a href="marketplace.html">Marketplace</a></li>
         <li><a href="campus-news.html">Campus News</a></li>
         <li><a href="events.html">Events</a></li>
       </ul>
@@ -38,8 +211,9 @@
             <a href="ambassador.html"><i class="fas fa-user-tie"></i> Become Ambassador</a>
             <a href="campus-news.html"><i class="fas fa-newspaper"></i> Campus News</a>
             <a href="post-ad.html"><i class="fas fa-ad"></i> Post Ad</a>
+            <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
             <a href="online-courses.html"><i class="fas fa-graduation-cap"></i> Online Courses</a>
-            <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="contact-us.html"><i class="fas fa-envelope"></i> Contact</a>
             <a href="#" id="logoutBtn" class="logout-link">
               <i class="fas fa-sign-out-alt"></i> Logout
             </a>
@@ -52,38 +226,41 @@
     </div>
   </nav>
 
-  <!-- Vendor not found state -->
+  <!-- NOT FOUND STATE -->
   <div id="vendorNotFound" style="display:none;">
-    <div class="empty-state-card" style="margin:60px auto;max-width:400px;">
-      <div style="font-size:48px;">🔍</div>
-      <p>Vendor not found.</p>
-      <a href="vendors-page.html"
-        style="color:#1a3c8f;font-weight:700;">
-        ← Browse All Vendors
+    <div style="text-align:center;padding:60px 20px;color:#aaa;">
+      <i class="fas fa-store" style="font-size:48px;display:block;margin-bottom:16px;"></i>
+      <h3 style="font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">Vendor not found</h3>
+      <p style="font-size:14px;margin-bottom:20px;">This vendor profile doesn't exist or may have been removed.</p>
+      <a href="vendors-page.html" class="btn-view-profile" style="display:inline-block;padding:10px 24px;">
+        Browse All Vendors
       </a>
     </div>
   </div>
 
-  <!-- Vendor Profile Content -->
+  <!-- LOADING STATE -->
+  <div id="vendorLoading" style="text-align:center;padding:60px 20px;color:#aaa;">
+    <i class="fas fa-spinner fa-spin" style="font-size:36px;display:block;margin-bottom:12px;"></i>
+    <p>Loading vendor profile...</p>
+  </div>
+
+  <!-- VENDOR PROFILE CONTENT -->
   <div id="vendorProfileContent" style="display:none;">
 
     <!-- Profile Hero -->
-    <div class="vendor-profile-hero" id="vendorHero">
+    <div class="vendor-profile-hero">
       <div class="vendor-profile-hero-inner">
-        <div class="vendor-avatar-large" id="vendorAvatar"></div>
+        <div class="vendor-avatar-large" id="vendorAvatar">?</div>
         <div class="vendor-hero-info">
-          <h1 id="vendorHeroName"></h1>
+          <h1 id="vendorHeroName">—</h1>
           <p id="vendorHeroCategory"></p>
           <p id="vendorHeroUni"></p>
+          <p id="vendorHeroLocation"></p>
           <div class="vendor-hero-btns">
-            <a id="vendorWhatsAppBtn" href="#"
-              target="_blank"
-              class="btn-whatsapp-contact">
-              <i class="fab fa-whatsapp"></i>
-              Chat on WhatsApp
+            <a id="vendorWhatsAppBtn" href="#" target="_blank" class="btn-whatsapp-contact">
+              <i class="fab fa-whatsapp"></i> Chat on WhatsApp
             </a>
-            <a href="vendors-page.html"
-              class="btn-back-vendors">
+            <a href="vendors-page.html" class="btn-back-vendors">
               ← All Vendors
             </a>
           </div>
@@ -91,445 +268,185 @@
       </div>
     </div>
 
-    <!-- About -->
-    <div style="max-width:1100px;margin:32px auto;padding:0 20px;">
+    <!-- About + Products -->
+    <div style="max-width:1000px;margin:32px auto;padding:0 16px;">
+
+      <!-- About card -->
       <div class="vendor-about-card">
         <h3>About This Business</h3>
-        <p id="vendorAboutText"></p>
+        <p id="vendorAboutText" style="color:#555;font-size:14px;line-height:1.7;margin-bottom:16px;">—</p>
         <div class="vendor-about-grid" id="vendorAboutGrid"></div>
       </div>
 
       <!-- Products -->
-      <div style="margin-top:32px;">
+      <div>
         <div class="section-header">
-          <h2>Products & Services</h2>
-          <span id="productCountBadge"
-            style="font-size:13px;color:#aaa;"></span>
+          <h2>Products &amp; Services</h2>
+          <span id="productCountBadge" style="font-size:13px;color:#aaa;"></span>
         </div>
-        <div id="vendorProductsGrid" class="products-grid">
-          <p class="empty-state">
-            This vendor has not posted any products yet.
-          </p>
+        <div class="products-grid" id="vendorProductsGrid">
+          <div class="empty-state-card">
+            <i class="fas fa-spinner fa-spin" style="font-size:28px;display:block;margin-bottom:10px;"></i>
+            Loading products...
+          </div>
         </div>
       </div>
-    </div>
 
+    </div>
   </div>
 
-  <footer class="auth-footer" style="margin-top:40px;">
-    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+  <footer style="text-align:center;padding:24px;font-size:13px;color:#aaa;border-top:1px solid #f0f0f0;margin-top:40px;">
+    &copy; 2026 Inside My Campus. All rights reserved.
   </footer>
 
-  <script src="app.js"></script>
+  <!-- api.js MUST load first -->
+  <script src="api.js"></script>
+  <script src="navbar.js"></script>
   <script>
-    // ------------------------------------------------
-    //  VENDOR PROFILE PAGE LOGIC
-    // ------------------------------------------------
-    document.addEventListener('DOMContentLoaded', function () {
 
-      // Get vendor ID from URL: vendor-profile.html?id=VND-xxx
-      var params   = new URLSearchParams(window.location.search);
-      var vendorId = params.get('id');
+  document.addEventListener('DOMContentLoaded', async function () {
 
-      var vendors  = JSON.parse(
-        localStorage.getItem('imc_vendors') || '[]'
-      );
-      var vendor   = null;
+    var params   = new URLSearchParams(window.location.search);
+    var vendorId = params.get('id') || '';
 
-      if (vendorId) {
-        for (var i = 0; i < vendors.length; i++) {
-          if (vendors[i].id === vendorId) {
-            vendor = vendors[i]; break;
-          }
-        }
-      }
+    var loadingEl  = document.getElementById('vendorLoading');
+    var notFoundEl = document.getElementById('vendorNotFound');
+    var contentEl  = document.getElementById('vendorProfileContent');
 
-      if (!vendor) {
-        document.getElementById('vendorNotFound').style.display = 'block';
-        return;
-      }
-
-      document.getElementById('vendorProfileContent').style.display = 'block';
-      document.title = vendor.bizName + ' – Inside My Campus';
-
-      // Avatar (first letter of biz name)
-      var avatarEl = document.getElementById('vendorAvatar');
-      avatarEl.textContent = vendor.bizName.charAt(0).toUpperCase();
-
-      // Hero info
-      document.getElementById('vendorHeroName').textContent     = vendor.bizName;
-      document.getElementById('vendorHeroCategory').textContent = '🏷️ ' + vendor.category;
-      document.getElementById('vendorHeroUni').textContent      = '🏫 ' + vendor.university;
-
-      // WhatsApp button
-      var waBtn = document.getElementById('vendorWhatsAppBtn');
-      if (vendor.whatsApp) {
-        var waNum = vendor.whatsApp.replace(/\D/g, '');
-        if (waNum.startsWith('0')) {
-          waNum = '234' + waNum.substring(1);
-        }
-        waBtn.href = 'https://wa.me/' + waNum +
-          '?text=Hi%20' + encodeURIComponent(vendor.bizName) +
-          '%2C%20I%20found%20you%20on%20Inside%20My%20Campus!';
-      }
-
-      // About
-      document.getElementById('vendorAboutText').textContent =
-        vendor.description;
-
-      document.getElementById('vendorAboutGrid').innerHTML =
-        '<div class="about-info-item">' +
-        '<i class="fas fa-user"></i>' +
-        '<div><span>Owner</span><strong>' + vendor.fullName + '</strong></div>' +
-        '</div>' +
-        '<div class="about-info-item">' +
-        '<i class="fas fa-phone"></i>' +
-        '<div><span>WhatsApp</span><strong>' + vendor.whatsApp + '</strong></div>' +
-        '</div>' +
-        '<div class="about-info-item">' +
-        '<i class="fas fa-university"></i>' +
-        '<div><span>University</span><strong>' + vendor.university + '</strong></div>' +
-        '</div>' +
-        '<div class="about-info-item">' +
-        '<i class="fas fa-calendar"></i>' +
-        '<div><span>Member Since</span><strong>' + vendor.joinedDate + '</strong></div>' +
-        '</div>';
-
-      // Products
-      var allProducts = JSON.parse(
-        localStorage.getItem('imc_products') || '[]'
-      );
-      var myProducts  = allProducts.filter(function (p) {
-        return p.vendorEmail === vendor.email;
-      });
-
-      var countEl = document.getElementById('productCountBadge');
-      countEl.textContent = myProducts.length + ' product' +
-        (myProducts.length !== 1 ? 's' : '') + ' listed';
-
-      var grid = document.getElementById('vendorProductsGrid');
-      if (myProducts.length === 0) {
-        grid.innerHTML =
-          '<p class="empty-state">' +
-          'This vendor has not posted any products yet.</p>';
-        return;
-      }
-
-      grid.innerHTML = myProducts.map(function (p) {
-        var videoHtml = '';
-        if (p.video) {
-          videoHtml =
-            '<video src="' + p.video + '" controls ' +
-            'class="product-card-img" style="height:150px;"></video>';
-        }
-
-        return '<div class="product-card">' +
-          (p.video ? videoHtml :
-            '<img src="' + p.image + '" alt="' + p.name + '" ' +
-            'class="product-card-img" ' +
-            'onerror="this.src=\'https://via.placeholder.com/300x200?text=Product\'"/>') +
-          '<div class="product-card-body">' +
-          '<h4>' + p.name + '</h4>' +
-          '<p class="product-price">₦' + parseInt(p.price).toLocaleString() + '</p>' +
-          '<p class="product-desc">' + p.description + '</p>' +
-          '<a href="https://wa.me/' +
-          (vendor.whatsApp||'').replace(/\D/g,'') +
-          '?text=Hi%2C%20I\'m%20interested%20in%20' +
-          encodeURIComponent(p.name) + '" ' +
-          'target="_blank" class="btn-view-profile" ' +
-          'style="background:#25d366;text-align:center;display:block;">' +
-          '<i class="fab fa-whatsapp"></i> Order Now' +
-          '</a>' +
-          '</div></div>';
-      }).join('');
-
-    });
-  <script src="app.js"></script>
-<script>
-
-var SAMPLE_VENDORS = [
-  {
-    id: 'VND-SAMPLE-1',
-    email: 'jay@sample.com',
-    fullName: 'Jay Adewale',
-    bizName: 'Jay Sneakers Hub',
-    university: 'UNILAG',
-    category: 'Fashion',
-    description: 'Premium sneakers and streetwear for campus students. Quality guaranteed.',
-    whatsApp: '08012345678',
-    status: 'approved',
-    joinedDate: 'April 1, 2024',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop'
-  },
-  {
-    id: 'VND-SAMPLE-2',
-    email: 'tasty@sample.com',
-    fullName: 'Ngozi Eze',
-    bizName: 'Tasty Bites Kitchen',
-    university: 'UNN',
-    category: 'Food',
-    description: 'Delicious homemade meals on campus. Jollof rice specialist.',
-    whatsApp: '08023456789',
-    status: 'approved',
-    joinedDate: 'April 3, 2024',
-    image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=300&h=200&fit=crop'
-  },
-  {
-    id: 'VND-SAMPLE-3',
-    email: 'grace@sample.com',
-    fullName: 'Grace Okafor',
-    bizName: 'Grace Villa Lodge',
-    university: 'DELSU',
-    category: 'Services',
-    description: 'Comfortable student accommodation near campus.',
-    whatsApp: '08034567890',
-    status: 'approved',
-    joinedDate: 'April 5, 2024',
-    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=300&h=200&fit=crop'
-  },
-  {
-    id: 'VND-SAMPLE-4',
-    email: 'glitz@sample.com',
-    fullName: 'Amaka Obi',
-    bizName: 'Glitz Jewelry',
-    university: 'LASU',
-    category: 'Fashion',
-    description: 'Fine jewelry and accessories for the modern campus woman.',
-    whatsApp: '08045678901',
-    status: 'approved',
-    joinedDate: 'April 7, 2024',
-    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=200&fit=crop'
-  },
-  {
-    id: 'VND-SAMPLE-5',
-    email: 'cuts@sample.com',
-    fullName: 'Emeka Nwoke',
-    bizName: 'Campus Cuts Barber',
-    university: 'UI',
-    category: 'Barbing Salon',
-    description: 'Professional haircuts and grooming. Walk-ins welcome.',
-    whatsApp: '08056789012',
-    status: 'approved',
-    joinedDate: 'April 9, 2024',
-    image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&h=200&fit=crop'
-  },
-  {
-    id: 'VND-SAMPLE-6',
-    email: 'glow@sample.com',
-    fullName: 'Fatima Bello',
-    bizName: 'Glow Beauty Studio',
-    university: 'OAU',
-    category: 'Beauty',
-    description: 'Makeup and beauty services for campus events.',
-    whatsApp: '08067890123',
-    status: 'approved',
-    joinedDate: 'April 11, 2024',
-    image: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&h=200&fit=crop'
-  },
-  {
-    id: 'VND-SAMPLE-7',
-    email: 'print@sample.com',
-    fullName: 'Chidi Okonkwo',
-    bizName: 'QuickPrint Hub',
-    university: 'UNIBEN',
-    category: 'Printing',
-    description: 'Fast printing, binding and scanning for students.',
-    whatsApp: '08078901234',
-    status: 'approved',
-    joinedDate: 'April 13, 2024',
-    image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=300&h=200&fit=crop'
-  },
-  {
-    id: 'VND-SAMPLE-8',
-    email: 'gadget@sample.com',
-    fullName: 'Tunde Bakare',
-    bizName: 'CampusTech Gadgets',
-    university: 'ABU',
-    category: 'Gadgets',
-    description: 'Phones, laptops and accessories at student prices.',
-    whatsApp: '08089012345',
-    status: 'approved',
-    joinedDate: 'April 15, 2024',
-    image: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=300&h=200&fit=crop'
-  }
-];
-
-function findVendorById(id) {
-  try {
-    var stored = JSON.parse(localStorage.getItem('imc_vendors') || '[]');
-    for (var i = 0; i < stored.length; i++) {
-      if (stored[i].id === id) { return stored[i]; }
+    function showNotFound() {
+      if (loadingEl)  loadingEl.style.display  = 'none';
+      if (notFoundEl) notFoundEl.style.display = 'block';
+      if (contentEl)  contentEl.style.display  = 'none';
     }
-  } catch (e) {}
-  for (var s = 0; s < SAMPLE_VENDORS.length; s++) {
-    if (SAMPLE_VENDORS[s].id === id) { return SAMPLE_VENDORS[s]; }
-  }
-  return null;
-}
 
-function getVendorProducts(vendorEmail) {
-  try {
-    var all = JSON.parse(localStorage.getItem('imc_products') || '[]');
-    return all.filter(function (p) {
-      return p.vendorEmail === vendorEmail;
+    function showContent() {
+      if (loadingEl)  loadingEl.style.display  = 'none';
+      if (notFoundEl) notFoundEl.style.display = 'none';
+      if (contentEl)  contentEl.style.display  = 'block';
+    }
+
+    if (!vendorId || vendorId.startsWith('VND-SAMPLE')) {
+      showNotFound();
+      return;
+    }
+
+    var vendorResult = await IMC_API.getVendors();
+    if (!vendorResult.success) { showNotFound(); return; }
+
+    var vendor = (vendorResult.vendors || []).find(function (v) {
+      return (v._id || v.id) === vendorId;
     });
-  } catch (e) {
-    return [];
-  }
-}
 
-function buildWhatsAppUrl(number, vendorName) {
-  var cleaned = (number || '').replace(/\D/g, '');
-  if (cleaned.charAt(0) === '0') {
-    cleaned = '234' + cleaned.substring(1);
-  }
-  if (!cleaned) { return '#'; }
-  return 'https://wa.me/' + cleaned +
-    '?text=Hi%20' + encodeURIComponent(vendorName) +
-    '%2C%20I%20found%20you%20on%20Inside%20My%20Campus!';
-}
+    if (!vendor) { showNotFound(); return; }
 
-function makeAboutItem(icon, label, value) {
-  return '<div class="about-info-item">' +
-    '<i class="' + icon + '"></i>' +
-    '<div>' +
-    '<span>' + label + '</span>' +
-    '<strong>' + (value || '') + '</strong>' +
-    '</div>' +
-    '</div>';
-}
+    document.title = vendor.bizName + ' — Inside My Campus';
 
-function renderProfile(vendor) {
-  var contentEl  = document.getElementById('vendorProfileContent');
-  var notFoundEl = document.getElementById('vendorNotFound');
-  if (contentEl)  { contentEl.style.display  = 'block'; }
-  if (notFoundEl) { notFoundEl.style.display = 'none';  }
+    var avatarEl = document.getElementById('vendorAvatar');
+    if (avatarEl) {
+      if (vendor.profilePicture) {
+        avatarEl.innerHTML = '<img src="' + vendor.profilePicture + '" alt="' + esc(vendor.bizName) + '"/>';
+      } else {
+        avatarEl.textContent = (vendor.bizName || '?').charAt(0).toUpperCase();
+      }
+    }
 
-  document.title = vendor.bizName + ' - Inside My Campus';
+    setText('vendorHeroName',     vendor.bizName);
+    setText('vendorHeroCategory', vendor.category);
+    setText('vendorHeroUni',      '🎓 ' + (vendor.university || ''));
+    setText('vendorHeroLocation', vendor.campusLocation ? '📍 ' + vendor.campusLocation : '');
+    setText('vendorAboutText',    vendor.description || 'No description provided.');
 
-  var avatarEl = document.getElementById('vendorAvatar');
-  if (avatarEl) {
-    avatarEl.textContent = vendor.bizName.charAt(0).toUpperCase();
-  }
+    var phone = (vendor.whatsApp || '').replace(/[^0-9]/g, '');
+    if (phone.startsWith('0')) phone = '234' + phone.substring(1);
+    var waMsg = encodeURIComponent('Hi ' + vendor.bizName + ', I found you on Inside My Campus!');
+    var waBtn = document.getElementById('vendorWhatsAppBtn');
+    if (waBtn) {
+      waBtn.href = phone ? 'https://wa.me/' + phone + '?text=' + waMsg : '#';
+      if (!phone) waBtn.onclick = function() { alert('WhatsApp not available.'); return false; };
+    }
 
-  var nameEl = document.getElementById('vendorHeroName');
-  var catEl  = document.getElementById('vendorHeroCategory');
-  var uniEl  = document.getElementById('vendorHeroUni');
-  if (nameEl) { nameEl.textContent = vendor.bizName; }
-  if (catEl)  { catEl.textContent  = vendor.category; }
-  if (uniEl)  { uniEl.textContent  = vendor.university; }
+    var aboutGrid = document.getElementById('vendorAboutGrid');
+    if (aboutGrid) {
+      aboutGrid.innerHTML =
+        infoItem('fas fa-user',           'Owner',        vendor.fullName)   +
+        infoItem('fab fa-whatsapp',       'WhatsApp',     vendor.whatsApp)   +
+        infoItem('fas fa-university',     'University',   vendor.university) +
+        infoItem('fas fa-tag',            'Category',     vendor.category)   +
+        (vendor.campusLocation ? infoItem('fas fa-map-marker-alt','Location', vendor.campusLocation) : '') +
+        (vendor.createdAt ? infoItem('fas fa-calendar','Member Since',
+          new Date(vendor.createdAt).toLocaleDateString('en-GB',{month:'short',year:'numeric'})) : '');
+    }
 
-  var waBtn = document.getElementById('vendorWhatsAppBtn');
-  if (waBtn) {
-    waBtn.href = buildWhatsAppUrl(vendor.whatsApp, vendor.bizName);
-  }
+    showContent();
 
-  var aboutText = document.getElementById('vendorAboutText');
-  if (aboutText) { aboutText.textContent = vendor.description; }
+    var productResult = await IMC_API.getAllProducts();
+    var products = (productResult.products || []).filter(function (p) {
+      return p.vendorId === vendorId || p.vendorId === vendor._id;
+    });
 
-  var aboutGrid = document.getElementById('vendorAboutGrid');
-  if (aboutGrid) {
-    aboutGrid.innerHTML =
-      makeAboutItem('fas fa-user',       'Owner',        vendor.fullName)   +
-      makeAboutItem('fab fa-whatsapp',   'WhatsApp',     vendor.whatsApp)   +
-      makeAboutItem('fas fa-university', 'University',   vendor.university) +
-      makeAboutItem('fas fa-calendar',   'Member Since', vendor.joinedDate);
-  }
+    var countBadge = document.getElementById('productCountBadge');
+    if (countBadge) {
+      countBadge.textContent = products.length + ' product' + (products.length !== 1 ? 's' : '') + ' listed';
+    }
 
-  var products   = getVendorProducts(vendor.email);
-  var countBadge = document.getElementById('productCountBadge');
-  var grid       = document.getElementById('vendorProductsGrid');
+    var grid = document.getElementById('vendorProductsGrid');
+    if (!grid) return;
 
-  if (countBadge) {
-    countBadge.textContent = products.length + ' product' +
-      (products.length !== 1 ? 's' : '') + ' listed';
-  }
+    if (!products.length) {
+      grid.innerHTML =
+        '<div class="empty-state-card">' +
+        '<div style="font-size:40px;margin-bottom:12px;">📦</div>' +
+        '<p>No products posted yet.</p>' +
+        '<p style="font-size:13px;margin-top:6px;">Contact them on WhatsApp to enquire.</p>' +
+        '</div>';
+      return;
+    }
 
-  if (!grid) { return; }
+    var waOrderBase = phone ? 'https://wa.me/' + phone + '?text=' : null;
 
-  if (products.length === 0) {
-    grid.innerHTML =
-      '<div class="empty-state-card" ' +
-      'style="grid-column:1/-1;text-align:center;padding:40px;">' +
-      '<div style="font-size:40px;margin-bottom:12px;">📦</div>' +
-      '<p style="color:#888;">No products posted yet.</p>' +
-      '<p style="font-size:13px;color:#aaa;margin-top:6px;">' +
-      'Contact them on WhatsApp to enquire.</p>' +
-      '</div>';
-    return;
-  }
+    grid.innerHTML = products.map(function (p) {
+      var img = p.image ||
+        'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&h=200&fit=crop';
+      var orderMsg    = encodeURIComponent('Hi ' + vendor.bizName + '! I saw "' + p.name + '" on Inside My Campus. Is it still available?');
+      var waOrderLink = waOrderBase ? waOrderBase + orderMsg : '#';
+      var mediaHtml   = p.video
+        ? '<video src="' + p.video + '" controls style="width:100%;height:160px;object-fit:cover;display:block;"></video>'
+        : '<img class="product-card-img" src="' + img + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.src=\'https://via.placeholder.com/300x200?text=Product\'"/>';
 
-  grid.innerHTML = products.map(function (p) {
-  // Image source — base64 upload OR fallback URL
-  var imgSrc = p.image ||
-    'https://via.placeholder.com/300x200?text=' +
-    encodeURIComponent(p.name || 'Product');
+      return '<div class="product-card">' +
+        mediaHtml +
+        '<div class="product-card-body">' +
+        '<h4>' + esc(p.name) + '</h4>' +
+        '<div class="product-price">₦' + parseFloat(p.price || 0).toLocaleString() + '</div>' +
+        (p.description ? '<p class="product-desc">' + esc(p.description) + '</p>' : '') +
+        '<a href="product-details.html?id=' + esc(p._id) + '" class="btn-view-profile" style="display:block;text-align:center;text-decoration:none;margin-bottom:6px;">View Details</a>' +
+        '<a href="' + waOrderLink + '" target="_blank" class="btn-view-profile" style="background:#25D366;display:block;text-align:center;text-decoration:none;">' +
+        '<i class="fab fa-whatsapp"></i> Order on WhatsApp</a>' +
+        '</div></div>';
+    }).join('');
 
-  var waOrderUrl = buildWhatsAppUrl(
-    vendor.whatsApp, vendor.bizName
-  );
+  });
 
-  var mediaHtml = '';
-  if (p.video) {
-    mediaHtml =
-      '<video src="' + p.video + '" controls ' +
-      'style="width:100%;height:160px;' +
-      'object-fit:cover;display:block;">' +
-      '</video>';
-  } else {
-    mediaHtml =
-      '<img src="' + imgSrc + '" ' +
-      'alt="' + (p.name || 'Product') + '" ' +
-      'class="product-card-img" ' +
-      'style="width:100%;height:160px;object-fit:cover;" ' +
-      'onerror="this.src=\'https://via.placeholder.com/' +
-      '300x200?text=Product\'"/>';
+  function setText(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val || '';
   }
 
-  return '<div class="product-card">' +
-    mediaHtml +
-    '<div class="product-card-body">' +
-    '<h4>' + (p.name || '') + '</h4>' +
-    '<p class="product-price">&#8358;' +
-    parseInt(p.price || 0).toLocaleString() + '</p>' +
-    '<p class="product-desc">' + (p.description || '') + '</p>' +
-    '<a href="' + waOrderUrl + '" target="_blank" ' +
-    'class="btn-view-profile" ' +
-    'style="background:#25d366;text-align:center;' +
-    'display:block;text-decoration:none;margin-top:8px;">' +
-    '<i class="fab fa-whatsapp"></i> Order on WhatsApp' +
-    '</a>' +
-    '</div>' +
-    '</div>';
-}).join('');
-   
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-  var params   = new URLSearchParams(window.location.search);
-  var vendorId = params.get('id');
-
-  var notFoundEl = document.getElementById('vendorNotFound');
-  var contentEl  = document.getElementById('vendorProfileContent');
-
-  if (!vendorId) {
-    if (notFoundEl) { notFoundEl.style.display = 'block'; }
-    if (contentEl)  { contentEl.style.display  = 'none';  }
-    return;
+  function infoItem(icon, label, value) {
+    if (!value) return '';
+    return '<div class="about-info-item">' +
+      '<i class="' + icon + '"></i>' +
+      '<div><span>' + label + '</span>' +
+      '<strong>' + esc(value) + '</strong>' +
+      '</div></div>';
   }
 
-  var vendor = findVendorById(vendorId);
-
-  if (!vendor) {
-    if (notFoundEl) { notFoundEl.style.display = 'block'; }
-    if (contentEl)  { contentEl.style.display  = 'none';  }
-    return;
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  renderProfile(vendor);
-});
-
-</script>
-
+  </script>
 </body>
-</ht
+</html>
