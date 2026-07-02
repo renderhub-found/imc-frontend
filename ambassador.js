@@ -14,7 +14,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Check if already an ambassador
   var profileResult = await IMC_API.getMyAmbassadorProfile();
   if (profileResult.success && profileResult.isAmbassador) {
-    window.location.href = 'ambassador-dashboard.html';
+    var formBox    = document.getElementById('ambassadorFormBox');
+    var alreadyBox = document.getElementById('alreadyAmbassadorBox');
+    if (formBox)    formBox.style.display    = 'none';
+    if (alreadyBox) alreadyBox.style.display = 'flex';
     return;
   }
 
