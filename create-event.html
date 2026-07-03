@@ -75,10 +75,19 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label>Cover Image URL <span style="color:#888;font-weight:400;">(optional)</span></label>
-      <input type="text" id="evCoverImage" placeholder="https://..."/>
+    <div class="form-group" style="margin-bottom:14px;">
+  <label>Event Cover Image</label>
+  <div class="file-upload-area">
+    <input type="file" id="eventCoverFile" accept="image/*" style="display:none;"/>
+    <div class="file-upload-placeholder" id="eventCoverPlaceholder"
+      onclick="document.getElementById('eventCoverFile').click()">
+      <i class="fas fa-image"></i><p>📷 Upload Event Image</p>
     </div>
+    <div id="eventCoverPreviewWrap" style="display:none;">
+      <img id="eventCoverPreview" src="" style="width:100%;max-height:180px;object-fit:cover;"/>
+    </div>
+  </div>
+</div>
 
     <div class="form-group">
       <label>Contact Info</label>

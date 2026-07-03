@@ -3,6 +3,9 @@
 		{
 			"name": "Inside my campus.02",
 			"path": "."
+		},
+		{
+			"path": "../imc-backend"
 		}
 	],
 	"settings": {}
