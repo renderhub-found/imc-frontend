@@ -1622,17 +1622,12 @@ function esc(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-</script>
-
-<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
-
 <script>
 ClassicEditor
-    .create(document.querySelector('#newsAdminContent'))
-    .catch(error => {
-        console.error(error);
-    });
+  .create(document.querySelector('#newsAdminContent'))
+  .catch(error => {
+    console.error(error);
+  });
 </script>
-
 </body>
 </html>
