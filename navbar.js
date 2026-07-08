@@ -15,6 +15,7 @@
     initDropdown();
     initLogout();
     initSmartVendorBtn();
+    initSmartAmbassadorBtn();
     initCategoryClicks();
     initHeroSearch();
     initHeroButtons();
@@ -24,6 +25,12 @@
   //   AUTH STATE — show/hide login vs user menu
   // ================================================
   function initAuthState() {
+    // Some pages still load the legacy script.js alongside this file.
+    // Whichever of the two runs first "claims" auth-state handling so it
+    // never runs twice on the same page.
+    if (window.__imcAuthStateHandled) return;
+    window.__imcAuthStateHandled = true;
+
     var loggedIn    = localStorage.getItem('imc_logged_in');
     var authButtons = document.getElementById('authButtons');
     var userMenu    = document.getElementById('userMenu');
@@ -109,6 +116,11 @@
   //   LOGOUT
   // ================================================
   function initLogout() {
+    // Same cross-file guard as initAuthState — whichever script runs
+    // first owns the logout button.
+    if (window.__imcLogoutHandled) return;
+    window.__imcLogoutHandled = true;
+
     var btn = document.getElementById('logoutBtn');
     if (!btn) return;
 
@@ -117,6 +129,9 @@
 
     newBtn.addEventListener('click', function (e) {
       e.preventDefault();
+      // Clear the full session — token included. Leaving imc_token behind
+      // was the cause of stale/inconsistent login state after logout.
+      localStorage.removeItem('imc_token');
       localStorage.removeItem('imc_logged_in');
       localStorage.removeItem('imc_user');
       window.location.href = 'index.html';
@@ -125,31 +140,56 @@
 
   // ================================================
   //   SMART BECOME A VENDOR BUTTON
+  //   Approved vendors skip straight to their dashboard.
+  //   Everyone else follows the link to vendor.html as normal,
+  //   which already shows the correct registration/pending view.
   // ================================================
   function initSmartVendorBtn() {
-    var loggedIn    = localStorage.getItem('imc_logged_in');
-    var currentUser = JSON.parse(
-      localStorage.getItem('imc_user') || 'null'
-    );
-    var vendors     = JSON.parse(
-      localStorage.getItem('imc_vendors') || '[]'
-    );
-
-    var targets = document.querySelectorAll(
-      'a[href="vendor.html"], #becomeVendorBtn'
-    );
+    var targets = document.querySelectorAll('a[href="vendor.html"], #becomeVendorBtn');
+    if (!targets.length) return;
 
     targets.forEach(function (el) {
       el.addEventListener('click', function (e) {
-        if (loggedIn === 'true' && currentUser) {
-          var isVendor = vendors.find(function (v) {
-            return v.email === currentUser.email;
-          });
-          if (isVendor) {
-            e.preventDefault();
+        if (typeof IMC_API === 'undefined' || !IMC_API.isLoggedIn()) return;
+
+        e.preventDefault();
+        IMC_API.getMyVendorProfile().then(function (result) {
+          if (result.success && result.isVendor && result.vendor &&
+              result.vendor.status === 'approved') {
             window.location.href = 'vendor-dashboard.html';
+          } else {
+            window.location.href = 'vendor.html';
           }
-        }
+        }).catch(function () {
+          window.location.href = 'vendor.html';
+        });
+      });
+    });
+  }
+
+  // ================================================
+  //   SMART BECOME AN AMBASSADOR BUTTON
+  //   Same logic as the vendor button above.
+  // ================================================
+  function initSmartAmbassadorBtn() {
+    var targets = document.querySelectorAll('a[href="ambassador.html"], #becomeAmbassadorBtn');
+    if (!targets.length) return;
+
+    targets.forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        if (typeof IMC_API === 'undefined' || !IMC_API.isLoggedIn()) return;
+
+        e.preventDefault();
+        IMC_API.getMyAmbassadorProfile().then(function (result) {
+          if (result.success && result.isAmbassador && result.ambassador &&
+              result.ambassador.status !== 'suspended') {
+            window.location.href = 'ambassador-dashboard.html';
+          } else {
+            window.location.href = 'ambassador.html';
+          }
+        }).catch(function () {
+          window.location.href = 'ambassador.html';
+        });
       });
     });
   }

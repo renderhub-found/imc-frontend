@@ -30,9 +30,35 @@ window.addEventListener('DOMContentLoaded', async function () {
   var profileResult = await IMC_API.getMyVendorProfile();
   console.log('[Vendor] Profile result:', JSON.stringify(profileResult));
 
-  if (profileResult.success && profileResult.isVendor) {
-    if (formBox)    formBox.style.display    = 'none';
-    if (alreadyBox) alreadyBox.style.display = 'flex';
+  if (profileResult.success && profileResult.isVendor && profileResult.vendor) {
+    if (formBox) formBox.style.display = 'none';
+    if (alreadyBox) {
+      var status = profileResult.vendor.status;
+      var icon  = document.getElementById('alreadyVendorIcon');
+      var title = document.getElementById('alreadyVendorTitle');
+      var msg   = document.getElementById('alreadyVendorMsg');
+      var link  = document.getElementById('alreadyVendorLink');
+
+      if (status === 'approved') {
+        if (icon)  icon.textContent  = '🏪';
+        if (title) title.textContent = "You're already a vendor!";
+        if (msg)   msg.textContent   = 'Your vendor profile is active. Go to your dashboard to manage products and orders.';
+        if (link)  { link.style.display = 'inline-block'; link.href = 'vendor-dashboard.html'; link.textContent = 'Go to Vendor Dashboard'; }
+      } else if (status === 'rejected') {
+        if (icon)  icon.textContent  = '❌';
+        if (title) title.textContent = 'Application Not Approved';
+        if (msg)   msg.textContent   = 'Your vendor application was not approved. Contact support if you believe this was a mistake.';
+        if (link)  { link.style.display = 'inline-block'; link.href = 'contact.html'; link.textContent = 'Contact Support'; }
+      } else {
+        // pending
+        if (icon)  icon.textContent  = '⏳';
+        if (title) title.textContent = 'Vendor Application Pending';
+        if (msg)   msg.textContent   = "We've received your application and it's under review. We'll notify you once it's approved — usually within 48 hours.";
+        if (link)  link.style.display = 'none';
+      }
+
+      alreadyBox.style.display = 'flex';
+    }
     return;
   }
 

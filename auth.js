@@ -226,25 +226,11 @@ if (signupBtn) {
       // Show success
       if (successBox) successBox.style.display = 'flex';
 
-      // Before redirecting after successful signup, preserve referral code
-if (result.success) {
-  // Referral code survives signup
-  var refCode = localStorage.getItem('imc_ref_code');
-  // saveAuthData already called inside IMC_API.register
-  // Just redirect — ref code stays in localStorage
-  setTimeout(function () {
-    // If came from a referral link, go back to vendor page
-    if (refCode) {
-      window.location.href = 'vendor.html';
-    } else {
-      window.location.href = 'index.html';
-    }
-  }, 1500);
-}
-
-      // Redirect after 1.5 seconds
+      // Redirect after 1.5 seconds. If the user arrived via a referral
+      // link, send them back to the vendor page instead of home.
+      var refCode = localStorage.getItem('imc_ref_code');
       setTimeout(function () {
-        window.location.href = 'index.html';
+        window.location.href = refCode ? 'vendor.html' : 'index.html';
       }, 1500);
 
     } else {

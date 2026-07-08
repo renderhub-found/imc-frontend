@@ -19,7 +19,12 @@ document.addEventListener('click', function() {
 
 
 // ===== AUTH STATE CHECK =====
+// Guarded against navbar.js also running on the same page — whichever
+// of the two scripts runs first claims this, so it never runs twice.
 function checkAuthState() {
+  if (window.__imcAuthStateHandled) return;
+  window.__imcAuthStateHandled = true;
+
   const loggedIn    = localStorage.getItem('imc_logged_in');
   const authButtons = document.getElementById('authButtons');
   const userMenu    = document.getElementById('userMenu');
@@ -37,10 +42,15 @@ checkAuthState();
 
 
 // ===== LOGOUT =====
+// Same cross-file guard as checkAuthState.
 const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
+if (logoutBtn && !window.__imcLogoutHandled) {
+  window.__imcLogoutHandled = true;
   logoutBtn.addEventListener('click', function(e) {
     e.preventDefault();
+    // Clear the full session — token included. Leaving imc_token behind
+    // was the cause of stale/inconsistent login state after logout.
+    localStorage.removeItem('imc_token');
     localStorage.removeItem('imc_logged_in');
     localStorage.removeItem('imc_user');
     window.location.href = 'index.html';
@@ -141,27 +151,46 @@ if (exploreUnisBtn) {
 
 
 // ===== SMART BECOME A VENDOR BUTTON =====
+// Approved vendors skip straight to their dashboard. Everyone else
+// follows the link to vendor.html as normal.
 document.querySelectorAll(
   'a[href="vendor.html"], #becomeVendorBtn'
 ).forEach(function(link) {
   link.addEventListener('click', function(e) {
-    const loggedIn    = localStorage.getItem('imc_logged_in');
-    const currentUser = JSON.parse(
-      localStorage.getItem('imc_user') || 'null'
-    );
+    if (typeof IMC_API === 'undefined' || !IMC_API.isLoggedIn()) return;
 
-    if (loggedIn && currentUser) {
-      const vendors  = JSON.parse(
-        localStorage.getItem('imc_vendors') || '[]'
-      );
-      const isVendor = vendors.find(
-        v => v.email === currentUser.email
-      );
-      if (isVendor) {
-        e.preventDefault();
+    e.preventDefault();
+    IMC_API.getMyVendorProfile().then(function (result) {
+      if (result.success && result.isVendor && result.vendor &&
+          result.vendor.status === 'approved') {
         window.location.href = 'vendor-dashboard.html';
+      } else {
+        window.location.href = 'vendor.html';
       }
-    }
+    }).catch(function () {
+      window.location.href = 'vendor.html';
+    });
+  });
+});
+
+// ===== SMART BECOME AN AMBASSADOR BUTTON =====
+document.querySelectorAll(
+  'a[href="ambassador.html"], #becomeAmbassadorBtn'
+).forEach(function(link) {
+  link.addEventListener('click', function(e) {
+    if (typeof IMC_API === 'undefined' || !IMC_API.isLoggedIn()) return;
+
+    e.preventDefault();
+    IMC_API.getMyAmbassadorProfile().then(function (result) {
+      if (result.success && result.isAmbassador && result.ambassador &&
+          result.ambassador.status !== 'suspended') {
+        window.location.href = 'ambassador-dashboard.html';
+      } else {
+        window.location.href = 'ambassador.html';
+      }
+    }).catch(function () {
+      window.location.href = 'ambassador.html';
+    });
   });
 });
 

@@ -68,7 +68,19 @@ var IMC_API = (function () {
       }
 
       var response = await fetch(BASE_URL + endpoint, options);
-      var text     = await response.text();
+
+      // ---- Session expired / invalid token ----
+      // If an authenticated request comes back 401, the token is no longer
+      // valid (expired, rotated secret, deleted user, etc). Clear the stale
+      // session and send the user to a clean login instead of leaving pages
+      // silently broken while still "looking" logged in.
+      if (auth && response.status === 401 && !window.location.pathname.endsWith('login.html')) {
+        clearAuthData();
+        window.location.href = 'login.html?sessionExpired=true';
+        return { success: false, message: 'Session expired. Please log in again.' };
+      }
+
+      var text = await response.text();
 
       try {
         return JSON.parse(text);

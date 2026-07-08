@@ -21,13 +21,14 @@
       window.location.href = 'login.html';
       return;
     }
-
-    // ---- Get vendor profile from backend ----
+// ---- Get vendor profile from backend ----
     var result = await IMC_API.getMyVendorProfile();
 
-    if (!result.success || !result.isVendor) {
+    if (!result.success || !result.isVendor || !result.vendor ||
+        result.vendor.status !== 'approved') {
       window.location.href = 'vendor.html';
       return;
+    
     }
 
     vendorData = result.vendor;

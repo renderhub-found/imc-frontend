@@ -440,7 +440,23 @@
 
         <div class="form-row">
           <label>Content</label>
-          <textarea id="newsAdminContent" rows="5" placeholder="Write the news content..."></textarea>
+          <div id="newsAdminContent" style="background:#fff;"></div>
+        </div>
+
+        <div class="form-row">
+          <label>SEO Title <span style="color:#999;font-weight:400;">(optional — defaults to News Title)</span></label>
+          <input type="text" id="newsAdminSeoTitle" placeholder="Title shown in search engine results"/>
+        </div>
+
+        <div class="form-row">
+          <label>Meta Description <span style="color:#999;font-weight:400;">(optional, ~155 characters)</span></label>
+          <textarea id="newsAdminMetaDesc" rows="2" maxlength="160"
+            placeholder="Short summary shown in search engine results"></textarea>
+        </div>
+
+        <div class="form-row">
+          <label>URL Slug <span style="color:#999;font-weight:400;">(optional — auto-generated from the title)</span></label>
+          <input type="text" id="newsAdminSlug" placeholder="e.g. unilag-freshers-week-2026"/>
         </div>
 
         <div class="form-row">
@@ -483,9 +499,34 @@
             <span id="newsAdminPublishText"><i class="fas fa-bullhorn"></i> Publish</span>
             <span id="newsAdminPublishSpinner" style="display:none;">Publishing...</span>
           </button>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button id="newsAdminPublishBtn" class="btn btn-primary" style="flex:1;">
+            <span id="newsAdminPublishText"><i class="fas fa-bullhorn"></i> Publish</span>
+            <span id="newsAdminPublishSpinner" style="display:none;">Publishing...</span>
+          </button>
           <button id="newsAdminDraftBtn" class="btn btn-ghost" style="flex:1;">
             Save as Draft
           </button>
+          <button id="newsAdminPreviewBtn" type="button" class="btn btn-ghost" style="flex:1;">
+            <i class="fas fa-eye"></i> Preview
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview modal -->
+      <div id="newsPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+        z-index:9999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#fff;border-radius:12px;max-width:700px;width:100%;
+          max-height:85vh;overflow-y:auto;padding:28px;position:relative;">
+          <button onclick="document.getElementById('newsPreviewModal').style.display='none';"
+            style="position:absolute;top:14px;right:14px;background:none;border:none;
+            font-size:20px;cursor:pointer;color:#888;">
+            <i class="fas fa-times"></i>
+          </button>
+          <div id="newsPreviewImage" style="margin-bottom:16px;"></div>
+          <h2 id="newsPreviewTitle" style="font-size:24px;font-weight:800;margin-bottom:8px;"></h2>
+          <p id="newsPreviewMeta" style="color:#888;font-size:13px;margin-bottom:20px;"></p>
+          <div id="newsPreviewBody" style="line-height:1.7;color:#333;"></div>
         </div>
       </div>
 
@@ -656,9 +697,23 @@
       <input type="text" id="courseFileUrl" placeholder="https://..."/>
     </div>
     <div class="form-row">
-      <label>Image URL</label>
-      <input type="text" id="courseImage" placeholder="https://..."/>
+      <label>Course Image</label>
+      <input type="file" id="courseImageFile" accept="image/*" style="display:none;"/>
+      <div id="courseImagePlaceholder"
+        onclick="document.getElementById('courseImageFile').click()"
+        style="border:2px dashed #ccc;border-radius:8px;padding:24px;text-align:center;
+        cursor:pointer;color:#888;">
+        <i class="fas fa-cloud-upload-alt" style="font-size:24px;display:block;margin-bottom:6px;"></i>
+        Click to upload course image (max 5MB)
+      </div>
+      <div id="courseImagePreviewWrap" style="display:none;margin-top:8px;">
+        <img id="courseImagePreview" src="" style="width:100%;max-height:180px;
+          object-fit:cover;border-radius:8px;"/>
+      </div>
     </div>
+    <input type="hidden" id="courseImage" value=""/>
+    <!-- courseImage keeps the existing image URL when editing a course
+         without uploading a new file, so the backend doesn't wipe it. -->
     <div class="form-row">
       <label>Duration</label>
       <input type="text" id="courseDuration" placeholder="e.g. 3 hours"/>
@@ -761,9 +816,50 @@ document.addEventListener('DOMContentLoaded', async function () {
   await loadStats();
 });
 
+ 
+var newsEditorInstance = null;
+
 function initNewsAdminCreate() {
   var imgInput = document.getElementById('newsAdminImageFile');
   var vidInput = document.getElementById('newsAdminVideoFile');
+
+  // ---- Initialize CKEditor ----
+  if (window.ClassicEditor && document.getElementById('newsAdminContent')) {
+    ClassicEditor
+      .create(document.getElementById('newsAdminContent'), {
+        toolbar: [
+          'heading', '|',
+          'bold', 'italic', 'underline', '|',
+          'link', 'bulletedList', 'numberedList', '|',
+          'insertTable', 'blockQuote', '|',
+          'undo', 'redo'
+        ],
+        table: {
+          contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+        }
+      })
+      .then(function (editor) { newsEditorInstance = editor; })
+      .catch(function (err) { console.error('[CKEditor]', err); });
+  }
+
+  // ---- Auto-generate slug from title (only while the user hasn't
+  // typed a slug of their own) ----
+  var titleInput = document.getElementById('newsAdminTitle');
+  var slugInput  = document.getElementById('newsAdminSlug');
+  var slugEdited = false;
+  if (slugInput) {
+    slugInput.addEventListener('input', function () { slugEdited = true; });
+  }
+  if (titleInput && slugInput) {
+    titleInput.addEventListener('input', function () {
+      if (slugEdited) return;
+      slugInput.value = titleInput.value.toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+    });
+  }
 
   if (imgInput) {
     imgInput.addEventListener('change', function () {
@@ -792,10 +888,19 @@ function initNewsAdminCreate() {
     });
   }
 
+  function getEditorContent() {
+    return newsEditorInstance
+      ? newsEditorInstance.getData().trim()
+      : (document.getElementById('newsAdminContent').value || '').trim();
+  }
+
   function doPublish(status) {
     var title    = document.getElementById('newsAdminTitle').value.trim();
     var category = document.getElementById('newsAdminCategory').value.trim();
-    var content  = document.getElementById('newsAdminContent').value.trim();
+    var content  = getEditorContent();
+    var seoTitle = document.getElementById('newsAdminSeoTitle').value.trim();
+    var metaDesc = document.getElementById('newsAdminMetaDesc').value.trim();
+    var slug     = document.getElementById('newsAdminSlug').value.trim();
 
     var errBox = document.getElementById('createNewsError');
     var errMsg = document.getElementById('createNewsErrorMsg');
@@ -811,6 +916,9 @@ function initNewsAdminCreate() {
     formData.append('category', category);
     formData.append('content', content);
     formData.append('status', status);
+    formData.append('seoTitle', seoTitle);
+    formData.append('metaDescription', metaDesc);
+    formData.append('slug', slug);
 
     var imgFile = imgInput && imgInput.files[0];
     var vidFile = vidInput && vidInput.files[0];
@@ -830,7 +938,11 @@ function initNewsAdminCreate() {
         okBox.style.display = 'flex';
         document.getElementById('newsAdminTitle').value = '';
         document.getElementById('newsAdminCategory').value = '';
-        document.getElementById('newsAdminContent').value = '';
+        document.getElementById('newsAdminSeoTitle').value = '';
+        document.getElementById('newsAdminMetaDesc').value = '';
+        document.getElementById('newsAdminSlug').value = '';
+        slugEdited = false;
+        if (newsEditorInstance) newsEditorInstance.setData('');
         if (imgInput) imgInput.value = '';
         if (vidInput) vidInput.value = '';
         document.getElementById('newsAdminImagePlaceholder').style.display = 'block';
@@ -845,10 +957,37 @@ function initNewsAdminCreate() {
     });
   }
 
-  var pubBtn   = document.getElementById('newsAdminPublishBtn');
-  var draftBtn = document.getElementById('newsAdminDraftBtn');
-  if (pubBtn)   pubBtn.addEventListener('click', function () { doPublish('approved'); });
-  if (draftBtn) draftBtn.addEventListener('click', function () { doPublish('draft'); });
+  function showPreview() {
+    var title   = document.getElementById('newsAdminTitle').value.trim() || 'Untitled';
+    var content = getEditorContent() || '<p style="color:#999;">Nothing written yet.</p>';
+    var imgFile = imgInput && imgInput.files[0];
+
+    document.getElementById('newsPreviewTitle').textContent = title;
+    document.getElementById('newsPreviewMeta').textContent =
+      'Preview · ' + new Date().toLocaleDateString();
+    document.getElementById('newsPreviewBody').innerHTML = content;
+
+    var imgBox = document.getElementById('newsPreviewImage');
+    if (imgFile) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        imgBox.innerHTML = '<img src="' + e.target.result +
+          '" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;"/>';
+      };
+      reader.readAsDataURL(imgFile);
+    } else {
+      imgBox.innerHTML = '';
+    }
+
+    document.getElementById('newsPreviewModal').style.display = 'flex';
+  }
+
+  var pubBtn     = document.getElementById('newsAdminPublishBtn');
+  var draftBtn   = document.getElementById('newsAdminDraftBtn');
+  var previewBtn = document.getElementById('newsAdminPreviewBtn');
+  if (pubBtn)     pubBtn.addEventListener('click', function () { doPublish('approved'); });
+  if (draftBtn)   draftBtn.addEventListener('click', function () { doPublish('draft'); });
+  if (previewBtn) previewBtn.addEventListener('click', showPreview);
 }
 
 function removeNewsAdminImage() {
@@ -914,15 +1053,19 @@ function switchSection(name, label) {
 
 async function adminRequest(method, endpoint, data) {
   try {
+    var isFormData = (typeof FormData !== 'undefined') && data instanceof FormData;
+
     var opts = {
       method:  method,
       headers: {
-        'Content-Type':  'application/json',
         'Authorization': 'Bearer ' + ADMIN_TOKEN
       }
     };
+    if (!isFormData) {
+      opts.headers['Content-Type'] = 'application/json';
+    }
     if (data && (method === 'POST' || method === 'PUT')) {
-      opts.body = JSON.stringify(data);
+      opts.body = isFormData ? data : JSON.stringify(data);
     }
     var res  = await fetch(
       (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -1279,18 +1422,7 @@ async function saveCourse() {
     return;
   }
 
-  var r = editingCourseId
-    ? await adminRequest('PUT', '/courses/' + editingCourseId, data)
-    : await adminRequest('POST', '/courses', data);
 
-  if (r.success) {
-    document.getElementById('courseModal').style.display = 'none';
-    loadCourses();
-  } else {
-    errEl.textContent   = r.message || 'Failed to save course.';
-    errEl.style.display = 'block';
-  }
-}
 
 async function loadAdminEvents() {
   var r = await adminRequest('GET', '/events');
@@ -1464,6 +1596,8 @@ function esc(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
+<script src="api.js"></script>
 </script>
 </body>
 </html>

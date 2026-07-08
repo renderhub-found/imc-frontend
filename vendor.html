@@ -37,12 +37,23 @@
   <section class="auth-section" style="background:#f4f6fb; padding: 40px 20px;">
     <div class="auth-card" style="max-width:560px;">
 
-      <!-- Already a vendor notice -->
-      <div id="alreadyVendorBox" style="display:none;" class="auth-success">
-        <i class="fas fa-check-circle"></i>
-        <span>You are already registered as a vendor. 
-          <a href="vendor-dashboard.html" style="color:#1a3c8f;font-weight:700;">Go to Dashboard →</a>
-        </span>
+      <!-- Already a vendor / pending / rejected notice.
+           Icon, title, message and link are set dynamically by vendor.js
+           based on the vendor's real status. -->
+      <div id="alreadyVendorBox" style="display:none;flex-direction:column;
+        align-items:center;justify-content:center;padding:40px 20px;text-align:center;"
+        class="auth-success">
+        <div id="alreadyVendorIcon" style="font-size:48px;margin-bottom:16px;">🏪</div>
+        <h3 id="alreadyVendorTitle" style="font-size:20px;font-weight:800;color:#1a1a2e;margin-bottom:8px;">
+          You're already a vendor!
+        </h3>
+        <p id="alreadyVendorMsg" style="font-size:14px;color:#666;margin-bottom:24px;">
+          Your vendor profile is active. Go to your dashboard to manage products and orders.
+        </p>
+        <a id="alreadyVendorLink" href="vendor-dashboard.html" class="btn-view-profile"
+          style="display:inline-block;padding:12px 28px;text-decoration:none;">
+          Go to Vendor Dashboard
+        </a>
       </div>
 
       <!-- Not logged in notice -->
@@ -52,21 +63,6 @@
           <a href="signup.html" style="color:#cc0000;font-weight:700;">sign up</a> before becoming a vendor.
         </span>
       </div>
-
-<div id="alreadyVendorBox" style="display:none;flex-direction:column;
-  align-items:center;justify-content:center;padding:40px 20px;text-align:center;">
-  <div style="font-size:48px;margin-bottom:16px;">🏪</div>
-  <h3 style="font-size:20px;font-weight:800;color:#1a1a2e;margin-bottom:8px;">
-    You're already a vendor!
-  </h3>
-  <p style="font-size:14px;color:#666;margin-bottom:24px;">
-    Your vendor profile is active. Go to your dashboard to manage products and orders.
-  </p>
-  <a href="vendor-dashboard.html" class="btn-view-profile"
-    style="display:inline-block;padding:12px 28px;text-decoration:none;">
-    Go to Vendor Dashboard
-  </a>
-</div>
 
       <!-- THE FORM -->
       <div id="vendorFormBox">
