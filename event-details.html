@@ -173,12 +173,7 @@
       <div><strong>Event:</strong> <span id="payModalEvent"></span></div>
       <div><strong>Ticket:</strong> <span id="payModalTicketType"></span></div>
       <div><strong>Amount:</strong> ₦<span id="payModalAmount"></span></div>
-      <hr style="margin:10px 0;border:none;border-top:1px solid #e0e0e0;"/>
-      <div><strong>Bank Name:</strong> <span id="payModalBankName">—</span></div>
-      <div><strong>Account Name:</strong> <span id="payModalAccName">—</span></div>
-      <div><strong>Account Number:</strong> <span id="payModalAccNum" style="cursor:pointer;color:#1a3c8f;" onclick="copyAccNum()">—</span> <small>(tap to copy)</small></div>
     </div>
-
     <button id="payViaPaystackBtn" class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:12px;margin-bottom:8px;">
       Pay with Card (Paystack)
     </button>
@@ -289,27 +284,17 @@ function renderEvent() {
     document.getElementById('metaContact').textContent   = ev.contactInfo;
   }
 
-  // Tickets
-  renderTickets();
+// Tickets
+  renderTicketTypes(ev);
 }
 
-var IMC_BANK_DETAILS = {
-  bankName: 'GTBank',
-  accountName: 'Inside My Campus',
-  accountNumber: '0123456789'  // ← replace with your real account
-};
+var IMC_BANK_DETAILS = null; // manual bank transfer removed — Paystack only, see below
 
 var selectedTicketType = null;
 
 function renderTicketTypes(event) {
   var container = document.getElementById('ticketTypesContainer');
   if (!container) return;
-
-  if (event.eventType === 'free') {
-    container.innerHTML = '<button class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:14px;" ' +
-      'onclick="registerFreeEvent(\'' + event._id + '\')">Register (Free)</button>';
-    return;
-  }
 
   var types = event.ticketTypes || [];
   if (types.length === 0) {
@@ -318,31 +303,42 @@ function renderTicketTypes(event) {
   }
 
   container.innerHTML = types.map(function (t) {
+    var soldOut = t.remaining <= 0;
+    var isFree  = t.isFree || t.price === 0;
     return '<button class="ticket-type-btn" style="width:100%;text-align:left;padding:14px;margin-bottom:8px;' +
-      'border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;" ' +
-      'onclick="selectTicketType(\'' + event._id + '\',\'' + t._id + '\',\'' + t.name + '\',' + t.price + ',\'' + event.title.replace(/'/g,"\\'") + '\')">' +
-      '<strong>' + t.name + '</strong><br/>' +
-      '<span style="color:#2d8653;font-weight:700;">₦' + t.price.toLocaleString() + '</span>' +
+      'border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;cursor:' + (soldOut ? 'not-allowed' : 'pointer') +
+      ';opacity:' + (soldOut ? '0.5' : '1') + ';" ' +
+      (soldOut ? 'disabled' :
+        'onclick="selectTicketType(\'' + event._id + '\',\'' + t._id + '\',\'' +
+        t.name.replace(/'/g,"\\'") + '\',' + t.price + ',\'' + event.title.replace(/'/g,"\\'") + '\',' + isFree + ')"'
+      ) +
+      '>' +
+      '<strong>' + esc(t.name) + '</strong>' + (soldOut ? ' — SOLD OUT' : '') + '<br/>' +
+      '<span style="color:#888;font-size:12px;">' + t.remaining + ' remaining</span><br/>' +
+      '<span style="color:#2d8653;font-weight:700;">' + (isFree ? 'FREE' : '₦' + t.price.toLocaleString()) + '</span>' +
       '</button>';
   }).join('');
 }
 
-function selectTicketType(eventId, ticketTypeId, ticketName, price, eventTitle) {
+function selectTicketType(eventId, ticketTypeId, ticketName, price, eventTitle, isFree) {
   selectedTicketType = { eventId: eventId, ticketTypeId: ticketTypeId, ticketName: ticketName, price: price, eventTitle: eventTitle };
 
+  if (!IMC_API.isLoggedIn()) {
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  }
+
+  // Free ticket — register immediately, no payment step
+  if (isFree) {
+    completeTicketPurchase(eventId, ticketTypeId, 'FREE');
+    return;
+  }
+
+  // Paid ticket — go through Paystack
   document.getElementById('payModalEvent').textContent      = eventTitle;
   document.getElementById('payModalTicketType').textContent = ticketName;
   document.getElementById('payModalAmount').textContent     = price.toLocaleString();
-  document.getElementById('payModalBankName').textContent   = IMC_BANK_DETAILS.bankName;
-  document.getElementById('payModalAccName').textContent    = IMC_BANK_DETAILS.accountName;
-  document.getElementById('payModalAccNum').textContent     = IMC_BANK_DETAILS.accountNumber;
-
   document.getElementById('ticketPaymentModal').style.display = 'flex';
-}
-
-function copyAccNum() {
-  navigator.clipboard.writeText(IMC_BANK_DETAILS.accountNumber);
-  alert('Account number copied!');
 }
 
 document.getElementById('closeTicketModalBtn').addEventListener('click', function () {
@@ -353,154 +349,51 @@ document.getElementById('payViaPaystackBtn').addEventListener('click', function 
   if (!selectedTicketType) return;
 
   IMCPaystack.openPayment({
-    amount: selectedTicketType.price,
-    type: 'event_ticket',
+    amount:      selectedTicketType.price,
+    type:        'event_ticket',
     description: selectedTicketType.eventTitle + ' - ' + selectedTicketType.ticketName,
+    email:       IMC_API.getCurrentUser().email,
     metadata: {
-      eventId: selectedTicketType.eventId,
-      ticketTypeId: selectedTicketType.ticketTypeId,
+      eventId:        selectedTicketType.eventId,
+      ticketTypeId:   selectedTicketType.ticketTypeId,
       ticketTypeName: selectedTicketType.ticketName
+    },
+    onSuccess: function (payRef) {
+      var ref = payRef && payRef.reference ? payRef.reference : String(payRef);
+      document.getElementById('ticketPaymentModal').style.display = 'none';
+      completeTicketPurchase(selectedTicketType.eventId, selectedTicketType.ticketTypeId, ref);
+    },
+    onCancel: function () {
+      document.getElementById('ticketPaymentModal').style.display = 'none';
     }
   });
 });
 
-async function registerFreeEvent(eventId) {
-  var result = await IMC_API.purchaseTicket(eventId, 'free', { amount: 0 });
+async function completeTicketPurchase(eventId, ticketTypeId, paymentRef) {
+  var result = await IMC_API.purchaseTicket(eventId, ticketTypeId, { paymentRef: paymentRef });
+
   if (result.success) {
     showTicketSuccess(result.ticket);
+    // Refresh ticket list so remaining counts stay accurate
+    var refreshed = await IMC_API.getEventById(eventId);
+    if (refreshed.success) {
+      eventData = refreshed.event;
+      renderTicketTypes(eventData);
+    }
   } else {
-    alert(result.message || 'Registration failed.');
+    var msgBox = document.getElementById('msgBox');
+    msgBox.className     = 'msg error';
+    msgBox.textContent   = result.message || 'Ticket purchase failed. Please try again.';
+    msgBox.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
 function showTicketSuccess(ticket) {
   document.getElementById('ticketQrImage').src = ticket.qrData;
-  document.getElementById('ticketCodeDisplay').textContent = ticket.ticketCode;
+  document.querySelectorAll('#ticketSuccessModal #ticketCodeDisplay, #ticketConfirm #ticketCodeDisplay')
+    .forEach(function (el) { el.textContent = ticket.ticketCode; });
   document.getElementById('ticketSuccessModal').style.display = 'flex';
-  document.getElementById('ticketPaymentModal').style.display = 'none';
-}
-
-function renderTickets() {
-  var ev         = eventData;
-  var ticketList = document.getElementById('ticketList');
-  var buyBtn     = document.getElementById('buyBtn');
-
-  if (!ev.ticketTypes || ev.ticketTypes.length === 0) {
-    // Free event no tickets
-    if (ev.eventType === 'free') {
-      ticketList.innerHTML =
-        '<p style="color:#2d8653;font-weight:600;font-size:14px;">' +
-        '✅ This is a free event. No ticket required — just show up!</p>';
-      document.getElementById('ticketSectionTitle').textContent = 'Attendance';
-    } else {
-      ticketList.innerHTML = '<p style="color:#888;font-size:14px;">No tickets available.</p>';
-    }
-    return;
-  }
-
-  ticketList.innerHTML = ev.ticketTypes.map(function (tt, idx) {
-    var soldOut = tt.remaining <= 0;
-    return '<div class="ticket-item' + (soldOut ? ' sold-out' : '') + '" ' +
-      (soldOut ? '' : 'onclick="selectTicket(this,' + idx + ')"') +
-      ' data-idx="' + idx + '">' +
-      '<div>' +
-      '<div class="ticket-name">' + esc(tt.name) + (soldOut ? ' — SOLD OUT' : '') + '</div>' +
-      (tt.description ? '<div class="ticket-desc">' + esc(tt.description) + '</div>' : '') +
-      '<div class="ticket-qty">' + tt.remaining + ' remaining</div>' +
-      '</div>' +
-      '<div class="ticket-price-tag' + (tt.isFree || tt.price === 0 ? ' free-tag' : '') + '">' +
-      (tt.isFree || tt.price === 0 ? 'FREE' : '₦' + tt.price.toLocaleString()) +
-      '</div>' +
-      '</div>';
-  }).join('');
-
-if (event.eventType === 'free') {
-  // POST /api/events/:id/tickets/:freeTicketTypeId/purchase with amount 0
-} else {
-  // open Paystack via IMCPaystack.openPayment(...), then on success
-  // POST /api/events/:id/tickets/:ticketTypeId/purchase with paymentRef
-}
-
-  buyBtn.style.display = 'block';
-  buyBtn.addEventListener('click', handleBuyTicket);
-}
-
-function selectTicket(el, idx) {
-  document.querySelectorAll('.ticket-item').forEach(function (item) {
-    item.classList.remove('selected');
-  });
-  el.classList.add('selected');
-  selectedTicket = eventData.ticketTypes[idx];
-  selectedTicket._id = eventData.ticketTypes[idx]._id || idx;
-
-  var btn = document.getElementById('buyBtnText');
-  if (selectedTicket.isFree || selectedTicket.price === 0) {
-    btn.textContent = 'Get Free Ticket';
-  } else {
-    btn.textContent = 'Buy Ticket — ₦' + selectedTicket.price.toLocaleString();
-  }
-}
-
-async function handleBuyTicket() {
-  var msgBox = document.getElementById('msgBox');
-  msgBox.style.display = 'none';
-
-  if (!IMC_API.isLoggedIn()) {
-    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
-    return;
-  }
-
-  if (!selectedTicket) {
-    msgBox.className   = 'msg error';
-    msgBox.textContent = 'Please select a ticket type first.';
-    msgBox.style.display = 'block';
-    return;
-  }
-
-  var buyBtn  = document.getElementById('buyBtn');
-  var buyTxt  = document.getElementById('buyBtnText');
-  var buySpn  = document.getElementById('buySpinner');
-
-  buyBtn.disabled      = true;
-  buyTxt.style.display = 'none';
-  buySpn.style.display = 'inline';
-
-  var base = (window.location.hostname === 'localhost' ||
-              window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:5000'
-    : 'https://imc-backend-0i5i.onrender.com';
-
-  var ticketTypeId = selectedTicket._id;
-  var paymentRef   = (selectedTicket.isFree || selectedTicket.price === 0) ? 'FREE' : '';
-
-  var res  = await fetch(
-    base + '/api/events/' + eventData._id + '/tickets/' + ticketTypeId + '/purchase',
-    {
-      method:  'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': 'Bearer ' + IMC_API.getToken()
-      },
-      body: JSON.stringify({ paymentRef: paymentRef })
-    }
-  );
-  var result = await res.json();
-
-  buyBtn.disabled      = false;
-  buyTxt.style.display = 'inline';
-  buySpn.style.display = 'none';
-
-  if (result.success) {
-    document.getElementById('ticketCodeDisplay').textContent = result.ticketCode;
-    document.getElementById('ticketConfirm').style.display  = 'block';
-    document.getElementById('ticketList').style.display     = 'none';
-    buyBtn.style.display                                    = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } else {
-    msgBox.className     = 'msg error';
-    msgBox.textContent   = result.message || 'Purchase failed. Please try again.';
-    msgBox.style.display = 'block';
-  }
 }
 
 function esc(s) {

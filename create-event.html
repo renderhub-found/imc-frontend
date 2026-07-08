@@ -75,6 +75,24 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <label>Event Type <span class="required">*</span></label>
+      <select id="evType">
+        <option value="free">Free Event</option>
+        <option value="paid">Paid Event (sells tickets)</option>
+      </select>
+    </div>
+
+    <div id="ticketTypesSection" style="display:none;margin-bottom:18px;">
+      <label>Ticket Types <span class="required">*</span></label>
+      <div id="ticketTypeRows"></div>
+      <button type="button" id="addTicketTypeBtn"
+        style="background:#e8f0fe;color:#1a3c8f;border:1.5px dashed #1a3c8f;border-radius:8px;
+        padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:6px;">
+        <i class="fas fa-plus"></i> Add Ticket Type
+      </button>
+    </div>
+
     <div class="form-group" style="margin-bottom:14px;">
   <label>Event Cover Image</label>
   <div class="file-upload-area">
@@ -109,46 +127,78 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
+  // ---- Event type toggle ----
+  var evType    = document.getElementById('evType');
+  var ttSection = document.getElementById('ticketTypesSection');
+  var ttRows    = document.getElementById('ticketTypeRows');
+
+  function addTicketTypeRow(name, price, qty) {
+    var row = document.createElement('div');
+    row.className = 'ticket-type-row';
+    row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;';
+    row.innerHTML =
+      '<input type="text" class="tt-name" placeholder="e.g. VIP, Regular" value="' + (name || '') + '"/>' +
+      '<input type="number" class="tt-price" placeholder="Price ₦" min="0" value="' + (price || '') + '"/>' +
+      '<input type="number" class="tt-qty" placeholder="Qty" min="1" value="' + (qty || '') + '"/>' +
+      '<button type="button" class="tt-remove" style="background:#fff0f0;color:#c62828;border:1px solid #f5c6cb;' +
+      'border-radius:6px;width:34px;height:34px;cursor:pointer;"><i class="fas fa-times"></i></button>';
+    row.querySelector('.tt-remove').addEventListener('click', function () { row.remove(); });
+    ttRows.appendChild(row);
+  }
+
+  if (evType) {
+    evType.addEventListener('change', function () {
+      var isPaid = this.value === 'paid';
+      ttSection.style.display = isPaid ? 'block' : 'none';
+      if (isPaid && ttRows.children.length === 0) {
+        addTicketTypeRow('Regular', '', '');
+      }
+    });
+  }
+
+  var addTtBtn = document.getElementById('addTicketTypeBtn');
+  if (addTtBtn) {
+    addTtBtn.addEventListener('click', function () { addTicketTypeRow('', '', ''); });
+  }
+
+  // ---- Cover image preview ----
+  var coverFileInput = document.getElementById('eventCoverFile');
+  if (coverFileInput) {
+    coverFileInput.addEventListener('change', function () {
+      var file = this.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); this.value=''; return; }
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById('eventCoverPreview').src = e.target.result;
+        document.getElementById('eventCoverPlaceholder').style.display = 'none';
+        document.getElementById('eventCoverPreviewWrap').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   document.getElementById('submitBtn').addEventListener('click', async function () {
     var msgBox = document.getElementById('msgBox');
     var btn    = document.getElementById('submitBtn');
     msgBox.style.display = 'none';
 
-    var data = {
-      title:       document.getElementById('evTitle').value.trim(),
-      description: document.getElementById('evDescription').value.trim(),
-      university:  document.getElementById('evUniversity').value.trim(),
-      location:    document.getElementById('evLocation').value.trim(),
-      eventDate:   document.getElementById('evDate').value,
-      eventTime:   document.getElementById('evTime').value,
-      coverImage:  document.getElementById('evCoverImage').value.trim(),
-      contactInfo: document.getElementById('evContact').value.trim()
-    };
-
-    async function createEvent(data) {
-  var token = getToken();
-  var isFormData = data instanceof FormData;
-  var options = {
-    method:  'POST',
-    headers: isFormData ? {} : { 'Content-Type': 'application/json' }
-  };
-  if (token) options.headers['Authorization'] = 'Bearer ' + token;
-  options.body = isFormData ? data : JSON.stringify(data);
-
-  var response = await fetch(BASE_URL + '/events', options);
-  var text     = await response.text();
-  try { return JSON.parse(text); } catch (e) {
-    return { success: false, message: 'Unexpected server response.' };
-  }
-}
+    var title       = document.getElementById('evTitle').value.trim();
+    var description = document.getElementById('evDescription').value.trim();
+    var university  = document.getElementById('evUniversity').value.trim();
+    var location    = document.getElementById('evLocation').value.trim();
+    var eventDate   = document.getElementById('evDate').value;
+    var eventTime   = document.getElementById('evTime').value;
+    var contactInfo = document.getElementById('evContact').value.trim();
+    var isPaid      = evType.value === 'paid';
 
     var missing = [];
-    if (!data.title)       missing.push('title');
-    if (!data.description) missing.push('description');
-    if (!data.university)  missing.push('university');
-    if (!data.location)    missing.push('location');
-    if (!data.eventDate)   missing.push('date');
-    if (!data.eventTime)   missing.push('time');
+    if (!title)       missing.push('title');
+    if (!description) missing.push('description');
+    if (!university)  missing.push('university');
+    if (!location)    missing.push('location');
+    if (!eventDate)   missing.push('date');
+    if (!eventTime)   missing.push('time');
 
     if (missing.length > 0) {
       msgBox.className     = 'msg error';
@@ -157,10 +207,43 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    var ticketTypes = [];
+    if (isPaid) {
+      var rows = ttRows.querySelectorAll('.ticket-type-row');
+      for (var i = 0; i < rows.length; i++) {
+        var name  = rows[i].querySelector('.tt-name').value.trim();
+        var price = rows[i].querySelector('.tt-price').value;
+        var qty   = rows[i].querySelector('.tt-qty').value;
+        if (name && qty) {
+          ticketTypes.push({ name: name, price: price || 0, quantity: qty });
+        }
+      }
+      if (ticketTypes.length === 0) {
+        msgBox.className     = 'msg error';
+        msgBox.textContent   = 'Please add at least one ticket type with a name and quantity.';
+        msgBox.style.display = 'block';
+        return;
+      }
+    }
+
+    var formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('university', university);
+    formData.append('location', location);
+    formData.append('eventDate', eventDate);
+    formData.append('eventTime', eventTime);
+    formData.append('contactInfo', contactInfo);
+    formData.append('eventType', isPaid ? 'paid' : 'free');
+    if (isPaid) formData.append('ticketTypes', JSON.stringify(ticketTypes));
+
+    var coverFile = coverFileInput.files[0];
+    if (coverFile) formData.append('coverImage', coverFile);
+
     btn.disabled     = true;
     btn.textContent  = '⏳ Creating...';
 
-    var result = await IMC_API.createEvent(data);
+    var result = await IMC_API.createEventWithFile(formData);
 
     if (result.success) {
       msgBox.className     = 'msg success';
