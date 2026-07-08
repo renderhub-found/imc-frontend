@@ -499,11 +499,6 @@
             <span id="newsAdminPublishText"><i class="fas fa-bullhorn"></i> Publish</span>
             <span id="newsAdminPublishSpinner" style="display:none;">Publishing...</span>
           </button>
-        <div style="display:flex;gap:10px;margin-top:16px;">
-          <button id="newsAdminPublishBtn" class="btn btn-primary" style="flex:1;">
-            <span id="newsAdminPublishText"><i class="fas fa-bullhorn"></i> Publish</span>
-            <span id="newsAdminPublishSpinner" style="display:none;">Publishing...</span>
-          </button>
           <button id="newsAdminDraftBtn" class="btn btn-ghost" style="flex:1;">
             Save as Draft
           </button>
@@ -574,7 +569,7 @@
       </div>
     </div>
 
-<!-- EVENTS -->
+    <!-- EVENTS -->
     <div class="section" id="section-events">
       <div class="table-wrap">
         <div class="table-header"><div class="table-title">All Events</div></div>
@@ -739,6 +734,7 @@
   </div>
 </div>
 
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script src="api.js"></script>
 <script>
 var ADMIN_TOKEN = null;
@@ -804,6 +800,23 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
   document.getElementById('courseModalSave').addEventListener('click', saveCourse);
 
+  var courseImgInput = document.getElementById('courseImageFile');
+  if (courseImgInput) {
+    courseImgInput.addEventListener('change', function () {
+      var file = this.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); this.value=''; return; }
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById('courseImagePreview').src = e.target.result;
+        document.getElementById('courseImage').value = e.target.result;
+        document.getElementById('courseImagePlaceholder').style.display = 'none';
+        document.getElementById('courseImagePreviewWrap').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   var userSearch = document.getElementById('userSearch');
   if (userSearch) {
     userSearch.addEventListener('input', function () {
@@ -816,7 +829,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   await loadStats();
 });
 
- 
+
 var newsEditorInstance = null;
 
 function initNewsAdminCreate() {
@@ -1022,8 +1035,8 @@ function switchSection(name, label) {
     ads:         ['Ads',         'Advertisement management'],
     news:        ['News',        'Campus news management'],
     courses:     ['Courses',     'Course management'],
-    events:      ['Events', 'Event moitoring'],
-    notifications:['Notifications', 'system notifications'],
+    events:      ['Events', 'Event monitoring'],
+    notifications:['Notifications', 'System notifications'],
     payments:    ['Payments',    'Transaction history'],
     withdrawals: ['Withdrawals', 'Payout requests'],
     logs:        ['Audit Logs',  'Admin activity log']
@@ -1396,6 +1409,8 @@ function openCourseModal(courseId) {
       var el = document.getElementById(id);
       if (el) el.value = '';
     });
+    document.getElementById('courseImagePlaceholder').style.display = 'block';
+    document.getElementById('courseImagePreviewWrap').style.display = 'none';
   }
   document.getElementById('courseModal').style.display = 'flex';
 }
@@ -1422,7 +1437,25 @@ async function saveCourse() {
     return;
   }
 
+  var r = editingCourseId
+    ? await adminRequest('PUT', '/courses/' + editingCourseId, data)
+    : await adminRequest('POST', '/courses', data);
 
+  if (r.success) {
+    document.getElementById('courseModal').style.display = 'none';
+    loadCourses();
+  } else {
+    errEl.textContent   = r.message || 'Could not save course.';
+    errEl.style.display = 'block';
+  }
+}
+
+async function deleteCourse(id) {
+  if (!confirm('Delete this course?')) return;
+  var r = await adminRequest('DELETE', '/courses/' + id);
+  if (r.success) loadCourses();
+  else alert(r.message);
+}
 
 async function loadAdminEvents() {
   var r = await adminRequest('GET', '/events');
@@ -1469,13 +1502,6 @@ async function loadAdminNotifications() {
       '<td>' + fmtDate(n.createdAt) + '</td>' +
       '</tr>';
   }).join(''));
-}
-
-async function deleteCourse(id) {
-  if (!confirm('Delete this course?')) return;
-  var r = await adminRequest('DELETE', '/courses/' + id);
-  if (r.success) loadCourses();
-  else alert(r.message);
 }
 
 async function loadPayments() {
@@ -1596,8 +1622,6 @@ function esc(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
-<script src="api.js"></script>
 </script>
 </body>
 </html>
