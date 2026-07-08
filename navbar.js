@@ -16,6 +16,8 @@
     initLogout();
     initSmartVendorBtn();
     initSmartAmbassadorBtn();
+    initNotificationBell();
+    initNavAvatar();
     initCategoryClicks();
     initHeroSearch();
     initHeroButtons();
@@ -135,6 +137,103 @@
       localStorage.removeItem('imc_logged_in');
       localStorage.removeItem('imc_user');
       window.location.href = 'index.html';
+    });
+  }
+
+  // ================================================
+  //   NAV AVATAR — show the logged-in user's initial
+  // ================================================
+  function initNavAvatar() {
+    var el = document.getElementById('navAvatarInitial');
+    if (!el || typeof IMC_API === 'undefined' || !IMC_API.isLoggedIn()) return;
+
+    var user = IMC_API.getCurrentUser();
+    var name = (user && (user.firstName || user.fullName || user.email)) || 'U';
+    el.textContent = name.charAt(0).toUpperCase();
+  }
+
+  // ================================================
+  //   NOTIFICATION BELL
+  // ================================================
+  function initNotificationBell() {
+    var bellBtn  = document.getElementById('notifBellBtn');
+    var panel    = document.getElementById('notifPanel');
+    var badge    = document.getElementById('notifBadge');
+    var list     = document.getElementById('notifList');
+    var markAll  = document.getElementById('markAllReadBtn');
+
+    if (!bellBtn || typeof IMC_API === 'undefined' || !IMC_API.isLoggedIn()) return;
+
+    function escN(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function renderNotifs(notifs) {
+      if (!notifs.length) {
+        list.innerHTML = '<div style="padding:24px;text-align:center;color:#aaa;font-size:13px;">No notifications yet.</div>';
+        return;
+      }
+      list.innerHTML = notifs.map(function (n) {
+        return '<div class="notif-item" data-id="' + n._id + '" data-link="' + escN(n.link || '') + '" ' +
+          'style="padding:10px 8px;border-radius:8px;cursor:pointer;background:' + (n.isRead ? '#fff' : '#f0f5ff') + ';margin-bottom:4px;">' +
+          '<div style="font-size:13px;font-weight:600;color:#1a1a2e;">' + (n.icon || '🔔') + ' ' + escN(n.title) + '</div>' +
+          '<div style="font-size:12px;color:#777;margin-top:2px;">' + escN(n.message) + '</div>' +
+          '</div>';
+      }).join('');
+
+      list.querySelectorAll('.notif-item').forEach(function (item) {
+        item.addEventListener('click', function () {
+          var id   = this.getAttribute('data-id');
+          var link = this.getAttribute('data-link');
+          IMC_API.markNotificationRead(id);
+          if (link) window.location.href = link;
+        });
+      });
+    }
+
+    async function refreshNotifs() {
+      var result = await IMC_API.getMyNotifications();
+      if (!result.success) return;
+
+      var unread = result.unreadCount || 0;
+      if (unread > 0) {
+        badge.textContent   = unread > 9 ? '9+' : String(unread);
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+      }
+      renderNotifs(result.notifications || []);
+    }
+
+    bellBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isOpen = panel.style.display === 'block';
+      panel.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) refreshNotifs();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!panel.contains(e.target) && !bellBtn.contains(e.target)) {
+        panel.style.display = 'none';
+      }
+    });
+
+    if (markAll) {
+      markAll.addEventListener('click', async function (e) {
+        e.stopPropagation();
+        await IMC_API.markAllNotificationsRead();
+        refreshNotifs();
+      });
+    }
+
+    // Show the unread badge on page load without opening the panel
+    IMC_API.getMyNotifications().then(function (result) {
+      if (!result.success) return;
+      var unread = result.unreadCount || 0;
+      if (unread > 0) {
+        badge.textContent   = unread > 9 ? '9+' : String(unread);
+        badge.style.display = 'block';
+      }
     });
   }
 

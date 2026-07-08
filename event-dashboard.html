@@ -243,6 +243,20 @@
     <div id="myEventsList">
       <div style="text-align:center;padding:40px;color:#aaa;">Loading your events...</div>
     </div>
+
+    <div class="dash-form-card" style="margin-top:16px;">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Verify Ticket (Check-in)</h3>
+      <select id="checkinEventSelect"
+        style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:10px;">
+        <option value="">Select an event...</option>
+      </select>
+      <input type="text" id="verifyTicketCodeInput" placeholder="Enter Ticket ID (e.g. IMC-TKT-XXXXXX)"
+        style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:10px;"/>
+      <button id="verifyTicketBtn" class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:12px;">
+        Verify
+      </button>
+      <div id="verifyTicketResult" style="margin-top:12px;"></div>
+    </div>
   </div>
 
   <!-- WALLET TAB -->
@@ -330,11 +344,17 @@ function setEventType(type) {
 }
 
 document.getElementById('verifyTicketBtn').addEventListener('click', async function () {
-  var code = document.getElementById('verifyTicketCodeInput').value.trim();
+  var eventId   = document.getElementById('checkinEventSelect').value;
+  var code      = document.getElementById('verifyTicketCodeInput').value.trim();
   var resultBox = document.getElementById('verifyTicketResult');
+
+  if (!eventId) {
+    resultBox.innerHTML = '<div style="background:#fff8e8;color:#b07d00;padding:12px;border-radius:8px;">Please select which event this ticket is for.</div>';
+    return;
+  }
   if (!code) return;
 
-  var result = await IMC_API.verifyTicket(currentEventId, code);  // currentEventId from your page context
+  var result = await IMC_API.verifyTicket(eventId, code);
 
   if (result.status === 'valid') {
     resultBox.innerHTML = '<div style="background:#e8f9ee;color:#2d8653;padding:12px;border-radius:8px;">✅ ' + result.message + '</div>';
@@ -467,16 +487,6 @@ async function loadMyEvents() {
       '<i class="fas fa-calendar"></i> ' + date + ' · ' + esc(ev.eventTime) +
       ' &nbsp;|&nbsp; <i class="fas fa-map-marker-alt"></i> ' + esc(ev.location) +
       '</div>' +
-<div class="dash-form-card" style="margin-top:16px;">
-  <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Verify Ticket</h3>
-  <input type="text" id="verifyTicketCodeInput" placeholder="Enter Ticket ID (e.g. IMC-TKT-XXXXXX)"
-    style="width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:10px;"/>
-  <button id="verifyTicketBtn" class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:12px;">
-    Verify
-  </button>
-  <div id="verifyTicketResult" style="margin-top:12px;"></div>
-</div>
-
       '<div class="my-event-stats">' +
       '<div class="stat-box"><div class="stat-num">' + (ev.ticketsSold||0) + '</div><div class="stat-lbl">Sold</div></div>' +
       '<div class="stat-box"><div class="stat-num">₦' + ((ev.grossRevenue||0)).toLocaleString() + '</div><div class="stat-lbl">Revenue</div></div>' +
@@ -487,6 +497,17 @@ async function loadMyEvents() {
       '<button class="btn-action btn-delete" onclick="deleteMyEvent(\'' + ev._id + '\')">Delete</button>' +
       '</div></div>';
   }).join('');
+
+  // Keep the check-in event dropdown in sync with the organizer's real events
+  var checkinSelect = document.getElementById('checkinEventSelect');
+  if (checkinSelect) {
+    var currentVal = checkinSelect.value;
+    checkinSelect.innerHTML = '<option value="">Select an event...</option>' +
+      myEvents.map(function (ev) {
+        return '<option value="' + ev._id + '">' + esc(ev.title) + '</option>';
+      }).join('');
+    if (currentVal) checkinSelect.value = currentVal;
+  }
 }
 
 async function deleteMyEvent(id) {

@@ -534,17 +534,33 @@
         <a href="signup.html" class="btn-signup">Sign Up</a>
       </div>
       <div class="user-menu" id="userMenu" style="display:none;">
-        <button class="hamburger-btn" id="hamburgerBtn">
-          <i class="fas fa-bars"></i>
+        <div class="notif-bell-wrap" style="position:relative;">
+          <button class="notif-bell-btn" id="notifBellBtn"
+            style="background:none;border:none;cursor:pointer;font-size:18px;color:#1a1a2e;position:relative;padding:8px;">
+            <i class="fas fa-bell"></i>
+            <span id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#c62828;
+              color:#fff;font-size:10px;font-weight:700;border-radius:50%;min-width:16px;height:16px;
+              line-height:16px;text-align:center;padding:0 3px;"></span>
+          </button>
+          <div id="notifPanel" style="display:none;position:absolute;right:0;top:40px;width:300px;max-height:360px;
+            overflow-y:auto;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:1000;">
+            <div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+              <strong style="font-size:13px;">Notifications</strong>
+              <button id="markAllReadBtn" style="background:none;border:none;color:#1a3c8f;font-size:11px;cursor:pointer;">Mark all read</button>
+            </div>
+            <div id="notifList" style="padding:8px;"></div>
+          </div>
+        </div>
+        <button class="hamburger-btn" id="hamburgerBtn" title="Account menu"
+          style="background:none;border:none;cursor:pointer;padding:4px;">
+          <span id="navAvatarInitial" style="width:32px;height:32px;border-radius:50%;background:#1a3c8f;
+            color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">U</span>
         </button>
         <div class="dropdown-menu" id="dropdownMenu">
-          <a href="vendor.html"><i class="fas fa-store"></i> Become Vendor</a>
-          <a href="ambassador.html"><i class="fas fa-user-tie"></i> Become Ambassador</a>
+          <a href="vendor.html"><i class="fas fa-store"></i> Vendor</a>
+          <a href="ambassador.html"><i class="fas fa-user-tie"></i> Ambassador</a>
           <a href="campus-news.html"><i class="fas fa-newspaper"></i> Campus News</a>
-          <a href="post-ad.html"><i class="fas fa-ad"></i> Post Ad</a>
-          <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
-          <a href="marketplace.html"><i class="fas fa-shopping-bag"></i> Marketplace</a>
-          <a href="online-courses.html"><i class="fas fa-graduation-cap"></i> Courses</a>
+          <a href="online-courses.html"><i class="fas fa-graduation-cap"></i> Online Courses</a>
           <a href="contact-us.html"><i class="fas fa-envelope"></i> Contact</a>
           <a href="#" id="logoutBtn" class="logout-link">
             <i class="fas fa-sign-out-alt"></i> Logout

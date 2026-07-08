@@ -1,156 +1,19 @@
 // ================================================
 //   CAMPUS NEWS PAGE — campus-news.js
+//   Connected to real backend API
 // ================================================
 
-// Seed default news if none exist yet
-function seedDefaultNews() {
-  const existing = JSON.parse(
-    localStorage.getItem('imc_news') || '[]'
-  );
-  if (existing.length > 0) return;
-
-  const defaults = [
-    {
-      id:          'NEWS-001',
-      title:       'UNILAG Exam Timetable Released for 2024/2025',
-      university:  'UNILAG',
-      image:
-        'https://images.unsplash.com/photo-1523050854058-8df90110c9f1' +
-        '?w=600&h=300&fit=crop',
-      content:
-        'The University of Lagos has officially released the examination ' +
-        'timetable for the 2024/2025 academic session. Students are advised ' +
-        'to check the university portal for their individual schedules. ' +
-        'The exams are scheduled to begin on the 15th of next month. ' +
-        'All students must come with valid ID cards and matriculation numbers.',
-      authorEmail: 'admin@imc.com',
-      authorName:  'IMC Editorial',
-      status:      'approved',
-      pinned:      true,
-      date:        'April 27, 2024',
-      tags:        ['Exams', 'UNILAG']
-    },
-    {
-      id:          'NEWS-002',
-      title:       'How to Balance Studies & Side Hustles as a Student',
-      university:  'UNILAG',
-      image:
-        'https://images.unsplash.com/photo-1434030216411-0b793f4b4173' +
-        '?w=600&h=300&fit=crop',
-      content:
-        'Many students struggle to balance their academic responsibilities ' +
-        'with running side businesses. Here are proven tips from successful ' +
-        'student entrepreneurs. First, create a strict time table and stick ' +
-        'to it. Second, leverage campus platforms like Inside My Campus to ' +
-        'reach customers without leaving school. Third, involve trusted ' +
-        'friends in your business to share the workload.',
-      authorEmail: 'admin@imc.com',
-      authorName:  'IMC Editorial',
-      status:      'approved',
-      pinned:      false,
-      date:        'April 26, 2024',
-      tags:        ['Business', 'Student Life']
-    },
-    {
-      id:          'NEWS-003',
-      title:       'UNN Announces New Scholarship Programme for Students',
-      university:  'UNN',
-      image:
-        'https://images.unsplash.com/photo-1627556704302-624286467c65' +
-        '?w=600&h=300&fit=crop',
-      content:
-        'The University of Nigeria Nsukka has announced a new scholarship ' +
-        'programme sponsored by a leading Nigerian bank. Students with a ' +
-        'minimum CGPA of 3.5 are eligible to apply. The scholarship covers ' +
-        'tuition fees and provides a monthly stipend of ₦20,000. ' +
-        'Applications close at the end of this month.',
-      authorEmail: 'admin@imc.com',
-      authorName:  'IMC Editorial',
-      status:      'approved',
-      pinned:      false,
-      date:        'April 25, 2024',
-      tags:        ['Scholarship', 'UNN']
-    },
-    {
-      id:          'NEWS-004',
-      title:       'DELSU Beach Party — Biggest Student Event of the Year',
-      university:  'DELSU',
-      image:
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e' +
-        '?w=600&h=300&fit=crop',
-      content:
-        'Delta State University is set to host the biggest student beach ' +
-        'party of 2024 at Abraka Beach. The event promises live music, ' +
-        'games, food, and lots of fun. Tickets are available at the student ' +
-        'union office for ₦500. Over 2,000 students are expected to attend ' +
-        'this annual event.',
-      authorEmail: 'admin@imc.com',
-      authorName:  'IMC Editorial',
-      status:      'approved',
-      pinned:      false,
-      date:        'April 24, 2024',
-      tags:        ['Event', 'DELSU']
-    },
-    {
-      id:          'NEWS-005',
-      title:       'UI Student Wins National Tech Innovation Award',
-      university:  'UI',
-      image:
-        'https://images.unsplash.com/photo-1531746790731-6c087fecd65a' +
-        '?w=600&h=300&fit=crop',
-      content:
-        'A 400-level Computer Science student at the University of Ibadan ' +
-        'has won the prestigious National Youth Tech Innovation Award 2024. ' +
-        'The student developed an app that connects rural farmers to urban ' +
-        'markets, solving a major food distribution problem in Nigeria. ' +
-        'The award comes with a ₦500,000 grant to develop the project further.',
-      authorEmail: 'admin@imc.com',
-      authorName:  'IMC Editorial',
-      status:      'approved',
-      pinned:      false,
-      date:        'April 23, 2024',
-      tags:        ['Tech', 'Achievement', 'UI']
-    },
-    {
-      id:          'NEWS-006',
-      title:       'OAU Hostel Allocation Results Out — How to Check',
-      university:  'OAU',
-      image:
-        'https://images.unsplash.com/photo-1555854877-bab0e564b8d5' +
-        '?w=600&h=300&fit=crop',
-      content:
-        'Obafemi Awolowo University has released the hostel allocation ' +
-        'results for the 2024/2025 academic session. Students can check ' +
-        'their allocation status on the OAU student portal. Students who ' +
-        'did not get hostel space are advised to explore verified off-campus ' +
-        'lodges listed on Inside My Campus.',
-      authorEmail: 'admin@imc.com',
-      authorName:  'IMC Editorial',
-      status:      'approved',
-      pinned:      false,
-      date:        'April 22, 2024',
-      tags:        ['Hostel', 'OAU']
-    }
-  ];
-
-  localStorage.setItem('imc_news', JSON.stringify(defaults));
-}
-
+// Cache of the currently-loaded news list, so the modal and share
+// buttons don't need a second network round-trip to find an article.
+var CURRENT_NEWS_LIST = [];
 
 // ================================================
 //   MAIN PAGE LOAD
 // ================================================
 window.addEventListener('DOMContentLoaded', function () {
 
-  // Seed sample news
-  seedDefaultNews();
-
   // Load all news
   loadNews();
-
-  // If someone arrived via a shared link (?id=...), open that article
-  var sharedId = new URLSearchParams(window.location.search).get('id');
-  if (sharedId) openNewsModal(sharedId);
 
   // Load sidebar ads
   loadSidebarAds();
@@ -202,46 +65,44 @@ window.addEventListener('DOMContentLoaded', function () {
     }
   );
 
+  // If someone arrived via a shared link (?id=...), open that article
+  var sharedId = new URLSearchParams(window.location.search).get('id');
+  if (sharedId) {
+    // Wait for the initial list to load so the modal has data to show
+    setTimeout(function () { openNewsModal(sharedId); }, 400);
+  }
+
 });
 
 
 // ================================================
 //   LOAD & RENDER NEWS
 // ================================================
-function loadNews(search = '', university = '', tag = '') {
+async function loadNews(search, university, tag) {
+  search     = search || '';
+  university = university || '';
+  tag        = tag || '';
 
-  const allNews   = JSON.parse(localStorage.getItem('imc_news') || '[]');
-  const loading   = document.getElementById('newsLoading');
-  const feed      = document.getElementById('newsFeed');
-  const emptyBox  = document.getElementById('newsEmpty');
-  const pinnedSec = document.getElementById('pinnedNewsSection');
-  const pinnedList = document.getElementById('pinnedNewsList');
+  var loading   = document.getElementById('newsLoading');
+  var feed      = document.getElementById('newsFeed');
+  var emptyBox  = document.getElementById('newsEmpty');
+  var pinnedSec = document.getElementById('pinnedNewsSection');
+  var pinnedList = document.getElementById('pinnedNewsList');
 
-  // Show loading briefl
-  setTimeout(function () {
-  loading.style.display = 'none';
+  if (loading) loading.style.display = 'block';
+  if (emptyBox) emptyBox.style.display = 'none';
 
-  var approved = allNews.filter(function (n) {
-    return n.status === 'approved';
-  });
+  var filters = {};
+  if (search)     filters.search     = search;
+  if (university) filters.university = university;
 
-  if (search) {
-    var q = search.toLowerCase();
-    approved = approved.filter(function (n) {
-      return (
-        n.title.toLowerCase().indexOf(q) > -1 ||
-        n.content.toLowerCase().indexOf(q) > -1 ||
-        n.university.toLowerCase().indexOf(q) > -1
-      );
-    });
-  }
+  var result = await IMC_API.getNews(filters);
+  if (loading) loading.style.display = 'none';
 
-  if (university) {
-    approved = approved.filter(function (n) {
-      return (n.university || '').toUpperCase() ===
-        university.toUpperCase();
-    });
-  }
+  var allNews = (result && result.news) || [];
+  CURRENT_NEWS_LIST = allNews;
+
+  var approved = allNews; // backend already filters to status: 'approved'
 
   if (tag) {
     approved = approved.filter(function (n) {
@@ -254,9 +115,7 @@ function loadNews(search = '', university = '', tag = '') {
   var pinned  = approved.filter(function (n) { return n.pinned; });
   var regular = approved.filter(function (n) { return !n.pinned; });
 
-  // Show pinned section
-  var pinnedSec  = document.getElementById('pinnedNewsSection');
-  var pinnedList = document.getElementById('pinnedNewsList');
+  // Show pinned section (only when no active search/filter)
   if (pinned.length > 0 && !search && !university && !tag) {
     if (pinnedSec)  pinnedSec.style.display  = 'block';
     if (pinnedList) {
@@ -270,6 +129,7 @@ function loadNews(search = '', university = '', tag = '') {
 
   if (regular.length === 0 && pinned.length === 0) {
     if (emptyBox) emptyBox.style.display = 'flex';
+    if (feed) feed.innerHTML = '';
     return;
   }
 
@@ -279,9 +139,17 @@ function loadNews(search = '', university = '', tag = '') {
       return renderNewsCard(n, false);
     }).join('');
   }
+}
 
-}, 300);
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
+function formatNewsDate(d) {
+  if (!d) return '';
+  return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 // ================================================
@@ -290,10 +158,10 @@ function loadNews(search = '', university = '', tag = '') {
 function renderNewsCard(news, isPinned) {
   return `
     <div class="news-card ${isPinned ? 'news-card-pinned' : ''}"
-      onclick="openNewsModal('${news.id}')">
+      onclick="openNewsModal('${news._id}')">
       <div class="news-card-img-wrap">
-        <img src="${news.image}" alt="${news.title}"
-          class="news-card-img"
+        <img src="${news.image || 'https://via.placeholder.com/600x300?text=News'}" alt="${escHtml(news.title)}"
+          class="news-card-img" loading="lazy"
           onerror="this.src='https://via.placeholder.com/600x300?text=News'"/>
         ${isPinned
           ? '<span class="pinned-badge">📌 Pinned</span>'
@@ -302,19 +170,19 @@ function renderNewsCard(news, isPinned) {
       <div class="news-card-body">
         <div class="news-card-meta">
           <span class="news-uni-badge">
-            <i class="fas fa-university"></i> ${news.university}
+            <i class="fas fa-university"></i> ${escHtml(news.university)}
           </span>
           <span class="news-date">
-            <i class="fas fa-calendar-alt"></i> ${news.date}
+            <i class="fas fa-calendar-alt"></i> ${formatNewsDate(news.createdAt)}
           </span>
         </div>
-        <h3 class="news-card-title">${news.title}</h3>
+        <h3 class="news-card-title">${escHtml(news.title)}</h3>
         <p class="news-card-preview">
-          ${news.content.substring(0, 120)}...
+          ${escHtml(stripHtml(news.content).substring(0, 120))}...
         </p>
         <div class="news-card-footer">
           <span class="news-author">
-            <i class="fas fa-user-circle"></i> ${news.authorName}
+            <i class="fas fa-user-circle"></i> ${escHtml(news.authorName)}
           </span>
           <span class="news-read-more">
             Read More <i class="fas fa-arrow-right"></i>
@@ -325,42 +193,49 @@ function renderNewsCard(news, isPinned) {
   `;
 }
 
+// News content comes from CKEditor as HTML — strip tags for the plain-text
+// preview snippet on the card (the full modal still renders the real HTML).
+function stripHtml(html) {
+  var tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  return tmp.textContent || tmp.innerText || '';
+}
+
 
 // ================================================
 //   OPEN NEWS MODAL (Full Article View)
 // ================================================
 function openNewsModal(newsId) {
-  const allNews = JSON.parse(localStorage.getItem('imc_news') || '[]');
-  const news    = allNews.find(n => n.id === newsId);
+  var news = CURRENT_NEWS_LIST.find(function (n) { return n._id === newsId; });
   if (!news) return;
 
-  const modal   = document.getElementById('newsModal');
-  const content = document.getElementById('newsModalContent');
+  var modal   = document.getElementById('newsModal');
+  var content = document.getElementById('newsModalContent');
 
   content.innerHTML = `
-    <img src="${news.image}" alt="${news.title}"
+    <img src="${news.image || 'https://via.placeholder.com/600x300?text=News'}" alt="${escHtml(news.title)}"
       class="modal-news-img"
       onerror="this.src='https://via.placeholder.com/600x300?text=News'"/>
     <div class="modal-news-body">
       <div class="news-card-meta" style="margin-bottom:12px;">
         <span class="news-uni-badge">
-          <i class="fas fa-university"></i> ${news.university}
+          <i class="fas fa-university"></i> ${escHtml(news.university)}
         </span>
         <span class="news-date">
-          <i class="fas fa-calendar-alt"></i> ${news.date}
+          <i class="fas fa-calendar-alt"></i> ${formatNewsDate(news.createdAt)}
         </span>
       </div>
-   <h2 class="modal-news-title">${news.title}</h2>
+      <h2 class="modal-news-title">${escHtml(news.title)}</h2>
       <p class="modal-news-author">
         <i class="fas fa-user-circle"></i>
-        By ${news.authorName}
+        By ${escHtml(news.authorName)}
       </p>
       <div id="newsShareContainer"></div>
       <div class="modal-news-content">${news.content}</div>
       ${news.tags && news.tags.length > 0
         ? `<div class="modal-tags">
             ${news.tags.map(
-              t => `<span class="news-tag">${t}</span>`
+              t => `<span class="news-tag">${escHtml(t)}</span>`
             ).join('')}
            </div>`
         : ''
@@ -372,13 +247,15 @@ function openNewsModal(newsId) {
   document.body.style.overflow = 'hidden';
 
   // Build a link that reopens this exact article when shared
-  var shareUrl = window.location.origin + window.location.pathname + '?id=' + news.id;
-  document.getElementById('newsShareContainer').innerHTML =
-    renderShareButtons(shareUrl, news.title);
+  if (typeof renderShareButtons === 'function') {
+    var shareUrl = window.location.origin + window.location.pathname + '?id=' + news._id;
+    document.getElementById('newsShareContainer').innerHTML =
+      renderShareButtons(shareUrl, news.title);
+  }
 
   // Reflect this article in the URL so the share link is meaningful
-  window.history.replaceState(null, '', '?id=' + news.id);
-}   
+  window.history.replaceState(null, '', '?id=' + news._id);
+}
 
 
 // ================================================
@@ -394,20 +271,22 @@ function filterByTag(tag) {
 // ================================================
 //   BUILD UNIVERSITY FILTER LIST (Sidebar)
 // ================================================
-function buildUniFilterList() {
-  const universities = [
+async function buildUniFilterList() {
+  var universities = [
     'UNILAG','UNN','UI','DELSU','LASU',
     'OAU','UNIBEN','ABU','FUTO','UNIPORT'
   ];
 
-  const container = document.getElementById('uniFilterList');
+  var container = document.getElementById('uniFilterList');
+  if (!container) return;
+
+  var result  = await IMC_API.getNews();
+  var allNews = (result && result.news) || [];
+
   container.innerHTML = universities.map(function (uni) {
-    const allNews   = JSON.parse(
-      localStorage.getItem('imc_news') || '[]'
-    );
-    const count     = allNews.filter(
-      n => n.university === uni && n.status === 'approved'
-    ).length;
+    var count = allNews.filter(function (n) {
+      return (n.university || '').toUpperCase() === uni;
+    }).length;
 
     return `
       <div class="uni-filter-item"
@@ -429,10 +308,14 @@ function filterByUni(uni) {
 // ================================================
 //   LOAD SIDEBAR ADS (Approved ads only)
 // ================================================
-function loadSidebarAds() {
-  const allAds    = JSON.parse(localStorage.getItem('imc_ads') || '[]');
-  const approved  = allAds.filter(a => a.status === 'approved');
-  const container = document.getElementById('sidebarAdsList');
+async function loadSidebarAds() {
+  var container = document.getElementById('sidebarAdsList');
+  if (!container) return;
+
+  var result   = await IMC_API.getAds();
+  var approved = ((result && result.ads) || []).filter(function (a) {
+    return a.status === 'approved';
+  });
 
   if (approved.length === 0) {
     container.innerHTML =
@@ -441,19 +324,19 @@ function loadSidebarAds() {
   }
 
   // Show max 3 ads
-  const toShow = approved.slice(0, 3);
+  var toShow = approved.slice(0, 3);
   container.innerHTML = toShow.map(function (ad) {
     return `
       <div class="sidebar-ad-item">
-        <img src="${ad.image}" alt="${ad.title}"
-          class="sidebar-ad-img"
+        <img src="${ad.image || 'https://via.placeholder.com/200x100?text=Ad'}" alt="${escHtml(ad.title)}"
+          class="sidebar-ad-img" loading="lazy"
           onerror="this.src='https://via.placeholder.com/200x100?text=Ad'"/>
         <div class="sidebar-ad-body">
-          <p class="sidebar-ad-title">${ad.title}</p>
+          <p class="sidebar-ad-title">${escHtml(ad.title)}</p>
           <p class="sidebar-ad-loc">
-            <i class="fas fa-map-marker-alt"></i> ${ad.location}
+            <i class="fas fa-map-marker-alt"></i> ${escHtml(ad.location)}
           </p>
-          <a href="tel:${ad.contact}" class="sidebar-ad-contact">
+          <a href="tel:${escHtml(ad.contact)}" class="sidebar-ad-contact">
             <i class="fas fa-phone"></i> Contact
           </a>
         </div>
