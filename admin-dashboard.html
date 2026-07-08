@@ -734,7 +734,7 @@
   </div>
 </div>
 
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script src="api.js"></script>
 <script>
 var ADMIN_TOKEN = null;
@@ -1622,12 +1622,8 @@ function esc(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-<script>
-ClassicEditor
-  .create(document.querySelector('#newsAdminContent'))
-  .catch(error => {
-    console.error(error);
-  });
+
 </script>
+
 </body>
 </html>
