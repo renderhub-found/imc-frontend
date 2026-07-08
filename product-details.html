@@ -170,7 +170,11 @@
         '<a class="btn-view-vendor" href="vendor-profile.html?id=' + esc(product.vendorId || '') + '">' +
         '<i class="fas fa-store"></i> View Vendor Profile' +
         '</a>' +
+        '<div id="shareButtonsContainer"></div>' +
         '</div>';
+
+      document.getElementById('shareButtonsContainer').innerHTML =
+        renderShareButtons(window.location.href, product.name);
 
       // Related products from same vendor
       var related = (result.products || []).filter(function (p) {
@@ -195,6 +199,9 @@
     function esc(str) {
       return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
+    <script src="api.js"></script>
+  <script src="navbar.js"></script>
+  <script src="share.js"></script>
   </script>
 </body>
 </html>

@@ -148,6 +148,10 @@ window.addEventListener('DOMContentLoaded', function () {
   // Load all news
   loadNews();
 
+  // If someone arrived via a shared link (?id=...), open that article
+  var sharedId = new URLSearchParams(window.location.search).get('id');
+  if (sharedId) openNewsModal(sharedId);
+
   // Load sidebar ads
   loadSidebarAds();
 
@@ -346,11 +350,12 @@ function openNewsModal(newsId) {
           <i class="fas fa-calendar-alt"></i> ${news.date}
         </span>
       </div>
-      <h2 class="modal-news-title">${news.title}</h2>
+   <h2 class="modal-news-title">${news.title}</h2>
       <p class="modal-news-author">
         <i class="fas fa-user-circle"></i>
         By ${news.authorName}
       </p>
+      <div id="newsShareContainer"></div>
       <div class="modal-news-content">${news.content}</div>
       ${news.tags && news.tags.length > 0
         ? `<div class="modal-tags">
@@ -365,7 +370,15 @@ function openNewsModal(newsId) {
 
   modal.style.display  = 'flex';
   document.body.style.overflow = 'hidden';
-}
+
+  // Build a link that reopens this exact article when shared
+  var shareUrl = window.location.origin + window.location.pathname + '?id=' + news.id;
+  document.getElementById('newsShareContainer').innerHTML =
+    renderShareButtons(shareUrl, news.title);
+
+  // Reflect this article in the URL so the share link is meaningful
+  window.history.replaceState(null, '', '?id=' + news.id);
+}   
 
 
 // ================================================
