@@ -114,31 +114,60 @@
   }
 
 
-  // ================================================
+ // ================================================
   //   FILE UPLOADS
   // ================================================
+  var selectedProductImages = []; // { file, previewUrl }
+
+  function renderImagePreviewGrid() {
+    var grid = document.getElementById('imagePreviewGrid');
+    var ph   = document.getElementById('imagePlaceholder');
+    if (!grid) return;
+
+    if (selectedProductImages.length === 0) {
+      grid.style.display = 'none';
+      if (ph) ph.style.display = 'block';
+      return;
+    }
+
+    if (ph) ph.style.display = 'none';
+    grid.style.display = 'grid';
+    grid.innerHTML = selectedProductImages.map(function (item, idx) {
+      return '<div style="position:relative;">' +
+        '<img src="' + item.previewUrl + '" style="width:100%;height:70px;object-fit:cover;border-radius:6px;"/>' +
+        '<button type="button" onclick="removeProductImageAt(' + idx + ')" ' +
+        'style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.65);color:#fff;border:none;' +
+        'border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">' +
+        '<i class="fas fa-times"></i></button></div>';
+    }).join('');
+  }
+
+  window.removeProductImageAt = function (idx) {
+    selectedProductImages.splice(idx, 1);
+    renderImagePreviewGrid();
+  };
+
   function initFileUploads() {
-    var imageInput = document.getElementById('productImageFile');
+    var imageInput = document.getElementById('productImageFiles');
     var videoInput = document.getElementById('productVideoFile');
 
     if (imageInput) {
       imageInput.addEventListener('change', function () {
-        var file = this.files[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-          alert('Image must be under 5MB.');
-          this.value = ''; return;
+        var newFiles = Array.prototype.slice.call(this.files || []);
+        for (var i = 0; i < newFiles.length; i++) {
+          if (selectedProductImages.length >= 4) {
+            alert('Maximum 4 images per product.');
+            break;
+          }
+          var file = newFiles[i];
+          if (file.size > 5 * 1024 * 1024) {
+            alert(file.name + ' is over 5MB and was skipped.');
+            continue;
+          }
+          selectedProductImages.push({ file: file, previewUrl: URL.createObjectURL(file) });
         }
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          var prev = document.getElementById('productImagePreview');
-          var ph   = document.getElementById('imagePlaceholder');
-          var wrap = document.getElementById('imagePreviewWrap');
-          if (prev) prev.src           = e.target.result;
-          if (ph)   ph.style.display   = 'none';
-          if (wrap) wrap.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
+        this.value = '';
+        renderImagePreviewGrid();
       });
     }
 
@@ -159,7 +188,7 @@
         if (wrap) wrap.style.display = 'block';
       });
     }
-  }
+  } 
 
 async function renderVendorLeads() {
   var container = document.getElementById('vendorLeadsContainer');
@@ -193,12 +222,11 @@ async function renderVendorLeads() {
 
     btn.addEventListener('click', async function () {
 
-      var name        = getVal('productName');
+     var name        = getVal('productName');
       var price       = getVal('productPrice');
       var desc        = getVal('productDesc');
       var category    = getVal('productCategory') || '';
       var customCat   = getVal('productCustomCategory') || '';
-      var imageFile   = document.getElementById('productImageFile');
       var videoFile   = document.getElementById('productVideoFile');
 
       var errBox = document.getElementById('productError');
@@ -217,57 +245,46 @@ async function renderVendorLeads() {
       if (!name)  { showErr('Please enter a product name.');  return; }
       if (!price) { showErr('Please enter a price.');         return; }
       if (!desc)  { showErr('Please add a description.');     return; }
+      if (selectedProductImages.length === 0) {
+        showErr('Please upload at least one product image.');
+        return;
+      }
 
       var finalCategory =
         category === 'Others' ? customCat : (category || vendorData.category);
 
-      var imgFileObj = imageFile && imageFile.files[0];
       var vidFileObj = videoFile && videoFile.files[0];
 
-      // Read files as base64 then send to backend
-      async function readFileAsBase64(file) {
-        return new Promise(function (resolve) {
-          if (!file) { resolve(''); return; }
-          var reader = new FileReader();
-          reader.onload  = function (e) { resolve(e.target.result); };
-          reader.onerror = function ()  { resolve(''); };
-          reader.readAsDataURL(file);
-        });
-      }
-
-      // Disable button while saving
       btn.disabled = true;
       btn.textContent = 'Saving...';
 
-      var imgData = await readFileAsBase64(imgFileObj);
-      var vidData = await readFileAsBase64(vidFileObj);
-
-      // Send to backend
-      var result = await IMC_API.addProduct({
-        name:        name,
-        price:       parseFloat(price),
-        description: desc,
-        category:    finalCategory,
-        image:       imgData,
-        video:       vidData
+      var formData = new FormData();
+      formData.append('name', name);
+      formData.append('price', parseFloat(price));
+      formData.append('description', desc);
+      formData.append('category', finalCategory);
+      selectedProductImages.forEach(function (item) {
+        formData.append('images', item.file);
       });
+      if (vidFileObj) formData.append('video', vidFileObj);
+
+      var result = await IMC_API.addProductWithFiles(formData);
 
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-upload"></i> Post Product';
 
       if (result.success) {
-        // Update local vendor data
         if (vendorData.products) {
           vendorData.products.push(result.product);
         }
 
-        // Clear form
         setVal('productName',  '');
         setVal('productPrice', '');
         setVal('productDesc',  '');
-        if (imageFile) imageFile.value = '';
         if (videoFile) videoFile.value = '';
-        window.removeUpload && window.removeUpload('image');
+        selectedProductImages = [];
+        renderImagePreviewGrid();
+        window.removeUpload && window.removeUpload('image'); 
         window.removeUpload && window.removeUpload('video');
 
         // Update stat
@@ -404,6 +421,83 @@ function initVendorProfilePicture(vendor) {
 
 
 initVendorProfilePicture(vendorData);
+
+function initVendorProfileEdit(vendor) {
+  setVal('vendorDescriptionInput', vendor.description || '');
+  setVal('vendorCampusLocation',   vendor.campusLocation || '');
+  setVal('vendorPhoneInput',       vendor.phone || '');
+  setVal('vendorWhatsAppInput',    vendor.whatsApp || '');
+  if (vendor.socialMedia) {
+    setVal('vendorInstagramInput', vendor.socialMedia.instagram || '');
+    setVal('vendorFacebookInput',  vendor.socialMedia.facebook  || '');
+    setVal('vendorTwitterInput',   vendor.socialMedia.twitter   || '');
+    setVal('vendorTiktokInput',    vendor.socialMedia.tiktok    || '');
+  }
+  if (vendor.coverImage) {
+    document.getElementById('vendorCoverPreview').src = vendor.coverImage;
+    document.getElementById('vendorCoverPlaceholder').style.display = 'none';
+    document.getElementById('vendorCoverPreviewWrap').style.display = 'block';
+  }
+
+  var coverInput = document.getElementById('vendorCoverFile');
+  var selectedCoverFile = null;
+  if (coverInput) {
+    coverInput.addEventListener('change', function () {
+      var file = this.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); this.value=''; return; }
+      selectedCoverFile = file;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById('vendorCoverPreview').src = e.target.result;
+        document.getElementById('vendorCoverPlaceholder').style.display = 'none';
+        document.getElementById('vendorCoverPreviewWrap').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  var saveBtn = document.getElementById('vendorProfileSaveBtn');
+  var msgBox  = document.getElementById('vendorProfileSaveMsg');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async function () {
+      msgBox.style.display = 'none';
+
+      var formData = new FormData();
+      formData.append('description',    getVal('vendorDescriptionInput'));
+      formData.append('campusLocation', getVal('vendorCampusLocation'));
+      formData.append('phone',          getVal('vendorPhoneInput'));
+      formData.append('whatsApp',       getVal('vendorWhatsAppInput'));
+      formData.append('instagram',      getVal('vendorInstagramInput'));
+      formData.append('facebook',       getVal('vendorFacebookInput'));
+      formData.append('twitter',        getVal('vendorTwitterInput'));
+      formData.append('tiktok',         getVal('vendorTiktokInput'));
+      if (selectedCoverFile) formData.append('cover', selectedCoverFile);
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      var result = await IMC_API.updateVendorProfile(formData);
+
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Profile';
+
+      msgBox.style.display = 'block';
+      if (result.success) {
+        msgBox.style.background = '#e8f9ee';
+        msgBox.style.color = '#2d8653';
+        msgBox.textContent = 'Profile updated!';
+        Object.assign(vendorData, result.vendor);
+      } else {
+        msgBox.style.background = '#fff0f0';
+        msgBox.style.color = '#c62828';
+        msgBox.textContent = result.message || 'Could not update profile.';
+      }
+    });
+  }
+}
+
+initVendorProfileEdit(vendorData);
   // ================================================
   //   FILL PAYMENTS TAB
   // ================================================

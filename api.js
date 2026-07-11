@@ -272,6 +272,10 @@ var IMC_API = (function () {
     return await request('PUT', '/vendors/profile-picture', formData, true);
   }
 
+  async function updateVendorProfile(formData) {
+    return await request('PUT', '/vendors/profile', formData, true);
+  }
+
   // ---- AMBASSADORS ----
   async function registerAmbassador(data) {
     console.log('[API] registerAmbassador:', JSON.stringify(data));
@@ -383,7 +387,7 @@ var IMC_API = (function () {
     // Vendors
     getVendors, registerVendor, getMyVendorProfile,
     addProduct, addProductWithFiles, deleteProduct,
-    getAllProducts, logProductLead, uploadVendorProfilePicture,
+    getAllProducts, logProductLead, uploadVendorProfilePicture, updateVendorProfile,
     // Events
     getEvents, getEventById, createEvent, createEventWithFile, updateEvent, deleteEvent,
     getMyEvents, purchaseTicket, getMyTickets,

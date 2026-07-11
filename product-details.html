@@ -135,8 +135,9 @@
       document.title = product.name + ' — Inside My Campus';
       document.getElementById('breadcrumbProduct').textContent = product.name;
 
-      var img = product.image ||
-        'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&h=600&fit=crop';
+      var images = (product.images && product.images.length > 0)
+        ? product.images
+        : [product.image || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&h=600&fit=crop'];
 
       var phone = (product.vendorWhatsApp || '').replace(/[^0-9]/g, '');
       if (phone.startsWith('0')) phone = '234' + phone.substring(1);
@@ -146,9 +147,20 @@
       );
       var waLink = phone ? 'https://wa.me/' + phone + '?text=' + waMsg : '#';
 
+      var thumbsHtml = images.length > 1
+        ? '<div id="productThumbStrip" style="display:flex;gap:8px;margin-top:8px;">' +
+          images.map(function (src, idx) {
+            return '<img src="' + src + '" onclick="document.getElementById(\'productMainImg\').src=\'' + src + '\'" ' +
+              'style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;' +
+              'border:2px solid ' + (idx === 0 ? '#1a3c8f' : 'transparent') + ';"/>';
+          }).join('') +
+          '</div>'
+        : '';
+
       document.getElementById('productLayout').innerHTML =
         '<div>' +
-        '<img class="product-img-main" src="' + img + '" alt="' + esc(product.name) + '"/>' +
+        '<img id="productMainImg" class="product-img-main" src="' + images[0] + '" alt="' + esc(product.name) + '"/>' +
+        thumbsHtml +
         '</div>' +
         '<div class="product-info">' +
         '<div class="product-vendor-tag">' +

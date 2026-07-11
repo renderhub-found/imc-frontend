@@ -192,32 +192,25 @@
 
     <!-- Image Upload -->
     <div class="form-group">
-      <label>Product Image
+     <label>Product Images <span style="color:#c62828;">*</span>
         <span style="color:#aaa;font-weight:400;">
-          (JPG, PNG, WEBP)
+          (up to 4 images - JPG, PNG, WEBP)
         </span>
       </label>
       <div class="file-upload-area" id="imageUploadArea">
-        <input type="file" id="productImageFile"
-          accept="image/*"
+        <input type="file" id="productImageFiles"
+          accept="image/*" multiple
           style="display:none;"/>
         <div class="file-upload-placeholder"
           id="imagePlaceholder"
-          onclick="document.getElementById('productImageFile').click()">
+          onclick="document.getElementById('productImageFiles').click()">
           <i class="fas fa-image"></i>
-          <p>Click to upload product image</p>
-          <span>JPG, PNG, WEBP — Max 5MB</span>
+          <p>Click to upload product images</p>
+          <span>Select up to 4 - Max 5MB each</span>
         </div>
-        <div id="imagePreviewWrap" style="display:none;">
-          <img id="productImagePreview" src="" alt="Preview"
-            class="upload-preview-img"/>
-          <button class="btn-remove-upload"
-            onclick="removeUpload('image')">
-            <i class="fas fa-times"></i> Remove
-          </button>
-        </div>
+        <div id="imagePreviewGrid" style="display:none;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;"></div>
       </div>
-    </div>
+    </div> 
 
     <!-- Video Upload -->
     <div class="form-group">
@@ -298,9 +291,63 @@
 </div>
 
 <div class="form-group" style="margin-bottom:14px;">
+  <label>Brand Cover Image <span style="color:#aaa;font-weight:400;">(optional)</span></label>
+  <div class="file-upload-area">
+    <input type="file" id="vendorCoverFile" accept="image/*" style="display:none;"/>
+    <div class="file-upload-placeholder" id="vendorCoverPlaceholder"
+      onclick="document.getElementById('vendorCoverFile').click()">
+      <i class="fas fa-image"></i>
+      <p>Upload Cover Image</p>
+    </div>
+    <div id="vendorCoverPreviewWrap" style="display:none;">
+      <img id="vendorCoverPreview" src="" alt="Cover"
+        style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;"/>
+    </div>
+  </div>
+</div>
+
+<div class="form-group" style="margin-bottom:14px;">
+  <label>Business Description</label>
+  <textarea id="vendorDescriptionInput" rows="3" placeholder="Tell buyers about your business..."></textarea>
+</div>
+
+<div class="form-group" style="margin-bottom:14px;">
   <label>Campus Location</label>
   <input type="text" id="vendorCampusLocation" placeholder="e.g. Behind Faculty of Engineering"/>
 </div>
+
+<div class="form-group" style="margin-bottom:14px;">
+  <label>Phone Number</label>
+  <input type="text" id="vendorPhoneInput" placeholder="e.g. 08012345678"/>
+</div>
+
+<div class="form-group" style="margin-bottom:14px;">
+  <label>WhatsApp Number</label>
+  <input type="text" id="vendorWhatsAppInput" placeholder="e.g. 08012345678"/>
+</div>
+
+<div class="form-group" style="margin-bottom:14px;">
+  <label>Instagram</label>
+  <input type="text" id="vendorInstagramInput" placeholder="e.g. @yourbusiness"/>
+</div>
+<div class="form-group" style="margin-bottom:14px;">
+  <label>Facebook</label>
+  <input type="text" id="vendorFacebookInput" placeholder="Facebook page link or name"/>
+</div>
+<div class="form-group" style="margin-bottom:14px;">
+  <label>Twitter / X</label>
+  <input type="text" id="vendorTwitterInput" placeholder="e.g. @yourbusiness"/>
+</div>
+<div class="form-group" style="margin-bottom:14px;">
+  <label>TikTok</label>
+  <input type="text" id="vendorTiktokInput" placeholder="e.g. @yourbusiness"/>
+</div>
+
+<div id="vendorProfileSaveMsg" style="display:none;margin-bottom:12px;font-size:13px;padding:10px 14px;border-radius:8px;"></div>
+<button id="vendorProfileSaveBtn" class="btn-view-profile" style="width:100%;border:none;cursor:pointer;padding:12px;">
+  Save Profile
+</button>
+
         <!-- Filled by JS -->
       </div>
     </div>
