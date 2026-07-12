@@ -514,9 +514,12 @@
       </a>
     </div>
 
-    <div class="nav-search">
+    <div class="nav-search" id="navSearchWrap">
       <i class="fas fa-search search-icon"></i>
       <input type="text" id="navSearchInput" placeholder="Search news, products, vendors..."/>
+      <button class="nav-search-close" id="navSearchCloseBtn" aria-label="Close search">
+        <i class="fas fa-times"></i>
+      </button>
       <div class="search-results-dropdown" id="navSearchDropdown"></div>
     </div>
 
@@ -529,6 +532,9 @@
     </ul>
 
     <div class="nav-right">
+      <button class="mobile-search-toggle" id="mobileSearchToggle" aria-label="Search">
+        <i class="fas fa-search"></i>
+      </button>
       <div class="auth-buttons" id="authButtons">
         <a href="login.html" class="btn-login">Login</a>
         <a href="signup.html" class="btn-signup">Sign Up</a>
