@@ -77,11 +77,17 @@
       });
     }
 
-    // ---- File uploads ----
+  // ---- File uploads ----
     initFileUploads();
 
     // ---- Post product ----
     initPostProduct();
+
+    // ---- Vendor logo / profile picture ----
+    initVendorProfilePicture(vendorData);
+
+    // ---- Vendor profile edit (description, location, phone, social, cover) ----
+    initVendorProfileEdit(vendorData);
 
   });
 
@@ -420,7 +426,6 @@ function initVendorProfilePicture(vendor) {
 }
 
 
-initVendorProfilePicture(vendorData);
 
 function initVendorProfileEdit(vendor) {
   setVal('vendorDescriptionInput', vendor.description || '');
@@ -497,7 +502,7 @@ function initVendorProfileEdit(vendor) {
   }
 }
 
-initVendorProfileEdit(vendorData);
+
   // ================================================
   //   FILL PAYMENTS TAB
   // ================================================
@@ -531,18 +536,7 @@ initVendorProfileEdit(vendorData);
   window.deleteProduct = async function (productId) {
     if (!confirm('Delete this product? This cannot be undone.')) return;
 
-    var result = await fetch(
-      'http://localhost:5000/api/vendors/products/' + productId,
-      {
-        method:  'DELETE',
-        headers: {
-          'Authorization': 'Bearer ' + IMC_API.getToken(),
-          'Content-Type':  'application/json'
-        }
-      }
-    );
-
-    var data = await result.json();
+    var data = await IMC_API.deleteProduct(productId);
 
     if (data.success) {
       // Remove from local data
@@ -559,7 +553,7 @@ initVendorProfileEdit(vendorData);
         statEl.textContent = vendorData.products.length;
       }
     } else {
-      alert('Could not delete product. Please try again.');
+      alert(data.message || 'Could not delete product. Please try again.');
     }
   };
 
