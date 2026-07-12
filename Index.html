@@ -859,6 +859,21 @@ document.addEventListener('DOMContentLoaded', async function () {
   ALL_PRODUCTS = (results[2].products || []);
   ALL_EVENTS   = (results[3].events   || []);
 
+  if (ALL_EVENTS.length < 3) {
+    var allEventsResult = await IMC_API.getEvents();
+    var everyEvent = (allEventsResult.events || []).slice().sort(function (a, b) {
+      return new Date(b.eventDate) - new Date(a.eventDate);
+    });
+    var existingIds = ALL_EVENTS.map(function (e) { return e._id; });
+    everyEvent.forEach(function (e) {
+      if (ALL_EVENTS.length >= 3) return;
+      if (existingIds.indexOf(e._id) === -1) {
+        ALL_EVENTS.push(e);
+        existingIds.push(e._id);
+      }
+    });
+  }
+
   setText('statVendors',  ALL_VENDORS.length  + '+');
   setText('statProducts', ALL_PRODUCTS.length + '+');
   setText('statNews',     ALL_NEWS.length     + '+');
@@ -878,12 +893,15 @@ function initNavbar() {
 
   var authBtns = document.getElementById('authButtons');
   var userMenu = document.getElementById('userMenu');
+  var navToggle = document.getElementById('mobileNavToggle');
   if (loggedIn) {
     if (authBtns) authBtns.style.display = 'none';
     if (userMenu) userMenu.style.display = 'flex';
+    if (navToggle) navToggle.style.display = '';
   } else {
     if (authBtns) authBtns.style.display = 'flex';
     if (userMenu) userMenu.style.display = 'none';
+    if (navToggle) navToggle.style.display = 'none';
   }
 
   var hBtn  = document.getElementById('hamburgerBtn');
@@ -1211,12 +1229,6 @@ function debounce(fn, ms) {
     t = setTimeout(function(){ fn.apply(ctx, args); }, ms);
   };
 }
-  <!-- api.js MUST load first — every other script depends on IMC_API existing -->
-  </script><script src="api.js"></script>
-  <script src="search.js"></script>
-  <script src="navbar.js"></script>
-  <script src="script.js"></script>
-  <script src="app.js"></script>
 </script>
 </body>
 </html>

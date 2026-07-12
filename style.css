@@ -5,6 +5,11 @@
   box-sizing: border-box;
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #f4f6fb;
@@ -184,13 +189,75 @@ ul {
 
 /* Mobile toggle */
 .mobile-nav-toggle {
-  display: none;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 22px;
-  cursor: pointer;
-}
+      display: none; background: none; border: none;
+      font-size: 20px; color: var(--navy); padding: 4px;
+    }
+
+    /* Mobile search icon — hidden on desktop where the inline bar shows */
+    .mobile-search-toggle {
+      display: none; background: none; border: none;
+      font-size: 17px; color: var(--navy); padding: 8px;
+    }
+
+    /* Mobile nav dropdown panel — an overlay BELOW the navbar row.
+       This never changes the navbar row's own size, so the header
+       itself can never shift or jump when opened/closed. */
+    @media (max-width: 640px) {
+      .nav-links {
+        display: none;
+        position: fixed;
+        top: 62px; left: 0; right: 0;
+        flex-direction: column;
+        gap: 2px;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        padding: 10px 16px 16px;
+        margin: 0;
+        max-height: calc(100vh - 62px);
+        overflow-y: auto;
+        z-index: 99;
+      }
+      .nav-links.mobile-open { display: flex; }
+      .nav-links a {
+        padding: 13px 12px; border-radius: 10px; font-size: 15px;
+        width: 100%;
+      }
+      .mobile-nav-toggle { display: block; }
+    }
+
+    /* Mobile search overlay — replaces the inline bar below 900px so
+       search is never lost, just tucked behind one tap. */
+    @media (max-width: 900px) {
+      .mobile-search-toggle { display: inline-flex; align-items: center; justify-content: center; }
+      .nav-search {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        max-width: none;
+        background: #fff;
+        padding: 12px 16px;
+        z-index: 300;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      }
+      .nav-search.mobile-active { display: block; }
+      .nav-search input { padding: 12px 16px 12px 40px; font-size: 15px; }
+      .nav-search .search-icon { left: 30px; }
+      .nav-search-close {
+        display: none; position: absolute; right: 26px; top: 50%;
+        transform: translateY(-50%); background: none; border: none;
+        font-size: 16px; color: var(--muted); padding: 6px;
+      }
+      .nav-search.mobile-active .nav-search-close { display: block; }
+    }
+
+    /* Smallest Android screens (Galaxy A-series, budget devices) */
+    @media (max-width: 380px) {
+      .nav-container { padding: 0 12px; gap: 10px; }
+      .logo-text { font-size: 13px; }
+      .btn-login, .btn-signup { padding: 7px 11px; font-size: 12px; }
+      .auth-buttons { gap: 5px; }
+    }
 
 /* ===== HERO SECTION ===== */
 .hero {
