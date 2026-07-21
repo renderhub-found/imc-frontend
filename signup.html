@@ -157,12 +157,17 @@
   </section>
 
   <footer class="auth-footer">
-    <p>&copy; 2024 Inside My Campus. All rights reserved.</p>
+    <p>&copy; 2026 Inside My Campus. All rights reserved.</p>
   </footer>
 
   <script src="app.js"></script>
   <script src="auth.js"></script>
   <script src="api.js"></script>
+  <!-- ⚠️ Set your real Google OAuth Web Client ID here (from Google Cloud
+       Console → APIs & Services → Credentials). The matching value must
+       also be set as GOOGLE_CLIENT_ID on the backend (Render env vars),
+       or the server will reject the token even if this part works. -->
+  <script>window.GOOGLE_CLIENT_ID = '1041332289956-v1n5v64m6mutu1hhc28cu33neecht91u.apps.googleusercontent.com';</script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 window.handleGoogleResponse = async function (response) {
@@ -172,22 +177,35 @@ window.handleGoogleResponse = async function (response) {
   else alert(result.message || 'Google signup failed.');
 };
 
-document.getElementById('googleSignupBtn').addEventListener('click', function () {
-  if (typeof google !== 'undefined') {
-    google.accounts.id.prompt();
-  }
-});
+var googleReady = false;
 
-window.addEventListener('load', function () {
+function initGoogleSignIn() {
   var clientId = (window.GOOGLE_CLIENT_ID && !window.GOOGLE_CLIENT_ID.includes('YOUR_'))
     ? window.GOOGLE_CLIENT_ID : null;
-  if (!clientId || typeof google === 'undefined') return;
-
+  if (!clientId) {
+    console.warn('[Google] GOOGLE_CLIENT_ID not set — Google sign-up disabled.');
+    return;
+  }
+  if (typeof google === 'undefined' || !google.accounts) {
+    // Library not loaded yet — try again shortly.
+    setTimeout(initGoogleSignIn, 200);
+    return;
+  }
   google.accounts.id.initialize({
-    client_id: clientId,
-    callback:  window.handleGoogleResponse,
+    client_id:   clientId,
+    callback:    window.handleGoogleResponse,
     auto_select: false
   });
+  googleReady = true;
+}
+initGoogleSignIn();
+
+document.getElementById('googleSignupBtn').addEventListener('click', function () {
+  if (!googleReady) {
+    alert('Google sign-up is not available right now — please sign up with email instead.');
+    return;
+  }
+  google.accounts.id.prompt();
 });
 </script>
 

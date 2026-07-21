@@ -127,10 +127,12 @@
         return p._id === productId;
       });
 
-      if (!product) {
+    if (!product) {
         window.location.href = 'marketplace.html';
         return;
       }
+
+      if (IMC_API.logProductClick) IMC_API.logProductClick(productId);
 
       document.title = product.name + ' — Inside My Campus';
       document.getElementById('breadcrumbProduct').textContent = product.name;
@@ -186,8 +188,17 @@
         '<div id="shareButtonsContainer"></div>' +
         '</div>';
 
+      var __shareApiBase = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+        ? 'http://localhost:5000/api'
+        : 'https://imc-backend-0i5i.onrender.com/api';
+
       document.getElementById('shareButtonsContainer').innerHTML =
-        renderShareButtons(window.location.href, product.name);
+        renderShareButtons(
+          window.location.href,
+          product.name,
+          images[0],
+          __shareApiBase + '/share/product/' + productId
+        );
 
       // Related products from same vendor
       var related = (result.products || []).filter(function (p) {

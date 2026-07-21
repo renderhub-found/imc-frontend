@@ -213,7 +213,7 @@
             <a href="post-ad.html"><i class="fas fa-ad"></i> Post Ad</a>
             <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
             <a href="online-courses.html"><i class="fas fa-graduation-cap"></i> Online Courses</a>
-            <a href="contact-us.html"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
             <a href="#" id="logoutBtn" class="logout-link">
               <i class="fas fa-sign-out-alt"></i> Logout
             </a>
@@ -278,6 +278,18 @@
         <div class="vendor-about-grid" id="vendorAboutGrid"></div>
       </div>
 
+<!-- Rating card -->
+      <div class="vendor-about-card" style="margin-top:16px;">
+        <h3>Ratings</h3>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span id="vendorAvgRatingText" style="font-size:22px;font-weight:800;color:#1a1a2e;">—</span>
+          <span id="vendorRatingCountText" style="font-size:13px;color:#888;"></span>
+        </div>
+        <p style="font-size:13px;color:#555;margin-bottom:6px;">Rate this vendor:</p>
+        <div id="vendorRateStars" style="font-size:24px;color:#ddd;cursor:pointer;"></div>
+        <p id="vendorRateMsg" style="font-size:12px;color:#2d8653;margin-top:6px;display:none;">Thanks for rating!</p>
+      </div>
+
       <!-- Products -->
       <div>
         <div class="section-header">
@@ -340,6 +352,40 @@
     if (!vendor) { showNotFound(); return; }
 
     document.title = vendor.bizName + ' — Inside My Campus';
+
+    (function renderRating() {
+      var avgEl   = document.getElementById('vendorAvgRatingText');
+      var countEl = document.getElementById('vendorRatingCountText');
+      var starsEl = document.getElementById('vendorRateStars');
+      if (avgEl)   avgEl.textContent   = vendor.avgRating ? vendor.avgRating.toFixed(1) + ' ★' : 'No ratings yet';
+      if (countEl) countEl.textContent = vendor.ratingCount ? '(' + vendor.ratingCount + ' rating' + (vendor.ratingCount !== 1 ? 's' : '') + ')' : '';
+
+      if (starsEl) {
+        starsEl.innerHTML = [1,2,3,4,5].map(function (i) {
+          return '<i class="fa-star" data-val="' + i + '" style="margin-right:4px;">☆</i>';
+        }).join('');
+
+        starsEl.querySelectorAll('[data-val]').forEach(function (star) {
+          star.addEventListener('click', async function () {
+            if (typeof IMC_API === 'undefined' || !IMC_API.isLoggedIn || !IMC_API.isLoggedIn()) {
+              window.location.href = 'login.html';
+              return;
+            }
+            var val = parseInt(this.getAttribute('data-val'));
+            var result = await IMC_API.rateVendor(vendorId, val);
+            if (result.success) {
+              if (avgEl)   avgEl.textContent   = result.avgRating.toFixed(1) + ' ★';
+              if (countEl) countEl.textContent = '(' + result.ratingCount + ' rating' + (result.ratingCount !== 1 ? 's' : '') + ')';
+              var msg = document.getElementById('vendorRateMsg');
+              if (msg) msg.style.display = 'block';
+              starsEl.querySelectorAll('[data-val]').forEach(function (s) {
+                s.textContent = parseInt(s.getAttribute('data-val')) <= val ? '★' : '☆';
+              });
+            }
+          });
+        });
+      }
+    })();
 
     var avatarEl = document.getElementById('vendorAvatar');
     if (avatarEl) {

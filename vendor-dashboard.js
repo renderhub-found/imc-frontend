@@ -47,14 +47,46 @@
     }
 
     // ---- Fill stats ----
-    var products = vendorData.products || [];
-    var statPEl  = document.getElementById('statProducts');
+    var products   = vendorData.products || [];
+    var statPEl    = document.getElementById('statProducts');
     if (statPEl) statPEl.textContent = products.length;
+
+    var totalClicks = products.reduce(function (s, p) { return s + (p.clicks || 0); }, 0);
+    var totalOrders = products.reduce(function (s, p) { return s + (p.orders || 0); }, 0);
+
+    var statOrdersEl = document.getElementById('statOrders');
+    if (statOrdersEl) statOrdersEl.textContent = totalOrders;
+
+    var statViewsEl   = document.getElementById('statProfileViews');
+    var statClicksEl  = document.getElementById('statProductClicks');
+    var statOrderCEl  = document.getElementById('statOrderCount');
+    var statRatingEl  = document.getElementById('statRating');
+    if (statViewsEl)  statViewsEl.textContent  = vendorData.profileViews || 0;
+    if (statClicksEl) statClicksEl.textContent = totalClicks;
+    if (statOrderCEl) statOrderCEl.textContent = totalOrders;
+    if (statRatingEl) {
+      statRatingEl.textContent = vendorData.avgRating
+        ? vendorData.avgRating.toFixed(1) + ' ★ (' + (vendorData.ratingCount || 0) + ')'
+        : '—';
+    }
+
+    // ---- Store status (Overview tab) ----
+    var statusRow = document.getElementById('storeStatusRow');
+    if (statusRow) {
+      statusRow.innerHTML = vendorData.status === 'approved'
+        ? '<span class="status-badge approved">🟢 Store Live</span>' +
+          '<p style="font-size:13px;color:#888;margin-top:8px;">Your store is live and visible to students.</p>'
+        : (vendorData.status === 'rejected'
+          ? '<span class="status-badge rejected">❌ Rejected</span>'
+          : '<span class="status-badge pending">⏳ Pending Approval</span>' +
+            '<p style="font-size:13px;color:#888;margin-top:8px;">Your store will go live once an admin approves your registration.</p>');
+    }
 
     // ---- Fill tabs ----
     fillProfileTab(vendorData);
     fillPaymentsTab(vendorData);
     renderMyProducts(vendorData);
+    renderVendorLeads();
 
     // ---- Tab navigation ----
     initTabs();
@@ -365,11 +397,11 @@ async function renderVendorLeads() {
   //   FILL PROFILE TAB
   // ================================================
   function fillProfileTab(vendor) {
-    var card = document.getElementById('vendorProfileCard');
+    var card = document.getElementById('vendorProfileSummary');
     if (!card) return;
 
     var statusLabel =
-      vendor.status === 'approved' ? '✅ Approved' :
+      vendor.status === 'approved' ? '🟢 Store Live' :
       vendor.status === 'rejected' ? '❌ Rejected' : '⏳ Pending';
 
     card.innerHTML =

@@ -440,6 +440,12 @@
 
         <div class="form-row">
           <label>Content</label>
+          <button type="button" id="newsInsertVideoBtn"
+            style="margin-bottom:6px;background:#e8f0fe;color:#1a3c8f;border:1.5px dashed #1a3c8f;
+            border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;">
+            <i class="fas fa-video"></i> Insert Video File
+          </button>
+          <input type="file" id="newsEditorVideoFile" accept="video/*" style="display:none;"/>
           <div id="newsAdminContent" style="background:#fff;"></div>
         </div>
 
@@ -734,7 +740,7 @@
   </div>
 </div>
 
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/43.3.1/classic/ckeditor.js"></script>
 <script src="api.js"></script>
 <script>
 var ADMIN_TOKEN = null;
@@ -832,6 +838,84 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 var newsEditorInstance = null;
 
+function IMCCKUploadAdapter(loader) {
+  this.loader = loader;
+}
+IMCCKUploadAdapter.prototype.upload = function () {
+  var loader = this.loader;
+  var apiBase = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+    ? 'http://localhost:5000/api'
+    : 'https://imc-backend-0i5i.onrender.com/api';
+
+  return loader.file.then(function (file) {
+    return new Promise(function (resolve, reject) {
+      var formData = new FormData();
+      formData.append('image', file);
+
+      fetch(apiBase + '/vendors/upload-image', {
+        method:  'POST',
+        headers: { 'Authorization': 'Bearer ' + IMC_API.getToken() },
+        body:    formData
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.success) {
+            resolve({ default: data.imageUrl });
+          } else {
+            reject(data.message || 'Image upload failed.');
+          }
+        })
+        .catch(function (err) { reject(err); });
+    });
+  });
+};
+IMCCKUploadAdapter.prototype.abort = function () {};
+
+function initEditorVideoUpload(editor) {
+  var btn   = document.getElementById('newsInsertVideoBtn');
+  var input = document.getElementById('newsEditorVideoFile');
+  if (!btn || !input) return;
+
+  btn.addEventListener('click', function () { input.click(); });
+
+  input.addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) { alert('Video must be under 50MB.'); this.value = ''; return; }
+
+    var apiBase = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+      ? 'http://localhost:5000/api'
+      : 'https://imc-backend-0i5i.onrender.com/api';
+
+    var formData = new FormData();
+    formData.append('file', file);
+
+    btn.disabled    = true;
+    btn.textContent = 'Uploading...';
+
+    fetch(apiBase + '/news/admin/upload-media', {
+      method:  'POST',
+      headers: { 'Authorization': 'Bearer ' + IMC_API.getToken() },
+      body:    formData
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        btn.disabled    = false;
+        btn.innerHTML   = '<i class="fas fa-video"></i> Insert Video File';
+        if (data.success) {
+          editor.execute('mediaEmbed', data.url);
+        } else {
+          alert(data.message || 'Video upload failed.');
+        }
+      })
+      .catch(function () {
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="fas fa-video"></i> Insert Video File';
+        alert('Video upload failed.');
+      });
+  });
+}
+
 function initNewsAdminCreate() {
   var imgInput = document.getElementById('newsAdminImageFile');
   var vidInput = document.getElementById('newsAdminVideoFile');
@@ -843,17 +927,41 @@ function initNewsAdminCreate() {
         toolbar: [
           'heading', '|',
           'bold', 'italic', 'underline', '|',
-          'link', 'bulletedList', 'numberedList', '|',
-          'insertTable', 'blockQuote', '|',
+          'link', 'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+          'uploadImage', 'mediaEmbed', 'insertTable', 'blockQuote', '|',
           'undo', 'redo'
         ],
         table: {
           contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+        },
+       mediaEmbed: {
+          previewsInData: true,
+          extraProviders: [
+            {
+              name: 'imcSelfHostedVideo',
+              url: /.+\.(mp4|webm|ogg|mov)(\?.*)?$/i,
+              html: function (match) {
+                return '<div style="position:relative;padding-bottom:56.25%;height:0;">' +
+                  '<video controls style="position:absolute;width:100%;height:100%;top:0;left:0;" src="' +
+                  match[0] + '"></video></div>';
+              }
+            }
+          ]
         }
       })
-      .then(function (editor) { newsEditorInstance = editor; })
+      .then(function (editor) {
+        newsEditorInstance = editor;
+
+        // Route image uploads through our own Cloudinary endpoint
+        // instead of CKEditor Cloud Services (not configured).
+        editor.plugins.get('FileRepository').createUploadAdapter = function (loader) {
+          return new IMCCKUploadAdapter(loader);
+        };
+
+        initEditorVideoUpload(editor);
+      })
       .catch(function (err) { console.error('[CKEditor]', err); });
-  }
+  } 
 
   // ---- Auto-generate slug from title (only while the user hasn't
   // typed a slug of their own) ----

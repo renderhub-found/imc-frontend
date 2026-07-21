@@ -180,8 +180,17 @@
       </div>
 
       <div class="form-group">
-        <label>Cover Image URL (optional)</label>
-        <input type="text" class="form-input" id="evCover" placeholder="https://..."/>
+        <label>Event Cover Image</label>
+        <div class="file-upload-area">
+          <input type="file" id="evCoverFile" accept="image/*" style="display:none;"/>
+          <div class="file-upload-placeholder" id="evCoverPlaceholder"
+            onclick="document.getElementById('evCoverFile').click()">
+            <i class="fas fa-image"></i><p>📷 Upload Event Image</p>
+          </div>
+          <div id="evCoverPreviewWrap" style="display:none;">
+            <img id="evCoverPreview" src="" style="width:100%;max-height:180px;object-fit:cover;"/>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -402,6 +411,27 @@ function getTicketTypes() {
   return result;
 }
 
+var selectedEvCoverFile = null;
+
+function initEvCoverUpload() {
+  var input = document.getElementById('evCoverFile');
+  if (!input) return;
+  input.addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB.'); this.value = ''; return; }
+    selectedEvCoverFile = file;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      document.getElementById('evCoverPreview').src = e.target.result;
+      document.getElementById('evCoverPlaceholder').style.display = 'none';
+      document.getElementById('evCoverPreviewWrap').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+document.addEventListener('DOMContentLoaded', initEvCoverUpload);
+
 async function createEvent() {
   var msgBox = document.getElementById('createMsg');
   var btn    = document.getElementById('createBtn');
@@ -417,7 +447,6 @@ async function createEvent() {
     eventDate:   document.getElementById('evDate').value,
     eventTime:   document.getElementById('evTime').value,
     contactInfo: (document.getElementById('evContact').value || '').trim(),
-    coverImage:  (document.getElementById('evCover').value   || '').trim(),
     eventType:   eventType
   };
 
@@ -446,7 +475,17 @@ async function createEvent() {
   btnTxt.style.display = 'none';
   btnSpn.style.display = 'inline';
 
-  var result = await IMC_API.createEvent(data);
+  var formData = new FormData();
+  Object.keys(data).forEach(function (key) {
+    if (key === 'ticketTypes') {
+      formData.append(key, JSON.stringify(data[key]));
+    } else {
+      formData.append(key, data[key]);
+    }
+  });
+  if (selectedEvCoverFile) formData.append('coverImage', selectedEvCoverFile);
+
+  var result = await IMC_API.createEventWithFile(formData);
 
   btn.disabled         = false;
   btnTxt.style.display = 'inline';

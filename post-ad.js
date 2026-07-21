@@ -96,6 +96,8 @@ if (submitBtn) {
     var category    = getVal('adCategory');
     var location    = getVal('adLocation');
     var contact     = getVal('adContact');
+    var whatsapp    = getVal('adWhatsapp');
+    var websiteUrl  = getVal('adWebsiteUrl');
     var description = getVal('adDescription');
     var durEl       = document.getElementById('adDuration');
     var duration    = durEl ? parseInt(durEl.value) || 7 : 7;
@@ -124,6 +126,8 @@ if (submitBtn) {
       category:    category,
       location:    location,
       contact:     contact,
+      whatsapp:    whatsapp,
+      websiteUrl:  websiteUrl,
       description: description,
       duration:    duration,
       pricing:     pricing,
@@ -157,6 +161,8 @@ if (submitBtn) {
             category:    adData.category,
             location:    adData.location,
             contact:     adData.contact,
+            whatsapp:    adData.whatsapp || '',
+            websiteUrl:  adData.websiteUrl || '',
             description: adData.description,
             duration:    adData.duration,
             image:       adData.image || '',
@@ -205,6 +211,8 @@ if (submitBtn) {
       category:    adFormData.category,
       location:    adFormData.location,
       contact:     adFormData.contact,
+      whatsapp:    adFormData.whatsapp || '',
+      websiteUrl:  adFormData.websiteUrl || '',
       description: adFormData.description,
       duration:    adFormData.duration,
       image:       adFormData.image || '',
@@ -285,7 +293,7 @@ if (submitBtn) {
   }
 
   function clearAdForm() {
-    ['adTitle','adCategory','adLocation','adContact','adDescription']
+   ['adTitle','adCategory','adLocation','adContact','adWhatsapp','adWebsiteUrl','adDescription'] 
       .forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.value = '';

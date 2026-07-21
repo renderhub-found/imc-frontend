@@ -149,6 +149,8 @@
 </div>
 
 <!-- Google Identity Services -->
+ <!-- ⚠️ Set your real Google OAuth Web Client ID here — same value as in signup.html -->
+<script>window.GOOGLE_CLIENT_ID = '1041332289956-v1n5v64m6mutu1hhc28cu33neecht91u.apps.googleusercontent.com';</script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="api.js"></script>
 <script src="app.js"></script>
@@ -158,20 +160,21 @@ document.addEventListener('DOMContentLoaded', function () {
   // ---- Google login ----
   document.getElementById('googleLoginBtn').addEventListener('click', async function () {
     var btn = document.getElementById('googleLoginBtn');
+
+    if (!googleReady) {
+      showError('Google login is not available right now — please log in with email instead.');
+      return;
+    }
+
     btn.disabled = true;
     btn.innerHTML = '⏳ Connecting to Google...';
 
-    // Trigger Google One Tap or popup
-    if (typeof google !== 'undefined' && google.accounts) {
-      google.accounts.id.prompt(function (notification) {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // One Tap not shown — use popup flow
-          triggerGooglePopup();
-        }
-      });
-    } else {
-      triggerGooglePopup();
-    }
+    // Uses Google Identity Services (the same flow signup.html uses) —
+    // this returns a credential our backend can verify. The old popup/
+    // redirect_uri fallback below was removed: it pointed at
+    // "google-callback.html", a page that doesn't exist, and it used an
+    // OAuth flow the backend was never able to verify in the first place.
+    google.accounts.id.prompt();
 
     setTimeout(function () {
       btn.disabled = false;
@@ -204,25 +207,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
 
-  function triggerGooglePopup() {
-    var clientId = getGoogleClientId();
-    if (!clientId) {
-      showError('Google login is not configured yet. Please use email login.');
-      return;
-    }
-    // Open Google account chooser
-    var popup = window.open(
-      'https://accounts.google.com/o/oauth2/v2/auth?' +
-      'client_id=' + clientId +
-      '&redirect_uri=' + encodeURIComponent(window.location.origin + '/google-callback.html') +
-      '&response_type=token' +
-      '&scope=email%20profile',
-      'google_login',
-      'width=500,height=600,scrollbars=yes'
-    );
-    if (!popup) showError('Pop-up blocked. Please allow pop-ups for this site.');
-  }
-
   function getGoogleClientId() {
     // Read from meta tag or window variable
     var meta = document.querySelector('meta[name="google-client-id"]');
@@ -233,19 +217,27 @@ document.addEventListener('DOMContentLoaded', function () {
           : null);
   }
 
-  // Initialize Google Identity Services if available
-  window.addEventListener('load', function () {
-    var clientId = getGoogleClientId();
-    if (!clientId || typeof google === 'undefined') return;
+  var googleReady = false;
 
+  function initGoogleSignIn() {
+    var clientId = getGoogleClientId();
+    if (!clientId) {
+      console.warn('[Google] GOOGLE_CLIENT_ID not set — Google login disabled.');
+      return;
+    }
+    if (typeof google === 'undefined' || !google.accounts) {
+      setTimeout(initGoogleSignIn, 200);
+      return;
+    }
     google.accounts.id.initialize({
       client_id:             clientId,
       callback:              window.handleGoogleResponse,
       auto_select:           false,
       cancel_on_tap_outside: true
-    });
-  });
-
+});
+    googleReady = true;
+  }
+  initGoogleSignIn();
   // ---- Email login ----
   document.getElementById('loginBtn').addEventListener('click', doEmailLogin);
   document.addEventListener('keydown', function (e) {

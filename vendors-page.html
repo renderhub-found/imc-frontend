@@ -148,141 +148,24 @@
   </footer>
 
   <!-- Load app.js for navbar -->
+   <script src="apijs"></script>
   <script src="app.js"></script>
 
   <script>
 
-    var SAMPLE_VENDORS = [
-      {
-        id: 'VND-SAMPLE-1',
-        email: 'jay@sample.com',
-        fullName: 'Jay Adewale',
-        bizName: 'Jay Sneakers Hub',
-        university: 'UNILAG',
-        category: 'Fashion',
-        description: 'Premium sneakers and streetwear for campus students. Quality guaranteed.',
-        whatsApp: '08012345678',
-        status: 'approved',
-        joinedDate: 'April 1, 2024',
-        image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop'
-      },
-      {
-        id: 'VND-SAMPLE-2',
-        email: 'tasty@sample.com',
-        fullName: 'Ngozi Eze',
-        bizName: 'Tasty Bites Kitchen',
-        university: 'UNN',
-        category: 'Food',
-        description: 'Delicious homemade meals on campus. Jollof rice specialist.',
-        whatsApp: '08023456789',
-        status: 'approved',
-        joinedDate: 'April 3, 2024',
-        image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=300&h=200&fit=crop'
-      },
-      {
-        id: 'VND-SAMPLE-3',
-        email: 'grace@sample.com',
-        fullName: 'Grace Okafor',
-        bizName: 'Grace Villa Lodge',
-        university: 'DELSU',
-        category: 'Services',
-        description: 'Comfortable student accommodation near campus.',
-        whatsApp: '08034567890',
-        status: 'approved',
-        joinedDate: 'April 5, 2024',
-        image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=300&h=200&fit=crop'
-      },
-      {
-        id: 'VND-SAMPLE-4',
-        email: 'glitz@sample.com',
-        fullName: 'Amaka Obi',
-        bizName: 'Glitz Jewelry',
-        university: 'LASU',
-        category: 'Fashion',
-        description: 'Fine jewelry and accessories for the modern campus woman.',
-        whatsApp: '08045678901',
-        status: 'approved',
-        joinedDate: 'April 7, 2024',
-        image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=200&fit=crop'
-      },
-      {
-        id: 'VND-SAMPLE-5',
-        email: 'cuts@sample.com',
-        fullName: 'Emeka Nwoke',
-        bizName: 'Campus Cuts Barber',
-        university: 'UI',
-        category: 'Barbing Salon',
-        description: 'Professional haircuts and grooming. Walk-ins welcome.',
-        whatsApp: '08056789012',
-        status: 'approved',
-        joinedDate: 'April 9, 2024',
-        image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&h=200&fit=crop'
-      },
-      {
-        id: 'VND-SAMPLE-6',
-        email: 'glow@sample.com',
-        fullName: 'Fatima Bello',
-        bizName: 'Glow Beauty Studio',
-        university: 'OAU',
-        category: 'Beauty',
-        description: 'Makeup and beauty services for campus events.',
-        whatsApp: '08067890123',
-        status: 'approved',
-        joinedDate: 'April 11, 2024',
-        image: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&h=200&fit=crop'
-      },
-      {
-        id: 'VND-SAMPLE-7',
-        email: 'print@sample.com',
-        fullName: 'Chidi Okonkwo',
-        bizName: 'QuickPrint Hub',
-        university: 'UNIBEN',
-        category: 'Printing',
-        description: 'Fast printing, binding and scanning for students.',
-        whatsApp: '08078901234',
-        status: 'approved',
-        joinedDate: 'April 13, 2024',
-        image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=300&h=200&fit=crop'
-      },
-      {
-        id: 'VND-SAMPLE-8',
-        email: 'gadget@sample.com',
-        fullName: 'Tunde Bakare',
-        bizName: 'CampusTech Gadgets',
-        university: 'ABU',
-        category: 'Gadgets',
-        description: 'Phones, laptops and accessories at student prices.',
-        whatsApp: '08089012345',
-        status: 'approved',
-        joinedDate: 'April 15, 2024',
-        image: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=300&h=200&fit=crop'
-      }
-    ];
+    var ALL_VENDORS = [];
 
     function getAllVendors() {
-      var stored = [];
+      return ALL_VENDORS;
+    }
+
+    async function fetchAllVendors() {
       try {
-        stored = JSON.parse(localStorage.getItem('imc_vendors') || '[]');
+        var result = await IMC_API.getVendors();
+        ALL_VENDORS = (result && result.vendors) || [];
       } catch (e) {
-        stored = [];
+        ALL_VENDORS = [];
       }
-
-      var combined = SAMPLE_VENDORS.slice();
-      var storedIds = {};
-
-      for (var s = 0; s < SAMPLE_VENDORS.length; s++) {
-        storedIds[SAMPLE_VENDORS[s].id] = true;
-      }
-
-      for (var i = 0; i < stored.length; i++) {
-        if (!storedIds[stored[i].id]) {
-          combined.push(stored[i]);
-        }
-      }
-
-      return combined.filter(function (v) {
-        return v.status === 'approved';
-      });
     }
 
     function loadAllVendors(search, cat, uni) {
@@ -350,7 +233,7 @@
           '<p class="vendor-desc">' + v.category + '</p>' +
           '<p style="font-size:11px;color:#888;margin-bottom:10px;line-height:1.5;">' +
           desc + '</p>' +
-          '<a href="vendor-profile.html?id=' + v.id + '" ' +
+          '<a href="vendor-profile.html?id=' + (v._id || v.id) + '" ' +
           'class="btn-view-profile">View Profile</a>' +
           '</div>' +
           '</div>';
@@ -378,7 +261,13 @@
       if (catFilter && urlCat) { catFilter.value = urlCat; }
       if (uniFilter && urlUni) { uniFilter.value = urlUni; }
 
-      loadAllVendors('', urlCat, urlUni);
+      fetchAllVendors().then(function () {
+        loadAllVendors(
+          searchInput ? searchInput.value : '',
+          catFilter ? catFilter.value : '',
+          uniFilter ? uniFilter.value : ''
+        );
+      });
 
       if (searchInput) {
         searchInput.addEventListener('input', function () {

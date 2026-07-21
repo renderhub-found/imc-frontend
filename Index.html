@@ -514,15 +514,6 @@
       </a>
     </div>
 
-    <div class="nav-search" id="navSearchWrap">
-      <i class="fas fa-search search-icon"></i>
-      <input type="text" id="navSearchInput" placeholder="Search news, products, vendors..."/>
-      <button class="nav-search-close" id="navSearchCloseBtn" aria-label="Close search">
-        <i class="fas fa-times"></i>
-      </button>
-      <div class="search-results-dropdown" id="navSearchDropdown"></div>
-    </div>
-
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html" class="active">Home</a></li>
       <li><a href="campus-news.html">News</a></li>
@@ -532,9 +523,6 @@
     </ul>
 
     <div class="nav-right">
-      <button class="mobile-search-toggle" id="mobileSearchToggle" aria-label="Search">
-        <i class="fas fa-search"></i>
-      </button>
       <div class="auth-buttons" id="authButtons">
         <a href="login.html" class="btn-login">Login</a>
         <a href="signup.html" class="btn-signup">Sign Up</a>
@@ -817,7 +805,7 @@
       <h4>Support</h4>
       <ul>
         <li><a href="how-it-works.html">How It Works</a></li>
-        <li><a href="contact-us.html">Contact Us</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
         <li><a href="vendor-faqs.html">Vendor FAQs</a></li>
         <li><a href="#">Privacy Policy</a></li>
         <li><a href="#">Terms of Service</a></li>
@@ -835,7 +823,60 @@
 <script src="api.js"></script>
 <script src="app.js"></script>
 <script>
+  (function () {
+    var DEFAULT_SLIDES = [
+      { title: '📢 Advertise Here',            sub: 'Reach Thousands of Students', link: 'post-ad.html' },
+      { title: '🚀 Promote Your Business',      sub: 'Get Seen By Students Daily',  link: 'post-ad.html' },
+      { title: '📈 Grow Your Brand',            sub: 'Advertise With Inside My Campus', link: 'post-ad.html' }
+    ];
 
+    function adLink(ad) {
+      if (ad.whatsapp) {
+        var phone = String(ad.whatsapp).replace(/[^0-9]/g, '');
+        if (phone.startsWith('0')) phone = '234' + phone.substring(1);
+        if (phone) return 'https://wa.me/' + phone;
+      }
+      if (ad.websiteUrl) return ad.websiteUrl;
+      return 'post-ad.html';
+    }
+
+    function renderSlides(slides) {
+      var container = document.getElementById('heroAdSlider');
+      if (!container || !slides.length) return;
+      container.innerHTML = slides.map(function (s, i) {
+        return '<a class="hero-ad-slide' + (i === 0 ? ' active' : '') + '" href="' + s.link + '" ' +
+          (s.link.indexOf('http') === 0 ? 'target="_blank"' : '') + '>' +
+          '<span class="hero-ad-slide-title">' + s.title + '</span>' +
+          '<span class="hero-ad-slide-sub">' + s.sub + '</span></a>';
+      }).join('');
+
+      var slideEls = container.querySelectorAll('.hero-ad-slide');
+      if (slideEls.length < 2) return;
+      var idx = 0;
+      setInterval(function () {
+        slideEls[idx].classList.remove('active');
+        idx = (idx + 1) % slideEls.length;
+        slideEls[idx].classList.add('active');
+      }, 4000);
+    }
+
+    renderSlides(DEFAULT_SLIDES);
+
+    if (typeof IMC_API !== 'undefined') {
+      IMC_API.getAds().then(function (result) {
+        var ads = (result && result.ads) || [];
+        if (!ads.length) return;
+        renderSlides(ads.map(function (ad) {
+          return {
+            title: '📢 ' + ad.title,
+            sub:   (ad.description || '').slice(0, 60),
+            link:  adLink(ad)
+          };
+        }));
+      }).catch(function () {});
+    }
+  })();
+</script>
 var ALL_PRODUCTS = [];
 var ALL_VENDORS  = [];
 var ALL_NEWS     = [];
@@ -931,27 +972,85 @@ function initNavbar() {
   }
 }
 
-function initSearch() {
-  var navInput    = document.getElementById('navSearchInput');
-  var navDropdown = document.getElementById('navSearchDropdown');
-  if (navInput) {
-    navInput.addEventListener('input', debounce(function(){
-      runGlobalSearch(this.value.trim(), navDropdown);
-    }, 280));
-    navInput.addEventListener('keydown', function(e){
-      if (e.key === 'Enter' && this.value.trim()) {
-        navDropdown.classList.remove('open');
-        window.location.href = 'marketplace.html?q=' + encodeURIComponent(this.value.trim());
-      }
-      if (e.key === 'Escape') navDropdown.classList.remove('open');
-    });
-    document.addEventListener('click', function(e){
-      if (!navInput.contains(e.target) && !navDropdown.contains(e.target)) {
-        navDropdown.classList.remove('open');
-      }
+initHomeNotifBell();
+}
+
+function initHomeNotifBell() {
+  var bellBtn = document.getElementById('notifBellBtn');
+  var panel   = document.getElementById('notifPanel');
+  var badge   = document.getElementById('notifBadge');
+  var list    = document.getElementById('notifList');
+  var markAll = document.getElementById('markAllReadBtn');
+
+  if (!bellBtn || !panel || typeof IMC_API === 'undefined' || !IMC_API.isLoggedIn()) return;
+
+  function escN(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderNotifs(notifs) {
+    if (!list) return;
+    if (!notifs.length) {
+      list.innerHTML = '<div style="padding:24px;text-align:center;color:#aaa;font-size:13px;">No notifications yet.</div>';
+      return;
+    }
+    list.innerHTML = notifs.map(function (n) {
+      return '<div class="notif-item" data-id="' + n._id + '" data-link="' + escN(n.link || '') + '" ' +
+        'style="padding:10px 8px;border-radius:8px;cursor:pointer;background:' + (n.isRead ? '#fff' : '#f0f5ff') + ';margin-bottom:4px;">' +
+        '<div style="font-size:13px;font-weight:600;color:#1a1a2e;">' + (n.icon || '🔔') + ' ' + escN(n.title) + '</div>' +
+        '<div style="font-size:12px;color:#777;margin-top:2px;">' + escN(n.message) + '</div>' +
+        '</div>';
+    }).join('');
+
+    list.querySelectorAll('.notif-item').forEach(function (item) {
+      item.addEventListener('click', function () {
+        var id   = this.getAttribute('data-id');
+        var link = this.getAttribute('data-link');
+        IMC_API.markNotificationRead(id);
+        if (link) window.location.href = link;
+      });
     });
   }
 
+  async function refreshNotifs() {
+    var result = await IMC_API.getMyNotifications();
+    if (!result.success) return;
+    var unread = result.unreadCount || 0;
+    if (badge) {
+      if (unread > 0) {
+        badge.textContent   = unread > 9 ? '9+' : String(unread);
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    renderNotifs(result.notifications || []);
+  }
+
+  bellBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var isOpen = panel.style.display === 'block';
+    panel.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) refreshNotifs();
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!panel.contains(e.target) && !bellBtn.contains(e.target)) {
+      panel.style.display = 'none';
+    }
+  });
+
+  if (markAll) {
+    markAll.addEventListener('click', async function (e) {
+      e.stopPropagation();
+      await IMC_API.markAllNotificationsRead();
+      refreshNotifs();
+    });
+  }
+
+  refreshNotifs();
+
+function initSearch() {
   var heroInput   = document.getElementById('heroSearchInput');
   var heroResults = document.getElementById('heroSearchResults');
   if (heroInput) {
@@ -1172,31 +1271,49 @@ function renderEvents() {
   }).join('');
 }
 
+var DEFAULT_SPONSORED = [
+  { title: '📢 Advertise Here',       description: 'Reach Thousands of Students', link: 'post-ad.html' },
+  { title: '🚀 Promote Your Business', description: 'Get Seen By Students Daily', link: 'post-ad.html' },
+  { title: '📈 Grow Your Brand',       description: 'Advertise With Inside My Campus', link: 'post-ad.html' }
+];
+
+function sponsoredAdLink(a) {
+  if (a.whatsapp) {
+    var phone = String(a.whatsapp).replace(/[^0-9]/g, '');
+    if (phone.startsWith('0')) phone = '234' + phone.substring(1);
+    if (phone) return 'https://wa.me/' + phone;
+  }
+  if (a.websiteUrl) return a.websiteUrl;
+  return a.link || 'post-ad.html';
+}
+
 function renderSponsored(ads) {
   var track   = document.getElementById('sponsoredTrack');
   var section = document.getElementById('sponsoredSection');
   if (!track) return;
 
-  if (!ads.length) {
-    if (section) section.style.display = 'none';
-    return;
-  }
+  var showAds   = ads.length ? ads : DEFAULT_SPONSORED;
+  var isDefault = !ads.length;
 
-  track.innerHTML = ads.map(function(a){
+  if (section) section.style.display = 'block';
+
+  track.innerHTML = showAds.map(function(a){
     var img = a.image || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=240&fit=crop';
+    var href = isDefault ? a.link : sponsoredAdLink(a);
+    var target = href.indexOf('http') === 0 ? ' target="_blank"' : '';
     return '<div class="sponsored-card">' +
       '<div style="position:relative;">' +
       '<img src="' + img + '" class="sponsored-card-img" alt="' + esc(a.title) + '" loading="lazy" style="width:100%;height:150px;object-fit:cover;" onerror="this.style.background=\'linear-gradient(135deg,#e85d04,#c94d00)\'"/>' +
-      '<span class="sponsored-badge">Sponsored</span>' +
+      '<span class="sponsored-badge">' + (isDefault ? 'Ad Space' : 'Sponsored') + '</span>' +
       '</div>' +
       '<div class="sponsored-card-body">' +
       '<div class="sponsored-card-title">' + esc(a.title) + '</div>' +
       '<div class="sponsored-card-desc">' + esc((a.description||'').substring(0,80)) + '</div>' +
-      '<a href="ad-details.html?id=' + a._id + '" class="btn-sponsored-cta">Learn More</a>' +
+      '<a href="' + href + '"' + target + ' class="btn-sponsored-cta">' + (isDefault ? 'Advertise Now' : 'Learn More') + '</a>' +
       '</div></div>';
   }).join('');
 
-  setInterval(function(){ moveCarousel(1); }, 4000);
+  if (showAds.length > 1) setInterval(function(){ moveCarousel(1); }, 4000);
 }
 
 function moveCarousel(dir) {

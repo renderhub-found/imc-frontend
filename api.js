@@ -268,6 +268,14 @@ var IMC_API = (function () {
       { customerName: customerName }, false);
   }
 
+  async function logProductClick(productId) {
+    return await request('POST', '/vendors/products/' + productId + '/click', {}, false);
+  }
+
+  async function rateVendor(vendorId, value) {
+    return await request('POST', '/vendors/' + vendorId + '/rate', { value: value }, true);
+  }
+
   async function uploadVendorProfilePicture(formData) {
     return await request('PUT', '/vendors/profile-picture', formData, true);
   }
@@ -387,7 +395,7 @@ var IMC_API = (function () {
     // Vendors
     getVendors, registerVendor, getMyVendorProfile,
     addProduct, addProductWithFiles, deleteProduct,
-    getAllProducts, logProductLead, uploadVendorProfilePicture, updateVendorProfile,
+    getAllProducts, logProductLead, logProductClick, rateVendor, uploadVendorProfilePicture, updateVendorProfile,
     // Events
     getEvents, getEventById, createEvent, createEventWithFile, updateEvent, deleteEvent,
     getMyEvents, purchaseTicket, getMyTickets,

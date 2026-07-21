@@ -147,6 +147,8 @@
           </div>
         </div>
 
+         <div id="shareButtonsContainer" style="margin-top:16px;"></div>
+
         <div class="section-title">About this Event</div>
         <div class="description" id="eventDesc"></div>
 
@@ -214,6 +216,29 @@
 <script src="paystack.js"></script>
 <script src="share.js"></script>
 <script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var apiBase = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+      ? 'http://localhost:5000/api'
+      : 'https://imc-backend-0i5i.onrender.com/api';
+
+    var checkReady = setInterval(function () {
+      if (window.eventData && window.eventData.title) {
+        clearInterval(checkReady);
+        var box = document.getElementById('shareButtonsContainer');
+        if (box) {
+          box.innerHTML = renderShareButtons(
+            window.location.href,
+            eventData.title,
+            eventData.coverImage,
+            apiBase + '/share/event/' + eventData._id
+          );
+        }
+      }
+    }, 300);
+  });
+</script>
 
 var eventData       = null;
 var selectedTicket  = null;
