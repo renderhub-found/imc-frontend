@@ -196,6 +196,15 @@
           if (e.key === 'Enter') searchMarket();
         });
       }
+
+      var urlCat = new URLSearchParams(window.location.search).get('cat');
+      if (urlCat) {
+        var matchBtn = null;
+        document.querySelectorAll('.market-filter-btn').forEach(function (b) {
+          if (b.getAttribute('onclick') === "filterCategory('" + urlCat + "',this)") matchBtn = b;
+        });
+        filterCategory(urlCat, matchBtn);
+      }
     });
 
     function renderProducts(products) {

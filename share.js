@@ -8,14 +8,15 @@
 // HTML into any container, e.g.:
 //   document.getElementById('shareButtonsContainer').innerHTML =
 //     renderShareButtons(window.location.href, article.title);
-function renderShareButtons(url, title, image, shareUrl) {
+function renderShareButtons(url, title, image) {
   var encodedUrl      = encodeURIComponent(url);
   var encodedTitle    = encodeURIComponent(title || 'Check this out on Inside My Campus');
   var encodedImage    = encodeURIComponent(image || '');
-  // shareUrl (optional) is a server-rendered bridge link that carries real
-  // og:image/og:title meta tags, so WhatsApp/Facebook/X/Telegram/LinkedIn
-  // show a proper preview card. Falls back to the plain page url if omitted.
-  var encodedShareUrl = encodeURIComponent(shareUrl || url);
+  // Always the real frontend page URL — a Netlify Edge Function serves
+  // correct og:image/og:title/og:description at this exact URL when a
+  // social platform's crawler requests it, so no backend URL is ever
+  // exposed to the user.
+  var encodedShareUrl = encodedUrl;
 
   return `
     <div class="share-buttons-row">

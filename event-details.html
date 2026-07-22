@@ -152,19 +152,32 @@
         <div class="section-title">About this Event</div>
         <div class="description" id="eventDesc"></div>
 
-        <div class="section-title" id="ticketSectionTitle">Get Tickets</div>
-        <div id="msgBox" class="msg"></div>
-        <div id="ticketConfirm" class="ticket-confirm">
-          <h3>🎉 Ticket Purchased!</h3>
-          <p>Your ticket code:</p>
-          <div class="ticket-code" id="ticketCodeDisplay"></div>
-          <p style="font-size:12px;color:#666;margin-top:6px;">
-            Save this code — present it at the event entrance.
+     <div id="ownerBanner" style="display:none;background:#f0f5ff;border:1.5px solid #1a3c8f;
+          border-radius:12px;padding:16px;margin:16px 0;text-align:center;">
+          <p style="font-size:14px;font-weight:700;color:#1a3c8f;margin-bottom:10px;">
+            📋 This is your event
           </p>
+          <a href="event-dashboard.html" style="display:inline-block;background:#1a3c8f;color:#fff;
+            padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;">
+            Manage Event, Performance & Withdrawals
+          </a>
         </div>
-        <div id="ticketTypesContainer">
+
+        <div id="ticketPurchaseSection">
+          <div class="section-title" id="ticketSectionTitle">Get Tickets</div>
+          <div id="msgBox" class="msg"></div>
+          <div id="ticketConfirm" class="ticket-confirm">
+            <h3>🎉 Ticket Purchased!</h3>
+            <p>Your ticket code:</p>
+            <div class="ticket-code" id="ticketCodeDisplay"></div>
+            <p style="font-size:12px;color:#666;margin-top:6px;">
+              Save this code — present it at the event entrance.
+            </p>
+          </div>
+          <div id="ticketTypesContainer">
   <!-- Populated by JS -->
 </div>
+        </div>   
 
 <!-- Payment Modal -->
 <div id="ticketPaymentModal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;padding:20px;">
@@ -215,14 +228,9 @@
 <script src="app.js"></script>
 <script src="paystack.js"></script>
 <script src="share.js"></script>
-<script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    var apiBase = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
-      ? 'http://localhost:5000/api'
-      : 'https://imc-backend-0i5i.onrender.com/api';
-
     var checkReady = setInterval(function () {
       if (window.eventData && window.eventData.title) {
         clearInterval(checkReady);
@@ -231,8 +239,7 @@
           box.innerHTML = renderShareButtons(
             window.location.href,
             eventData.title,
-            eventData.coverImage,
-            apiBase + '/share/event/' + eventData._id
+            eventData.coverImage
           );
         }
       }
@@ -240,6 +247,7 @@
   });
 </script>
 
+<script>
 var eventData       = null;
 var selectedTicket  = null;
 
@@ -312,7 +320,19 @@ function renderEvent() {
   }
 
 // Tickets
-  renderTicketTypes(ev);
+  var currentUser = (typeof IMC_API !== 'undefined' && IMC_API.isLoggedIn && IMC_API.isLoggedIn())
+    ? IMC_API.getCurrentUser() : null;
+  var isOwner = currentUser && ev.organizer &&
+    String(ev.organizer) === String(currentUser._id || currentUser.id);
+
+  if (isOwner) {
+    var ownerBanner = document.getElementById('ownerBanner');
+    var purchaseSec = document.getElementById('ticketPurchaseSection');
+    if (ownerBanner) ownerBanner.style.display = 'block';
+    if (purchaseSec) purchaseSec.style.display = 'none';
+  } else {
+    renderTicketTypes(ev);
+  }
 }
 
 var IMC_BANK_DETAILS = null; // manual bank transfer removed — Paystack only, see below

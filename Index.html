@@ -793,10 +793,10 @@
     <div class="footer-col">
       <h4>Categories</h4>
       <ul>
-        <li><a href="vendors-page.html?cat=Food">Food & Drinks</a></li>
-        <li><a href="vendors-page.html?cat=Fashion">Fashion</a></li>
-        <li><a href="vendors-page.html?cat=Gadgets">Electronics</a></li>
-        <li><a href="vendors-page.html?cat=Services">Services</a></li>
+        <li><a href="marketplace.html?cat=Food">Food & Drinks</a></li>
+        <li><a href="marketplace.html?cat=Fashion">Fashion</a></li>
+        <li><a href="marketplace.html?cat=Gadgets">Electronics</a></li>
+        <li><a href="marketplace.html?cat=Services">Services</a></li>
         <li><a href="vendors-page.html?cat=Lodges">Lodges</a></li>
         <li><a href="online-courses.html">Courses</a></li>
       </ul>
@@ -901,13 +901,15 @@ document.addEventListener('DOMContentLoaded', async function () {
   ALL_PRODUCTS = (results[2].products || []);
   ALL_EVENTS   = (results[3].events   || []);
 
+  var allEventsResult = await IMC_API.getEvents();
+  var everyEvent = (allEventsResult.events || []);
+
   if (ALL_EVENTS.length < 3) {
-    var allEventsResult = await IMC_API.getEvents();
-    var everyEvent = (allEventsResult.events || []).slice().sort(function (a, b) {
+    var sortedEvents = everyEvent.slice().sort(function (a, b) {
       return new Date(b.eventDate) - new Date(a.eventDate);
     });
     var existingIds = ALL_EVENTS.map(function (e) { return e._id; });
-    everyEvent.forEach(function (e) {
+    sortedEvents.forEach(function (e) {
       if (ALL_EVENTS.length >= 3) return;
       if (existingIds.indexOf(e._id) === -1) {
         ALL_EVENTS.push(e);
@@ -919,7 +921,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   setText('statVendors',  ALL_VENDORS.length  + '+');
   setText('statProducts', ALL_PRODUCTS.length + '+');
   setText('statNews',     ALL_NEWS.length     + '+');
-  setText('statEvents',   ALL_EVENTS.length   + '+');
+  setText('statEvents',   everyEvent.length   + '+');
 
   renderHeadlines();
   renderVendors();
@@ -1323,7 +1325,9 @@ function moveCarousel(dir) {
   if (!cards.length) return;
   var cardW = cards[0].offsetWidth + 16;
   var max   = Math.max(0, cards.length - 1);
-  _carouselStep = Math.max(0, Math.min(max, _carouselStep + dir));
+  _carouselStep = _carouselStep + dir;
+  if (_carouselStep > max) _carouselStep = 0;
+  if (_carouselStep < 0)   _carouselStep = max;
   track.style.transform = 'translateX(-' + (_carouselStep * cardW) + 'px)';
 }
 
