@@ -12,10 +12,6 @@ function renderShareButtons(url, title, image) {
   var encodedUrl      = encodeURIComponent(url);
   var encodedTitle    = encodeURIComponent(title || 'Check this out on Inside My Campus');
   var encodedImage    = encodeURIComponent(image || '');
-  // Always the real frontend page URL — a Netlify Edge Function serves
-  // correct og:image/og:title/og:description at this exact URL when a
-  // social platform's crawler requests it, so no backend URL is ever
-  // exposed to the user.
   var encodedShareUrl = encodedUrl;
 
   return `
