@@ -249,11 +249,8 @@ function openNewsModal(newsId) {
   // Build a link that reopens this exact article when shared
   if (typeof renderShareButtons === 'function') {
     var pageUrl = window.location.origin + window.location.pathname + '?id=' + news._id;
-    var apiBase = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
-      ? 'http://localhost:5000/api'
-      : 'https://imc-backend-0i5i.onrender.com/api';
     document.getElementById('newsShareContainer').innerHTML =
-      renderShareButtons(pageUrl, news.title, news.image, apiBase + '/share/news/' + news._id);
+      renderShareButtons(pageUrl, news.title, news.image);
   }
 
   // Reflect this article in the URL so the share link is meaningful

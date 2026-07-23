@@ -285,7 +285,7 @@ function renderEarnings(ambassador) {
 
   var refEarned = 0;
   for (var i = 0; i < referrals.length; i++) {
-    refEarned += (referrals[i].commission || 500);
+    refEarned += (referrals[i].commission || 2000);
   }
   var taskExtra = Math.max(0, earnings - refEarned);
 

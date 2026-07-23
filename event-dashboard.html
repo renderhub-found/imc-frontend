@@ -128,15 +128,15 @@
 </div>
 
 <div class="dash-tabs">
-  <button class="dash-tab active" data-tab="create">Create Event</button>
-  <button class="dash-tab" data-tab="my-events">My Events</button>
+  <button class="dash-tab" data-tab="create">Create Event</button>
+  <button class="dash-tab active" data-tab="my-events">My Events</button>
   <button class="dash-tab" data-tab="wallet">Wallet</button>
 </div>
 
 <div class="dash-content">
 
   <!-- CREATE EVENT TAB -->
-  <div id="tab-create">
+  <div id="tab-create" style="display:none;"></div>
     <div class="form-card">
       <h2><i class="fas fa-calendar-plus"></i> Create New Event</h2>
 
@@ -248,7 +248,7 @@
   </div>
 
   <!-- MY EVENTS TAB -->
-  <div id="tab-my-events" style="display:none;">
+  <div id="tab-my-events"></div>
     <div id="myEventsList">
       <div style="text-align:center;padding:40px;color:#aaa;">Loading your events...</div>
     </div>
@@ -317,6 +317,7 @@ var eventType   = 'free';
 var ticketRowCount = 1;
 
 document.addEventListener('DOMContentLoaded', async function () {
+  loadMyEvents();
   if (!IMC_API.isLoggedIn()) {
     window.location.href = 'login.html';
     return;

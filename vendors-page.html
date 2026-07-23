@@ -216,7 +216,7 @@
       if (empty) empty.style.display = 'none';
 
       grid.innerHTML = vendors.map(function (v) {
-        var img = v.image ||
+        var img = v.profilePicture ||
           'https://via.placeholder.com/300x200?text=Vendor';
         var desc = (v.description || '').substring(0, 65);
         if ((v.description || '').length > 65) { desc = desc + '...'; }
