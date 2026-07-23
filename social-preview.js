@@ -12,7 +12,7 @@ export default async (request, context) => {
 
   var title       = 'Inside My Campus';
   var description = "Nigeria's #1 Campus Platform";
-  var image       = 'https://insidemycampusx.netlify.app/favicon.png';
+  var image       = 'https://insidemycampus.com/favicon.png';
 
   try {
     if (url.pathname.indexOf('product-details') !== -1 && id) {
