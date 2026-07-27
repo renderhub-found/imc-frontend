@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // Referral link
   var baseUrl = window.location.origin + '/';
-  var refLink = baseUrl + 'vendor.html?ref=' + ambassador.refCode;
+  var refLink = baseUrl + 'join?ref=' + ambassador.refCode;
 
   setEl('referralLinkText',     refLink);
   setEl('referralCodeDisplay',  ambassador.refCode);

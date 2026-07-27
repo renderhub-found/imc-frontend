@@ -200,7 +200,8 @@
       var urlCat = new URLSearchParams(window.location.search).get('cat');
       if (urlCat) {
         var matchBtn = null;
-        document.querySelectorAll('.market-filter-btn').forEach(function (b) {
+        document.quer
+        ySelectorAll('.market-filter-btn').forEach(function (b) {
           if (b.getAttribute('onclick') === "filterCategory('" + urlCat + "',this)") matchBtn = b;
         });
         filterCategory(urlCat, matchBtn);
@@ -221,17 +222,19 @@
         return;
       }
 
-      grid.innerHTML = products.map(function (p) {
+     grid.innerHTML = products.map(function (p) {
         var img = p.image || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=300&fit=crop';
-        return '<a class="market-card" href="product-details.html?id=' + p._id + '">' +
+        return '<div class="market-card" onclick="window.location.href=\'product-details.html?id=' + p._id + '\'" style="cursor:pointer;">' +
           '<img class="market-card-img" src="' + img + '" alt="' + esc(p.name) + '" loading="lazy"/>' +
           '<div class="market-card-body">' +
           '<div class="market-card-name">' + esc(p.name) + '</div>' +
-          '<div class="market-card-vendor"><i class="fas fa-store" style="color:#1a3c8f;margin-right:4px;"></i>' + esc(p.vendorName || '') + '</div>' +
+          '<a class="market-card-vendor" href="vendor-profile.html?id=' + (p.vendorId || '') + '" ' +
+          'onclick="event.stopPropagation()" style="display:block;text-decoration:none;">' +
+          '<i class="fas fa-store" style="color:#1a3c8f;margin-right:4px;"></i>' + esc(p.vendorName || '') + '</a>' +
           '<div class="market-card-price">₦' + parseFloat(p.price || 0).toLocaleString() + '</div>' +
           '<div class="market-card-school"><i class="fas fa-university" style="margin-right:4px;"></i>' + esc(p.university || '') + '</div>' +
-          '</div></a>';
-      }).join('');
+          '</div></div>';
+      }).join(''); 
     }
 
     function searchMarket() {

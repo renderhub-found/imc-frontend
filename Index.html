@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="color-scheme" content="light only"/>
+  <meta name="theme-color" content="#1a3c8f"/>
   <title>Inside My Campus — The Campus Everything App</title>
+  <link rel="canonical" href="https://insidemycampus.com/"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Inside My Campus — The Campus Everything App"/>
+  <meta property="og:description" content="Discover vendors, shop the marketplace, read campus news, and attend events — all in one place."/>
+  <meta property="og:image" content="https://insidemycampus.com/favicon.png"/>
+  <meta property="og:url" content="https://insidemycampus.com/"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Inside My Campus — The Campus Everything App"/>
+  <meta name="twitter:description" content="Discover vendors, shop the marketplace, read campus news, and attend events — all in one place."/>
+  <meta name="twitter:image" content="https://insidemycampus.com/favicon.png"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="style.css"/>
@@ -23,13 +36,15 @@
       --shadow:   0 2px 16px rgba(0,0,0,0.07);
       --shadow-h: 0 6px 28px rgba(0,0,0,0.12);
     }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overflow-x: hidden; width: 100%; }
     body {
       font-family: Inter, sans-serif;
       background: var(--bg);
       color: var(--text);
       font-size: 14px;
       line-height: 1.6;
+      overflow-x: hidden;
+      width: 100%;
     }
     a { text-decoration: none; color: inherit; }
     img { display: block; max-width: 100%; }
@@ -44,14 +59,17 @@
     }
     .nav-container {
       max-width: 1200px; margin: 0 auto; padding: 0 20px;
-      height: 62px; display: flex; align-items: center; gap: 20px;
+      height: 62px; display: flex; align-items: center; gap: 12px;
+      width: 100%;
     }
-    .nav-logo a { display: flex; align-items: center; gap: 8px; }
-    .logo-icon { font-size: 24px; }
+    .nav-logo { min-width: 0; flex-shrink: 1; }
+    .nav-logo a { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .logo-icon { font-size: 24px; flex-shrink: 0; }
     .logo-text {
       font-size: 15px; font-weight: 800; color: var(--navy);
-      line-height: 1.2; white-space: nowrap;
+      line-height: 1.15;
     }
+    .logo-break { display: none; }
     .nav-search {
       flex: 1; max-width: 440px; position: relative;
     }
@@ -94,7 +112,7 @@
     }
     .nav-links a:hover { background: var(--bg); color: var(--navy); }
     .nav-links a.active { color: var(--navy); font-weight: 700; }
-    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .btn-login {
       padding: 8px 16px; border: 1.5px solid var(--navy);
       border-radius: 8px; font-size: 13px; font-weight: 600;
@@ -102,11 +120,13 @@
     }
     .btn-login:hover { background: var(--navy); color: #fff; }
     .btn-signup {
-      padding: 8px 16px; background: var(--navy); border-radius: 8px;
+      padding: 8px 16px; background: var(--green); border-radius: 8px;
       font-size: 13px; font-weight: 600; color: #fff; transition: opacity .15s;
+      white-space: nowrap;
     }
     .btn-signup:hover { opacity: 0.88; }
-    .auth-buttons { display: flex; gap: 8px; align-items: center; }
+    .btn-login { white-space: nowrap; }
+    .auth-buttons { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
     .user-menu { position: relative; }
     .hamburger-btn {
       width: 36px; height: 36px; border-radius: 10px;
@@ -132,7 +152,8 @@
     .logout-link i { color: var(--orange) !important; }
     .mobile-nav-toggle {
       display: none; background: none; border: none;
-      font-size: 20px; color: var(--navy); padding: 4px;
+      font-size: 18px; color: var(--navy); padding: 4px;
+      flex-shrink: 0; margin-right: 2px;
     }
 
     /* HERO */
@@ -159,20 +180,21 @@
     .hero p {
       font-size: 15px; color: rgba(255,255,255,0.75); margin-bottom: 32px;
       max-width: 460px; margin-left: auto; margin-right: auto;
+      word-wrap: break-word; overflow-wrap: break-word; padding: 0 4px;
     }
-    .hero-search-wrap { position: relative; max-width: 540px; margin: 0 auto 28px; }
+    .hero-search-wrap { position: relative; max-width: 540px; margin: 0 auto 28px; width: 100%; }
     .hero-search {
-      display: flex; background: #fff; border-radius: 12px;
-      overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      display: flex; background: #fff; border-radius: 14px;
+      overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2); width: 100%;
     }
     .hero-search input {
-      flex: 1; padding: 14px 18px; border: none; outline: none;
+      flex: 1; min-width: 0; padding: 14px 16px; border: none; outline: none;
       font-size: 14px; font-family: Inter, sans-serif; color: var(--text);
     }
     .hero-search button {
-      padding: 14px 20px; background: var(--green); color: #fff;
-      font-size: 14px; font-weight: 700; display: flex;
-      align-items: center; gap: 8px; transition: opacity .15s;
+      width: 52px; background: var(--green); color: #fff;
+      font-size: 16px; display: flex; align-items: center; justify-content: center;
+      transition: opacity .15s; flex-shrink: 0;
     }
     .hero-search button:hover { opacity: 0.9; }
     .hero-search-results {
@@ -183,14 +205,78 @@
     }
     .hero-search-results.open { display: block; }
     .hero-stats {
-      display: flex; justify-content: center; gap: 28px; flex-wrap: wrap;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      max-width: 540px; margin: 0 auto;
     }
-    .hero-stat { text-align: center; color: rgba(255,255,255,0.8); }
+    .hero-stat {
+      background: #fff; border-radius: 14px; padding: 14px 6px 12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12); text-align: center;
+    }
+    .hero-stat-icon {
+      width: 34px; height: 34px; border-radius: 50%; margin: 0 auto 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .hero-stat-icon.icon-vendors  { background: #e8f9ee; color: var(--green); }
+    .hero-stat-icon.icon-products { background: #fff4e5; color: var(--orange); }
+    .hero-stat-icon.icon-news     { background: #e8f0fe; color: var(--navy); }
+    .hero-stat-icon.icon-events   { background: #fdeef3; color: #c2185b; }
     .hero-stat strong {
-      display: block; font-size: 20px; font-weight: 800;
-      color: #fff; line-height: 1; margin-bottom: 3px;
+      display: block; font-size: 18px; font-weight: 800;
+      color: var(--text); line-height: 1; margin-bottom: 3px;
     }
-    .hero-stat span { font-size: 11px; opacity: 0.7; }
+    .hero-stat span { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+    @media (max-width: 480px) {
+      .hero-stats { gap: 6px; }
+      .hero-stat { padding: 10px 4px 9px; border-radius: 12px; }
+      .hero-stat-icon { width: 28px; height: 28px; font-size: 12px; margin-bottom: 6px; }
+      .hero-stat strong { font-size: 15px; }
+      .hero-stat span { font-size: 9px; }
+    }
+
+    /* POPULAR CATEGORIES */
+    .popular-cats-card {
+      position: relative; max-width: 680px; margin: 32px auto 0;
+      background: #fff; border-radius: 20px; padding: 22px 18px 20px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+    }
+    .popular-cats-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .popular-cats-head h3 {
+      font-size: 15px; font-weight: 800; color: var(--text);
+    }
+    .popular-cats-head a {
+      font-size: 12px; font-weight: 700; color: var(--green);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .popular-cats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    }
+    .popular-cat-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 10px 4px; border-radius: 14px; transition: background .15s;
+      min-height: 76px; justify-content: center;
+    }
+    .popular-cat-item:hover { background: var(--bg); }
+    .popular-cat-icon {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .popular-cat-icon.electronics { background: #e8f0fe; color: #1a3c8f; }
+    .popular-cat-icon.fashion     { background: #fdeef3; color: #c2185b; }
+    .popular-cat-icon.services    { background: #fff4e5; color: var(--orange); }
+    .popular-cat-icon.food        { background: #e8f9ee; color: var(--green); }
+    .popular-cat-item span {
+      font-size: 11.5px; font-weight: 600; color: var(--text);
+      text-align: center; line-height: 1.2;
+    }
+    @media (max-width: 480px) {
+      .popular-cats-grid { gap: 6px; }
+      .popular-cat-icon { width: 40px; height: 40px; font-size: 16px; }
+      .popular-cat-item span { font-size: 10.5px; }
+    }
 
     /* SECTIONS */
     .home-section { max-width: 1200px; margin: 0 auto; padding: 48px 20px; }
@@ -489,8 +575,18 @@
       .vendor-cta { padding: 32px 24px; }
     }
     @media (max-width: 640px) {
-      .hero { padding: 40px 16px 48px; }
-      .hero h1 { font-size: 24px; }
+      .nav-container { padding: 0 12px; gap: 10px; }
+      .logo-icon { font-size: 19px; }
+      .logo-text { font-size: 13.5px; }
+      .btn-login, .btn-signup { padding: 7px 12px; font-size: 12px; }
+      .auth-buttons { gap: 6px; }
+      .hero { padding: 32px 14px 40px; }
+      .hero h1 { font-size: 22px; }
+      .hero-eyebrow { font-size: 11px; padding: 4px 12px; margin-bottom: 16px; }
+      .hero p { font-size: 13.5px; margin-bottom: 24px; }
+      .hero-stats { gap: 18px; }
+      .hero-stat strong { font-size: 17px; }
+      .popular-cats-card { padding: 18px 14px 16px; border-radius: 16px; }
       .home-section { padding: 36px 16px; }
       .products-grid { grid-template-columns: repeat(2, 1fr); }
       .events-grid { grid-template-columns: 1fr; }
@@ -500,6 +596,12 @@
       .vendor-cta { border-radius: 16px; }
       .vendor-cta-text h2 { font-size: 20px; }
     }
+    @media (max-width: 360px) {
+      .logo-text { font-size: 12px; }
+      .btn-login, .btn-signup { padding: 6px 10px; font-size: 11px; }
+      .hero h1 { font-size: 20px; }
+      .popular-cats-grid { gap: 4px; }
+    }
   </style>
 </head>
 <body>
@@ -508,10 +610,10 @@
 <nav class="navbar">
   <div class="nav-container">
     <div class="nav-logo">
-      <a href="index.html">
+     <a href="index.html">
         <div class="logo-icon">🏫</div>
-        <span class="logo-text">Inside My Campus</span>
-      </a>
+        <span class="logo-text">Inside<br class="logo-break"/> My Campus</span>
+      </a> 
     </div>
 
     <ul class="nav-links" id="navLinks">
@@ -580,9 +682,9 @@
     <div class="hero-search-wrap">
       <div class="hero-search">
         <input type="text" id="heroSearchInput"
-          placeholder="Search news, products, vendors, events, courses..."/>
-        <button onclick="triggerHeroSearch()">
-          <i class="fas fa-search"></i> Search
+          placeholder="Search news, products, vendors..."/>
+        <button onclick="triggerHeroSearch()" aria-label="Search">
+          <i class="fas fa-search"></i>
         </button>
       </div>
       <div class="hero-search-results" id="heroSearchResults"></div>
@@ -590,20 +692,49 @@
 
     <div class="hero-stats">
       <div class="hero-stat">
+        <div class="hero-stat-icon icon-vendors"><i class="fas fa-user-group"></i></div>
         <strong id="statVendors">—</strong>
         <span>Vendors</span>
       </div>
       <div class="hero-stat">
+        <div class="hero-stat-icon icon-products"><i class="fas fa-bag-shopping"></i></div>
         <strong id="statProducts">—</strong>
         <span>Products</span>
       </div>
       <div class="hero-stat">
+        <div class="hero-stat-icon icon-news"><i class="fas fa-newspaper"></i></div>
         <strong id="statNews">—</strong>
         <span>News Articles</span>
       </div>
       <div class="hero-stat">
+        <div class="hero-stat-icon icon-events"><i class="fas fa-calendar-days"></i></div>
         <strong id="statEvents">—</strong>
         <span>Events</span>
+      </div>
+    </div>
+
+    <div class="popular-cats-card">
+      <div class="popular-cats-head">
+        <h3>Popular Categories</h3>
+        <a href="marketplace.html">View all <i class="fas fa-chevron-right" style="font-size:9px;"></i></a>
+      </div>
+      <div class="popular-cats-grid">
+        <a href="marketplace.html?cat=Gadgets" class="popular-cat-item">
+          <div class="popular-cat-icon electronics"><i class="fas fa-mobile-screen-button"></i></div>
+          <span>Electronics</span>
+        </a>
+        <a href="marketplace.html?cat=Fashion" class="popular-cat-item">
+          <div class="popular-cat-icon fashion"><i class="fas fa-shirt"></i></div>
+          <span>Fashion</span>
+        </a>
+        <a href="marketplace.html?cat=Services" class="popular-cat-item">
+          <div class="popular-cat-icon services"><i class="fas fa-concierge-bell"></i></div>
+          <span>Services</span>
+        </a>
+        <a href="marketplace.html?cat=Food" class="popular-cat-item">
+          <div class="popular-cat-icon food"><i class="fas fa-utensils"></i></div>
+          <span>Food</span>
+        </a>
       </div>
     </div>
   </div>
@@ -805,10 +936,11 @@
       <h4>Support</h4>
       <ul>
         <li><a href="how-it-works.html">How It Works</a></li>
-        <li><a href="contact.html">Contact Us</a></li>
         <li><a href="vendor-faqs.html">Vendor FAQs</a></li>
-        <li><a href="#">Privacy Policy</a></li>
-        <li><a href="#">Terms of Service</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="terms-of-service.html">Terms of Service</a></li>
+        <li><a href="cookie-policy.html">Cookie Policy</a></li>
         <li><a href="our-story.html">About Us</a></li>
       </ul>
     </div>
@@ -1294,24 +1426,25 @@ function renderSponsored(ads) {
   var section = document.getElementById('sponsoredSection');
   if (!track) return;
 
-  var showAds   = ads.length ? ads : DEFAULT_SPONSORED;
-  var isDefault = !ads.length;
+  // Real ads (if any) rotate together with the placeholders, never replacing them.
+  var showAds = ads.length ? ads.concat(DEFAULT_SPONSORED) : DEFAULT_SPONSORED;
 
   if (section) section.style.display = 'block';
 
   track.innerHTML = showAds.map(function(a){
+    var isPlaceholder = !!a.link;
     var img = a.image || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=240&fit=crop';
-    var href = isDefault ? a.link : sponsoredAdLink(a);
+    var href = isPlaceholder ? a.link : sponsoredAdLink(a);
     var target = href.indexOf('http') === 0 ? ' target="_blank"' : '';
     return '<div class="sponsored-card">' +
       '<div style="position:relative;">' +
       '<img src="' + img + '" class="sponsored-card-img" alt="' + esc(a.title) + '" loading="lazy" style="width:100%;height:150px;object-fit:cover;" onerror="this.style.background=\'linear-gradient(135deg,#e85d04,#c94d00)\'"/>' +
-      '<span class="sponsored-badge">' + (isDefault ? 'Ad Space' : 'Sponsored') + '</span>' +
+      '<span class="sponsored-badge">' + (isPlaceholder ? 'Ad Space' : 'Sponsored') + '</span>' +
       '</div>' +
       '<div class="sponsored-card-body">' +
       '<div class="sponsored-card-title">' + esc(a.title) + '</div>' +
       '<div class="sponsored-card-desc">' + esc((a.description||'').substring(0,80)) + '</div>' +
-      '<a href="' + href + '"' + target + ' class="btn-sponsored-cta">' + (isDefault ? 'Advertise Now' : 'Learn More') + '</a>' +
+      '<a href="' + href + '"' + target + ' class="btn-sponsored-cta">' + (isPlaceholder ? 'Advertise Now' : 'Learn More') + '</a>' +
       '</div></div>';
   }).join('');
 
@@ -1351,5 +1484,6 @@ function debounce(fn, ms) {
   };
 }
 </script>
+<script src="cookie-consent.js"></script>
 </body>
 </html>

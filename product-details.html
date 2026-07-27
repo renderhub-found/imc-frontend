@@ -134,6 +134,20 @@
 
       if (IMC_API.logProductClick) IMC_API.logProductClick(productId);
 
+      setTimeout(function () {
+        var waBtn = document.getElementById('whatsappOrderBtn');
+        if (waBtn) {
+          waBtn.addEventListener('click', function () {
+            if (!phone) return;
+            var currentUser  = (typeof IMC_API.getCurrentUser === 'function') ? IMC_API.getCurrentUser() : null;
+            var customerName = currentUser
+              ? (currentUser.firstName + ' ' + (currentUser.lastName || '')).trim()
+              : 'A customer';
+            if (IMC_API.logProductLead) IMC_API.logProductLead(productId, customerName);
+          });
+        }
+      }, 0);
+
       document.title = product.name + ' — Inside My Campus';
       document.getElementById('breadcrumbProduct').textContent = product.name;
 
@@ -177,7 +191,7 @@
         (product.description
           ? '<div class="product-desc">' + esc(product.description) + '</div>'
           : '') +
-        '<a class="btn-whatsapp" href="' + waLink + '" target="_blank" ' +
+        '<a class="btn-whatsapp" id="whatsappOrderBtn" href="' + waLink + '" target="_blank" ' +
         (phone ? '' : 'onclick="alert(\'Vendor WhatsApp not available.\');return false;"') + '>' +
         '<i class="fab fa-whatsapp" style="font-size:20px;"></i>' +
         'Order on WhatsApp' +

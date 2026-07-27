@@ -259,6 +259,10 @@ var IMC_API = (function () {
     return await request('DELETE', '/vendors/products/' + id, null, true);
   }
 
+  async function updateProduct(id, data) {
+    return await request('PUT', '/vendors/products/' + id, data, true);
+  }
+
   async function getAllProducts() {
     return await request('GET', '/vendors/products/all', null, false);
   }
@@ -394,7 +398,7 @@ var IMC_API = (function () {
     googleAuth,
     // Vendors
     getVendors, registerVendor, getMyVendorProfile,
-    addProduct, addProductWithFiles, deleteProduct,
+    addProduct, addProductWithFiles, deleteProduct, updateProduct,
     getAllProducts, logProductLead, logProductClick, rateVendor, uploadVendorProfilePicture, updateVendorProfile,
     // Events
     getEvents, getEventById, createEvent, createEventWithFile, updateEvent, deleteEvent,

@@ -39,6 +39,30 @@
       pendingBanner.style.display = 'flex';
     }
 
+    // ---- Show subscription expired banner ----
+    var expiredBanner = document.getElementById('subscriptionExpiredBanner');
+    var isExpired = vendorData.subscriptionExpiresAt &&
+      new Date(vendorData.subscriptionExpiresAt) < new Date();
+    if (expiredBanner && isExpired) {
+      expiredBanner.style.display = 'flex';
+      var renewBtn = document.getElementById('renewSubscriptionBtn');
+      if (renewBtn) {
+        renewBtn.addEventListener('click', function () {
+          IMCPaystack.openPayment({
+            amount:      5000,
+            type:        'vendor_renewal',
+            description: 'Vendor Subscription Renewal — Inside My Campus',
+            email:       vendorData.email,
+            metadata:    { userEmail: vendorData.email },
+            onSuccess: function () {
+              alert('Subscription renewed! Reloading dashboard...');
+              window.location.reload();
+            }
+          });
+        });
+      }
+    }
+
     // ---- Fill welcome name ----
     var welcomeEl = document.getElementById('vendorWelcomeName');
     if (welcomeEl) {
@@ -383,14 +407,47 @@ async function renderVendorLeads() {
         '<p class="product-price">₦' +
         parseFloat(p.price).toLocaleString() + '</p>' +
         '<p class="product-desc">' + p.description + '</p>' +
-        '<button class="btn-delete-product" ' +
+        '<div style="display:flex;gap:8px;">' +
+        '<button class="btn-delete-product" style="flex:1;background:#e8f0fe;color:#1a3c8f;border:none;padding:8px;border-radius:8px;cursor:pointer;" ' +
+        'onclick="editProduct(\'' + p._id + '\',\'' + esc(p.name).replace(/'/g,"\\'") + '\',' + p.price + ',\'' +
+        esc(p.description || '').replace(/'/g,"\\'") + '\',\'' + esc(p.category || '').replace(/'/g,"\\'") + '\')">' +
+        '<i class="fas fa-pen"></i> Edit' +
+        '</button>' +
+        '<button class="btn-delete-product" style="flex:1;" ' +
         'onclick="deleteProduct(\'' + p._id + '\')">' +
         '<i class="fas fa-trash"></i> Delete' +
         '</button>' +
         '</div>' +
+        '</div>' +
         '</div>';
     }).join('');
   }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  window.editProduct = async function (productId, currentName, currentPrice, currentDesc, currentCategory) {
+    var newName = prompt('Product name:', currentName);
+    if (newName === null) return;
+    var newPrice = prompt('Price (₦):', currentPrice);
+    if (newPrice === null) return;
+    var newDesc = prompt('Description:', currentDesc);
+    if (newDesc === null) return;
+    var newCategory = prompt('Category:', currentCategory);
+    if (newCategory === null) return;
+
+    var result = await IMC_API.updateProduct(productId, {
+      name: newName, price: newPrice, description: newDesc, category: newCategory
+    });
+
+    if (result.success) {
+      alert('Product updated!');
+      window.location.reload();
+    } else {
+      alert(result.message || 'Update failed.');
+    }
+  };
 
 
   // ================================================
