@@ -203,7 +203,7 @@
         '</div>';
 
       document.getElementById('shareButtonsContainer').innerHTML =
-        renderShareButtons(window.location.href, product.name, images[0]);
+        renderShareButtons(window.location.origin + '/product/' + productId, product.name, images[0]);
 
       // Related products from same vendor
       var related = (result.products || []).filter(function (p) {

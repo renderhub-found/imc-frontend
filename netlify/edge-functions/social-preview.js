@@ -1,21 +1,19 @@
-export default async (request, context) => {
-  var userAgent = request.headers.get('user-agent') || '';
-  var isBot = /facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot|Pinterest|Googlebot|redditbot/i.test(userAgent);
-
-  if (!isBot) {
-    return context.next();
-  }
-
+export default async (request) => {
   var url     = new URL(request.url);
-  var id      = url.searchParams.get('id');
+  var pathParts = url.pathname.split('/').filter(Boolean);
+  var id = url.searchParams.get('id') || pathParts[pathParts.length - 1] || null;
   var apiBase = 'https://imc-backend-0i5i.onrender.com/api';
 
   var title       = 'Inside My Campus';
   var description = "Nigeria's #1 Campus Platform";
   var image       = 'https://insidemycampus.com/favicon.png';
 
+  var isProduct = url.pathname.indexOf('product-details') !== -1 || url.pathname.indexOf('/product/') !== -1;
+  var isEvent   = url.pathname.indexOf('event-details')   !== -1 || url.pathname.indexOf('/event/')   !== -1;
+  var isNews    = url.pathname.indexOf('campus-news')      !== -1 || url.pathname.indexOf('/news/')    !== -1;
+
   try {
-    if (url.pathname.indexOf('product-details') !== -1 && id) {
+    if (isProduct && id) {
       var res  = await fetch(apiBase + '/vendors/products/all');
       var data = await res.json();
       var product = (data.products || []).find(function (p) { return p._id === id; });
@@ -24,7 +22,7 @@ export default async (request, context) => {
         description = product.description || '';
         image       = (product.images && product.images[0]) || product.image || image;
       }
-    } else if (url.pathname.indexOf('event-details') !== -1 && id) {
+    } else if (isEvent && id) {
       var res  = await fetch(apiBase + '/events/' + id);
       var data = await res.json();
       if (data.event) {
@@ -32,7 +30,7 @@ export default async (request, context) => {
         description = data.event.description || '';
         image       = data.event.coverImage || image;
       }
-    } else if (url.pathname.indexOf('campus-news') !== -1 && id) {
+    } else if (isNews && id) {
       var res  = await fetch(apiBase + '/news/' + id);
       var data = await res.json();
       if (data.news) {
@@ -72,5 +70,5 @@ export default async (request, context) => {
 };
 
 export const config = {
-  path: ['/product-details.html', '/event-details.html', '/campus-news.html']
+  path: ['/product-details.html', '/event-details.html', '/campus-news.html', '/product/*', '/event/*', '/news/*']
 };

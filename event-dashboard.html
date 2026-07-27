@@ -144,7 +144,12 @@
 
       <div class="form-group">
         <label>Event Title *</label>
-        <input type="text" class="form-input" id="evTitle" placeholder="e.g. Tech Summit 2024"/>
+        <input type="text" class="form-input" id="evTitle" placeholder="e.g. Tech Summit 2026"/>
+      </div>
+
+      <div class="form-group">
+        <label>Organizer Name</label>
+        <input type="text" class="form-input" id="evOrganizerName" placeholder="Name to display as organizer"/>
       </div>
 
       <div class="form-group">
@@ -441,7 +446,8 @@ async function createEvent() {
   msgBox.style.display = 'none';
 
   var data = {
-    title:       (document.getElementById('evTitle').value   || '').trim(),
+    title:         (document.getElementById('evTitle').value   || '').trim(),
+    organizerName: (document.getElementById('evOrganizerName').value || '').trim(),
     description: (document.getElementById('evDesc').value    || '').trim(),
     university:  (document.getElementById('evUni').value     || '').trim(),
     location:    (document.getElementById('evLoc').value     || '').trim(),

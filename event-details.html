@@ -236,8 +236,9 @@
         clearInterval(checkReady);
         var box = document.getElementById('shareButtonsContainer');
         if (box) {
+          var cleanUrl = window.location.origin + '/event/' + eventData._id;
           box.innerHTML = renderShareButtons(
-            window.location.href,
+            cleanUrl,
             eventData.title,
             eventData.coverImage
           );

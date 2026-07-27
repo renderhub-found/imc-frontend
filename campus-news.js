@@ -248,7 +248,7 @@ function openNewsModal(newsId) {
 
   // Build a link that reopens this exact article when shared
   if (typeof renderShareButtons === 'function') {
-    var pageUrl = window.location.origin + window.location.pathname + '?id=' + news._id;
+    var pageUrl = window.location.origin + '/news/' + news._id;
     document.getElementById('newsShareContainer').innerHTML =
       renderShareButtons(pageUrl, news.title, news.image);
   }
