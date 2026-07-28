@@ -1,8 +1,26 @@
-export default async (request) => {
-  var url     = new URL(request.url);
+export default async (request, context) => {
+  // A real browser navigating to this URL (including in-app browsers like
+  // WhatsApp's or Facebook's, which DO include "WhatsApp"/"FBAN" etc. in
+  // their user-agent string) always sends sec-fetch-mode: navigate.
+  // Link-preview crawlers fetch the page in the background to build a
+  // card and never send this header. Checking it first means real
+  // visitors always get the real page, no matter what.
+  var secFetchMode = request.headers.get('sec-fetch-mode');
+  if (secFetchMode === 'navigate') {
+    return context.next();
+  }
+
+  var userAgent = request.headers.get('user-agent') || '';
+  var isBot = /facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot|Pinterest|Googlebot|redditbot/i.test(userAgent);
+
+  if (!isBot) {
+    return context.next();
+  }
+
+  var url       = new URL(request.url);
   var pathParts = url.pathname.split('/').filter(Boolean);
-  var id = url.searchParams.get('id') || pathParts[pathParts.length - 1] || null;
-  var apiBase = 'https://imc-backend-0i5i.onrender.com/api';
+  var id        = url.searchParams.get('id') || pathParts[pathParts.length - 1] || null;
+  var apiBase   = 'https://imc-backend-0i5i.onrender.com/api';
 
   var title       = 'Inside My Campus';
   var description = "Nigeria's #1 Campus Platform";

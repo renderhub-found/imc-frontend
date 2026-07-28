@@ -243,6 +243,9 @@
       <i class="fas fa-money-bill-wave"></i> Withdrawals
       <span class="badge" id="badgeWithdrawals" style="display:none;margin-left:auto;"></span>
     </div>
+    <div class="nav-item" data-section="event-withdrawals">
+      <i class="fas fa-calendar-check"></i> Event Withdrawals
+    </div>
 
     <div class="nav-section">System</div>
     <div class="nav-item" data-section="logs">
@@ -654,6 +657,23 @@
       </div>
     </div>
 
+    <div class="section" id="section-event-withdrawals">
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">Event Organizer Withdrawal Requests</div></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Event</th><th>Organizer</th><th>Bank</th><th>Account</th>
+              <th>Amount</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="eventWithdrawalsTableBody">
+              <tr><td colspan="8" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="section" id="section-logs">
       <div class="table-wrap">
         <div class="table-header"><div class="table-title">Audit Logs</div></div>
@@ -740,7 +760,7 @@
   </div>
 </div>
 
-<script src="https://cdn.ckeditor.com/ckeditor5/43.3.1/classic/ckeditor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@43.3.1/build/ckeditor.js"></script>
 <script src="api.js"></script>
 <script>
 var ADMIN_TOKEN = null;
@@ -1165,6 +1185,7 @@ function switchSection(name, label) {
     notifications: loadAdminNotifications,
     payments:    loadPayments,
     withdrawals: loadWithdrawals,
+    'event-withdrawals': loadEventWithdrawals,
     logs:        loadLogs,
   };
   if (loaders[name]) loaders[name]();
@@ -1670,6 +1691,47 @@ async function loadWithdrawals() {
 async function updateWithdrawal(ambId, withdrawalId, status) {
   var r = await adminRequest('PUT', '/withdrawals/' + ambId + '/' + withdrawalId, { status: status });
   if (r.success) loadWithdrawals();
+  else alert(r.message);
+}
+
+async function loadEventWithdrawals() {
+  var r = await adminRequest('GET', '/event-withdrawals');
+  if (!r.success) return;
+  var ws = r.withdrawals || [];
+
+  if (ws.length === 0) {
+    setTbody('eventWithdrawalsTableBody', '<tr><td colspan="8" class="empty">No event withdrawal requests</td></tr>');
+    return;
+  }
+
+  setTbody('eventWithdrawalsTableBody', ws.map(function (w) {
+    return '<tr>' +
+      '<td>' + esc(w.eventTitle) + '</td>' +
+      '<td>' + esc(w.organizerName) + '<br/>' +
+      '<span style="font-size:11px;color:#888;">' + esc(w.organizerEmail) + '</span></td>' +
+      '<td>' + esc(w.bankName) + '</td>' +
+      '<td>' + esc(w.accountNum) + '<br/>' +
+      '<span style="font-size:11px;color:#888;">' + esc(w.accountName) + '</span></td>' +
+      '<td><strong>₦' + (w.amount || 0).toLocaleString() + '</strong></td>' +
+      '<td><span class="status ' + w.status + '">' + w.status + '</span></td>' +
+      '<td>' + fmtDate(w.date) + '</td>' +
+      '<td><div class="btn-group">' +
+        (w.status === 'pending'
+          ? '<button class="btn btn-sm btn-success" onclick="updateEventWithdrawal(\'' +
+            w.eventId + '\',\'' + w._id + '\',\'approved\')">Approve</button>' +
+            '<button class="btn btn-sm btn-danger" onclick="updateEventWithdrawal(\'' +
+            w.eventId + '\',\'' + w._id + '\',\'rejected\')">Reject</button>'
+          : w.status === 'approved'
+          ? '<button class="btn btn-sm btn-primary" onclick="updateEventWithdrawal(\'' +
+            w.eventId + '\',\'' + w._id + '\',\'paid\')">Mark Paid</button>'
+          : '—') +
+      '</div></td></tr>';
+  }).join(''));
+}
+
+async function updateEventWithdrawal(eventId, withdrawalId, status) {
+  var r = await adminRequest('PUT', '/event-withdrawals/' + eventId + '/' + withdrawalId, { status: status });
+  if (r.success) loadEventWithdrawals();
   else alert(r.message);
 }
 
