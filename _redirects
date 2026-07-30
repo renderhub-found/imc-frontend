@@ -1,4 +1,0 @@
-/join              /vendor.html                       200
-/event/:id         /event-details.html?id=:id          200
-/product/:id       /product-details.html?id=:id        200
-/news/:id          /campus-news.html?id=:id            200

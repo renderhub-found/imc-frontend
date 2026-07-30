@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/join", "destination": "/vendor.html" },
+    { "source": "/product/:id", "destination": "/api/social-preview?type=product&id=:id" },
+    { "source": "/event/:id", "destination": "/api/social-preview?type=event&id=:id" },
+    { "source": "/news/:id", "destination": "/api/social-preview?type=news&id=:id" }
+  ]
+}
