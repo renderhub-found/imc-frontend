@@ -1072,6 +1072,16 @@ function initNewsAdminCreate() {
 
     var imgFile = imgInput && imgInput.files[0];
     var vidFile = vidInput && vidInput.files[0];
+
+    var allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (imgFile && allowedImageTypes.indexOf(imgFile.type) === -1) {
+      errMsg.textContent = 'That image format isn\'t supported. Please use JPG, PNG, WEBP, or GIF (not HEIC/HEIF — convert it first).';
+      errBox.style.display = 'flex';
+      btnText.style.display = 'inline';
+      spinner.style.display = 'none';
+      return;
+    }
+
     if (imgFile) formData.append('image', imgFile);
     if (vidFile) formData.append('video', vidFile);
 
