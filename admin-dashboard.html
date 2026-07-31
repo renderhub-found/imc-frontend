@@ -291,6 +291,12 @@
       <div class="revenue-card">
         <h3>Total Revenue</h3>
         <div class="amount" id="totalRevenue">₦0</div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;font-size:12.5px;color:rgba(255,255,255,0.85);">
+          <span>Vendors: <strong id="revVendors">₦0</strong></span>
+          <span>Ads: <strong id="revAds">₦0</strong></span>
+          <span>Event Tickets: <strong id="revTickets">₦0</strong></span>
+          <span>Courses: <strong id="revCourses">₦0</strong></span>
+        </div>
       </div>
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
@@ -1256,6 +1262,10 @@ async function loadStats() {
   setText('stat-courses',         s.totalCourses || 0);
   setText('stat-withdrawals',     s.pendingWithdrawals || 0);
   setText('totalRevenue',         '₦' + (s.revenue.total || 0).toLocaleString());
+  setText('revVendors', '₦' + (s.revenue.vendors || 0).toLocaleString());
+  setText('revAds',     '₦' + (s.revenue.ads || 0).toLocaleString());
+  setText('revTickets', '₦' + (s.revenue.eventTickets || 0).toLocaleString());
+  setText('revCourses', '₦' + (s.revenue.courses || 0).toLocaleString());
 
   setBadge('badgeVendors',    s.pendingVendors);
   setBadge('badgeAds',        s.pendingAds || 0);
