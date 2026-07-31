@@ -298,6 +298,14 @@ var IMC_API = (function () {
     return await request('GET', '/ambassadors/my-profile', null, true);
   }
 
+  async function updateAmbassadorProfile(data) {
+    return await request('PUT', '/ambassadors/profile', data, true);
+  }
+
+  async function uploadAmbassadorProfilePicture(formData) {
+    return await request('PUT', '/ambassadors/profile-picture', formData, true);
+  }
+
   async function requestWithdrawal(data) {
     return await request('POST', '/ambassadors/withdraw', data, true);
   }
@@ -410,6 +418,7 @@ var IMC_API = (function () {
     markNotificationRead, markAllNotificationsRead,
     // Ambassadors
     registerAmbassador, getMyAmbassadorProfile, requestWithdrawal, claimTaskReward,
+    updateAmbassadorProfile, uploadAmbassadorProfilePicture,
     // Ads
     getAds, getMyAds, submitAd,
     // News

@@ -544,25 +544,81 @@ function progressBar(label, pct, color) {
 //   PROFILE TAB
 // ================================================
 function renderAmbProfile(ambassador) {
-  var container = document.getElementById('ambProfileCard');
-  if (!container) return;
+  var setVal = function (id, val) {
+    var el = document.getElementById(id);
+    if (el) el.value = val || '';
+  };
 
-  container.innerHTML =
-    '<div class="profile-info-grid">' +
-    infoItem('Full Name',    ambassador.fullName) +
-    infoItem('Username',     '@' + ambassador.username) +
-    infoItem('Email',        ambassador.email) +
-    infoItem('WhatsApp',     ambassador.whatsApp) +
-    infoItem('University',   ambassador.university) +
-    infoItem('Social Media', ambassador.social) +
-    '<div class="profile-info-item">' +
-    '<span class="profile-label">Referral Code</span>' +
-    '<span class="profile-value" style="color:#2d8653;font-weight:800;">' + ambassador.refCode + '</span></div>' +
-    infoItem('Joined', ambassador.createdAt ? new Date(ambassador.createdAt).toLocaleDateString() : '—') +
-    '<div class="profile-info-item" style="grid-column:1/-1;">' +
-    '<span class="profile-label">Why I Joined</span>' +
-    '<span class="profile-value">' + ambassador.reason + '</span></div>' +
-    '</div>';
+  setVal('ambFullName',   ambassador.fullName);
+  setVal('ambUniversity', ambassador.university);
+  setVal('ambDepartment', ambassador.department);
+  setVal('ambPhone',      ambassador.phone);
+  setVal('ambWhatsapp',   ambassador.whatsApp);
+  setVal('ambSocial',     ambassador.social);
+  setVal('ambEmail',      ambassador.email);
+
+  var picPreview = document.getElementById('ambProfilePicPreview');
+  if (picPreview && ambassador.profilePicture) {
+    picPreview.src = ambassador.profilePicture;
+    picPreview.style.display = 'inline-block';
+  }
+
+  initAmbProfileEdit();
+}
+
+function initAmbProfileEdit() {
+  var saveBtn = document.getElementById('ambProfileSaveBtn');
+  var errBox  = document.getElementById('ambProfileError');
+  var okBox   = document.getElementById('ambProfileSuccess');
+
+  if (saveBtn && !saveBtn.dataset.wired) {
+    saveBtn.dataset.wired = 'true';
+    saveBtn.addEventListener('click', async function () {
+      errBox.style.display = 'none';
+      okBox.style.display  = 'none';
+
+      var data = {
+        fullName:   document.getElementById('ambFullName').value.trim(),
+        university: document.getElementById('ambUniversity').value.trim(),
+        department: document.getElementById('ambDepartment').value.trim(),
+        phone:      document.getElementById('ambPhone').value.trim(),
+        whatsApp:   document.getElementById('ambWhatsapp').value.trim(),
+        social:     document.getElementById('ambSocial').value.trim()
+      };
+
+      var result = await IMC_API.updateAmbassadorProfile(data);
+      if (result.success) {
+        okBox.textContent = 'Profile updated!';
+        okBox.style.display = 'block';
+      } else {
+        errBox.textContent = result.message || 'Could not update profile.';
+        errBox.style.display = 'block';
+      }
+    });
+  }
+
+  var picFile = document.getElementById('ambProfilePicFile');
+  if (picFile && !picFile.dataset.wired) {
+    picFile.dataset.wired = 'true';
+    picFile.addEventListener('change', async function () {
+      var file = this.files[0];
+      if (!file) return;
+
+      var formData = new FormData();
+      formData.append('image', file);
+
+      var result = await IMC_API.uploadAmbassadorProfilePicture(formData);
+      if (result.success) {
+        var picPreview = document.getElementById('ambProfilePicPreview');
+        if (picPreview) {
+          picPreview.src = result.profilePicture;
+          picPreview.style.display = 'inline-block';
+        }
+      } else {
+        alert(result.message || 'Could not upload picture.');
+      }
+    });
+  }
 }
 
 function infoItem(label, value) {
