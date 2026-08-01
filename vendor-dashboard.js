@@ -144,6 +144,7 @@
 
     // ---- Vendor profile edit (description, location, phone, social, cover) ----
     initVendorProfileEdit(vendorData);
+    initEditProductModal();
 
   });
 
@@ -400,17 +401,24 @@ async function renderVendorLeads() {
           'onerror="this.src=\'https://via.placeholder.com/300x200\'"/>';
       }
 
+     var statusBadge = p.status === 'inactive'
+        ? '<span class="status-badge rejected" style="font-size:11px;">Inactive</span>'
+        : '<span class="status-badge approved" style="font-size:11px;">Active</span>';
+      var stockLabel = (p.stock !== undefined && p.stock !== null)
+        ? '<span style="font-size:12px;color:#777;margin-left:8px;">Stock: ' + p.stock + '</span>'
+        : '';
+
       return '<div class="product-card">' +
         mediaHtml +
         '<div class="product-card-body">' +
         '<h4>' + p.name + '</h4>' +
         '<p class="product-price">₦' +
         parseFloat(p.price).toLocaleString() + '</p>' +
+        '<div style="margin-bottom:6px;">' + statusBadge + stockLabel + '</div>' +
         '<p class="product-desc">' + p.description + '</p>' +
         '<div style="display:flex;gap:8px;">' +
         '<button class="btn-delete-product" style="flex:1;background:#e8f0fe;color:#1a3c8f;border:none;padding:8px;border-radius:8px;cursor:pointer;" ' +
-        'onclick="editProduct(\'' + p._id + '\',\'' + esc(p.name).replace(/'/g,"\\'") + '\',' + p.price + ',\'' +
-        esc(p.description || '').replace(/'/g,"\\'") + '\',\'' + esc(p.category || '').replace(/'/g,"\\'") + '\')">' +
+        'onclick="openEditProductModal(\'' + p._id + '\')">' +
         '<i class="fas fa-pen"></i> Edit' +
         '</button>' +
         '<button class="btn-delete-product" style="flex:1;" ' +
@@ -427,28 +435,122 @@ async function renderVendorLeads() {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  window.editProduct = async function (productId, currentName, currentPrice, currentDesc, currentCategory) {
-    var newName = prompt('Product name:', currentName);
-    if (newName === null) return;
-    var newPrice = prompt('Price (₦):', currentPrice);
-    if (newPrice === null) return;
-    var newDesc = prompt('Description:', currentDesc);
-    if (newDesc === null) return;
-    var newCategory = prompt('Category:', currentCategory);
-    if (newCategory === null) return;
+  // ================================================
+  //   EDIT PRODUCT MODAL
+  // ================================================
+  var editingProductId = null;
+  var editSelectedImages = []; // { file, previewUrl }
 
-    var result = await IMC_API.updateProduct(productId, {
-      name: newName, price: newPrice, description: newDesc, category: newCategory
+  window.openEditProductModal = function (productId) {
+    var product = (vendorData.products || []).find(function (p) {
+      return p._id === productId;
     });
+    if (!product) { alert('Product not found.'); return; }
 
-    if (result.success) {
-      alert('Product updated!');
-      window.location.reload();
-    } else {
-      alert(result.message || 'Update failed.');
-    }
+    editingProductId = productId;
+    editSelectedImages = [];
+
+    document.getElementById('editProductName').value     = product.name || '';
+    document.getElementById('editProductCategory').value = product.category || '';
+    document.getElementById('editProductPrice').value    = product.price || '';
+    document.getElementById('editProductStock').value    = product.stock || 0;
+    document.getElementById('editProductStatus').value   = product.status || 'active';
+    document.getElementById('editProductDesc').value     = product.description || '';
+
+    var imgs = (product.images && product.images.length > 0) ? product.images : (product.image ? [product.image] : []);
+    var curWrap = document.getElementById('editProductCurrentImages');
+    curWrap.innerHTML = imgs.map(function (url) {
+      return '<img src="' + url + '" style="width:56px;height:56px;object-fit:cover;border-radius:6px;"/>';
+    }).join('');
+
+    document.getElementById('editImagePreviewGrid').style.display = 'none';
+    document.getElementById('editImagePreviewGrid').innerHTML = '';
+    document.getElementById('editImagePlaceholder').style.display = 'block';
+
+    document.getElementById('editProductError').style.display = 'none';
+    document.getElementById('editProductModal').style.display = 'flex';
   };
 
+  window.closeEditProductModal = function () {
+    document.getElementById('editProductModal').style.display = 'none';
+    editingProductId = null;
+    editSelectedImages = [];
+  };
+
+  function initEditProductModal() {
+    var imageInput = document.getElementById('editProductImageFiles');
+    if (imageInput) {
+      imageInput.addEventListener('change', function () {
+        var newFiles = Array.prototype.slice.call(this.files || []);
+        for (var i = 0; i < newFiles.length; i++) {
+          if (editSelectedImages.length >= 4) {
+            alert('Maximum 4 images per product.');
+            break;
+          }
+          var file = newFiles[i];
+          if (file.size > 5 * 1024 * 1024) {
+            alert(file.name + ' is over 5MB and was skipped.');
+            continue;
+          }
+          editSelectedImages.push({ file: file, previewUrl: URL.createObjectURL(file) });
+        }
+        this.value = '';
+
+        var grid = document.getElementById('editImagePreviewGrid');
+        var ph   = document.getElementById('editImagePlaceholder');
+        if (editSelectedImages.length === 0) {
+          grid.style.display = 'none';
+          ph.style.display = 'block';
+          return;
+        }
+        ph.style.display = 'none';
+        grid.style.display = 'grid';
+        grid.innerHTML = editSelectedImages.map(function (item) {
+          return '<img src="' + item.previewUrl + '" style="width:100%;height:70px;object-fit:cover;border-radius:6px;"/>';
+        }).join('');
+      });
+    }
+
+    var saveBtn = document.getElementById('editProductSaveBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async function () {
+        if (!editingProductId) return;
+
+        var errBox = document.getElementById('editProductError');
+        var errMsg = document.getElementById('editProductErrorMsg');
+        errBox.style.display = 'none';
+
+        var formData = new FormData();
+        formData.append('name',        getVal('editProductName'));
+        formData.append('category',    getVal('editProductCategory'));
+        formData.append('price',       getVal('editProductPrice'));
+        formData.append('stock',       getVal('editProductStock'));
+        formData.append('status',      getVal('editProductStatus'));
+        formData.append('description', getVal('editProductDesc'));
+        editSelectedImages.forEach(function (item) {
+          formData.append('images', item.file);
+        });
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        var result = await IMC_API.updateProduct(editingProductId, formData);
+
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+
+        if (result.success) {
+          closeEditProductModal();
+          renderMyProducts(vendorData);
+          var idx = vendorData.products.findIndex(function (p) { return p._id === editingProductId; });
+          if (idx !== -1) vendorData.products[idx] = result.product;
+        } else {
+          errMsg.textContent = result.message || 'Could not update product.';
+          errBox.style.display = 'block';
+        }
+      });
+    }
+  }
 
   // ================================================
   //   FILL PROFILE TAB
@@ -517,6 +619,8 @@ function initVendorProfilePicture(vendor) {
 
 
 function initVendorProfileEdit(vendor) {
+  setVal('vendorBizNameInput',     vendor.bizName || '');
+  setVal('vendorEmailInput',       vendor.email || '');
   setVal('vendorDescriptionInput', vendor.description || '');
   setVal('vendorCampusLocation',   vendor.campusLocation || '');
   setVal('vendorPhoneInput',       vendor.phone || '');
@@ -558,6 +662,8 @@ function initVendorProfileEdit(vendor) {
       msgBox.style.display = 'none';
 
       var formData = new FormData();
+      formData.append('bizName',        getVal('vendorBizNameInput'));
+      formData.append('email',          getVal('vendorEmailInput'));
       formData.append('description',    getVal('vendorDescriptionInput'));
       formData.append('campusLocation', getVal('vendorCampusLocation'));
       formData.append('phone',          getVal('vendorPhoneInput'));

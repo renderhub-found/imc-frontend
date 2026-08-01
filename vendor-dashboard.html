@@ -338,8 +338,18 @@
       <p class="dash-subtitle">Your registered business information.</p>
       <div class="profile-card" id="vendorProfileSummary" style="margin-bottom:16px;"></div>
       <div class="profile-card" id="vendorProfileCard">
-        <div class="form-group" style="margin-bottom:14px;">
-  <label>Profile Picture</label>
+     <div class="form-group" style="margin-bottom:14px;">
+  <label>Business Name</label>
+  <input type="text" id="vendorBizNameInput" placeholder="e.g. Campus Bites"/>
+</div>
+
+<div class="form-group" style="margin-bottom:14px;">
+  <label>Email</label>
+  <input type="email" id="vendorEmailInput" placeholder="e.g. hello@yourbusiness.com"/>
+</div>
+
+<div class="form-group" style="margin-bottom:14px;">
+  <label>Profile Picture / Brand Logo</label>   
   <div class="file-upload-area">
     <input type="file" id="vendorProfilePicFile" accept="image/*" style="display:none;"/>
     <div class="file-upload-placeholder" id="vendorProfilePicPlaceholder"
@@ -377,7 +387,7 @@
 </div>
 
 <div class="form-group" style="margin-bottom:14px;">
-  <label>Campus Location</label>
+  <label>Address / Campus Location</label>
   <input type="text" id="vendorCampusLocation" placeholder="e.g. Behind Faculty of Engineering"/>
 </div>
 
@@ -427,6 +437,84 @@
     </div>
 
   </div><!-- end dashboard-main -->
+
+  <!-- ===== EDIT PRODUCT MODAL ===== -->
+  <div id="editProductModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#fff;border-radius:12px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">Edit Product</h3>
+        <button type="button" onclick="closeEditProductModal()" style="background:none;border:none;font-size:20px;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+
+      <div class="auth-error" id="editProductError" style="display:none;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="editProductErrorMsg"></span>
+      </div>
+
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" id="editProductName"/>
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <select id="editProductCategory" class="form-select">
+          <option value="">-- Select category --</option>
+          <option value="Food">Food</option>
+          <option value="Fashion">Fashion</option>
+          <option value="Gadgets">Gadgets</option>
+          <option value="Beauty">Beauty</option>
+          <option value="Services">Services</option>
+          <option value="Lodge">Lodge</option>
+          <option value="Printing">Printing</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Others">Others</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Price (₦)</label>
+        <input type="number" id="editProductPrice"/>
+      </div>
+
+      <div class="form-group">
+        <label>Stock</label>
+        <input type="number" id="editProductStock" min="0"/>
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select id="editProductStatus" class="form-select">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea class="form-textarea" id="editProductDesc" rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Images <span style="color:#aaa;font-weight:400;">(leave blank to keep current images)</span></label>
+        <div id="editProductCurrentImages" style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;"></div>
+        <div class="file-upload-area" id="editImageUploadArea">
+          <input type="file" id="editProductImageFiles" accept="image/*" multiple style="display:none;"/>
+          <div class="file-upload-placeholder" id="editImagePlaceholder"
+            onclick="document.getElementById('editProductImageFiles').click()">
+            <i class="fas fa-image"></i>
+            <p>Click to replace images</p>
+            <span>Select up to 4 - Max 5MB each</span>
+          </div>
+          <div id="editImagePreviewGrid" style="display:none;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <button class="btn-auth-submit" id="editProductSaveBtn" style="width:100%;">
+        <i class="fas fa-save"></i> Save Changes
+      </button>
+    </div>
+  </div>
 
   <script src="app.js"></script>
   <script src="api.js"></script>
