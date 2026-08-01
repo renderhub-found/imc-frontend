@@ -65,126 +65,159 @@ var AMBASSADOR_TASKS = [
 var CURRENT_AMBASSADOR = null;
 
 // ================================================
+//   ERROR BOUNDARY — turns a silent white screen into
+//   a visible, screenshot-able error message.
+// ================================================
+function showFatalError(context, err) {
+  console.error('[Ambassador Dashboard] ' + context + ':', err);
+  var main = document.querySelector('.dashboard-main') || document.body;
+  var banner = document.createElement('div');
+  banner.style.cssText =
+    'background:#fdecea;border:1px solid #f5c2c0;color:#611a15;' +
+    'padding:16px 20px;border-radius:10px;margin:16px;font-family:sans-serif;';
+  banner.innerHTML =
+    '<strong>Something went wrong loading this page.</strong>' +
+    '<p style="margin:8px 0 0;font-size:13px;">' +
+    'Please screenshot this and send it to support:<br>' +
+    '<code style="display:block;margin-top:6px;background:#fff;padding:8px;border-radius:6px;word-break:break-all;">' +
+    context + ': ' + (err && err.message ? err.message : String(err)) +
+    '</code></p>';
+  main.prepend(banner);
+}
+
+function safeRun(context, fn) {
+  try {
+    fn();
+  } catch (err) {
+    showFatalError(context, err);
+  }
+}
+
+// ================================================
 //   MAIN INIT
 // ================================================
 document.addEventListener('DOMContentLoaded', async function () {
+  try {
 
-  // ---- Auth check ----
-  var loggedIn    = localStorage.getItem('imc_logged_in');
-  var currentUser = JSON.parse(localStorage.getItem('imc_user') || 'null');
+    // ---- Auth check ----
+    var loggedIn    = localStorage.getItem('imc_logged_in');
+    var currentUser = JSON.parse(localStorage.getItem('imc_user') || 'null');
 
-  if (!loggedIn || !currentUser) {
-    window.location.href = 'login.html';
-    return;
-  }
+    if (!loggedIn || !currentUser) {
+      window.location.href = 'login.html';
+      return;
+    }
 
-  // ---- Get ambassador profile from backend ----
-  var result = await IMC_API.getMyAmbassadorProfile();
+    // ---- Get ambassador profile from backend ----
+    var result = await IMC_API.getMyAmbassadorProfile();
 
-  if (!result.success || !result.isAmbassador || !result.ambassador ||
-      result.ambassador.status === 'suspended') {
-    window.location.href = 'ambassador.html';
-    return;
-  }
+    if (!result.success || !result.isAmbassador || !result.ambassador ||
+        result.ambassador.status === 'suspended') {
+      window.location.href = 'ambassador.html';
+      return;
+    }
 
-  var ambassador = result.ambassador;
-  CURRENT_AMBASSADOR = ambassador;
+    var ambassador = result.ambassador;
+    CURRENT_AMBASSADOR = ambassador;
 
-  // Welcome name
-  setEl('ambWelcomeName', (ambassador.fullName || '').split(' ')[0] || 'Ambassador');
+    // Welcome name
+    setEl('ambWelcomeName', (ambassador.fullName || '').split(' ')[0] || 'Ambassador');
 
-  // Stats
-  var referralCount = (ambassador.referrals || []).length;
-  var earnings      = ambassador.earnings || 0;
-  var tasksDone     = (ambassador.tasksDone || []).length;
+    // Stats
+    var referralCount = (ambassador.referrals || []).length;
+    var earnings      = ambassador.earnings || 0;
+    var tasksDone     = (ambassador.tasksDone || []).length;
 
-  setEl('statReferrals', referralCount);
-  setEl('statEarnings',  '₦' + earnings.toLocaleString());
-  setEl('statTasks',     tasksDone);
+    setEl('statReferrals', referralCount);
+    setEl('statEarnings',  '₦' + earnings.toLocaleString());
+    setEl('statTasks',     tasksDone);
 
-  // News count — best effort. The public news endpoint only returns
-  // approved articles, so a pending submission won't be counted until
-  // an admin approves it.
-  IMC_API.getNews().then(function (newsResult) {
-    var allNews = (newsResult && newsResult.news) || [];
-    var newsCount = allNews.filter(function (n) {
-      return n.authorEmail === ambassador.email;
-    }).length;
-    setEl('statNews', newsCount);
-    renderPerformance(ambassador, newsCount);
-  }).catch(function () {
-    setEl('statNews', 0);
-    renderPerformance(ambassador, 0);
-  });
-
-  // Referral link
-  var baseUrl = window.location.origin + '/';
-  var refLink = baseUrl + 'join?ref=' + ambassador.refCode;
-
-  setEl('referralLinkText',     refLink);
-  setEl('referralCodeDisplay',  ambassador.refCode);
-
-  var copyBtn = document.getElementById('copyReferralBtn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', function () {
-      var btn = this;
-      var doCopy = function () {
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        btn.style.background = '#2d8653';
-        setTimeout(function () {
-          btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
-          btn.style.background = '';
-        }, 2000);
-      };
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(refLink).then(doCopy);
-      } else {
-        var el = document.createElement('textarea');
-        el.value = refLink;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        doCopy();
-      }
+    // News count — best effort. The public news endpoint only returns
+    // approved articles, so a pending submission won't be counted until
+    // an admin approves it.
+    IMC_API.getNews().then(function (newsResult) {
+      var allNews = (newsResult && newsResult.news) || [];
+      var newsCount = allNews.filter(function (n) {
+        return n.authorEmail === ambassador.email;
+      }).length;
+      setEl('statNews', newsCount);
+      safeRun('Performance tab', function () { renderPerformance(ambassador, newsCount); });
+    }).catch(function () {
+      setEl('statNews', 0);
+      safeRun('Performance tab', function () { renderPerformance(ambassador, 0); });
     });
+
+    // Referral link
+    var baseUrl = window.location.origin + '/';
+    var refLink = baseUrl + 'join?ref=' + ambassador.refCode;
+
+    setEl('referralLinkText',     refLink);
+    setEl('referralCodeDisplay',  ambassador.refCode);
+
+    var copyBtn = document.getElementById('copyReferralBtn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        var btn = this;
+        var doCopy = function () {
+          btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          btn.style.background = '#2d8653';
+          setTimeout(function () {
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            btn.style.background = '';
+          }, 2000);
+        };
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(refLink).then(doCopy);
+        } else {
+          var el = document.createElement('textarea');
+          el.value = refLink;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+          doCopy();
+        }
+      });
+    }
+
+    // ---- Render tabs — each wrapped so one failure can't blank the rest ----
+    safeRun('Referrals tab',   function () { renderReferrals(ambassador); });
+    safeRun('Earnings tab',    function () { renderEarnings(ambassador); });
+    safeRun('Campus Tasks tab',function () { renderTasks(ambassador); });
+    safeRun('My Profile tab',  function () { renderAmbProfile(ambassador); });
+
+    // ---- Tab navigation ----
+    safeRun('Tab navigation', initAmbTabs);
+
+    // ---- Mobile sidebar ----
+    var sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function () {
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('sidebar-open');
+      });
+    }
+
+    // ---- Logout ----
+    var logoutEl = document.getElementById('ambLogout');
+    if (logoutEl) {
+      logoutEl.addEventListener('click', function (e) {
+        e.preventDefault();
+        IMC_API.logout();
+      });
+    }
+
+    // ---- Submit News ----
+    safeRun('Submit News setup', function () { initNewsFileUploads(); });
+    safeRun('Submit News setup', function () { initNewsSubmit(ambassador); });
+
+    // ---- Withdrawals ----
+    safeRun('Withdraw tab setup', function () { initWithdrawForm(); });
+    safeRun('Withdraw tab data',  function () { loadWithdrawSection(); });
+
+  } catch (err) {
+    showFatalError('Dashboard failed to load', err);
   }
-
-  // ---- Render tabs ----
-  renderReferrals(ambassador);
-  renderEarnings(ambassador);
-  renderTasks(ambassador);
-  renderAmbProfile(ambassador);
-
-  // ---- Tab navigation ----
-  initAmbTabs();
-
-  // ---- Mobile sidebar ----
-  var sidebarToggle = document.getElementById('sidebarToggle');
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener('click', function () {
-      var sidebar = document.getElementById('sidebar');
-      if (sidebar) sidebar.classList.toggle('sidebar-open');
-    });
-  }
-
-  // ---- Logout ----
-  var logoutEl = document.getElementById('ambLogout');
-  if (logoutEl) {
-    logoutEl.addEventListener('click', function (e) {
-      e.preventDefault();
-      IMC_API.logout();
-    });
-  }
-
-  // ---- Submit News ----
-  initNewsFileUploads();
-  initNewsSubmit(ambassador);
-
-  // ---- Withdrawals ----
-  initWithdrawForm();
-  loadWithdrawSection();
-
 }); // end DOMContentLoaded
 
 
@@ -202,19 +235,23 @@ function initAmbTabs() {
 
     newLink.addEventListener('click', function (e) {
       e.preventDefault();
-      var tabId = this.getAttribute('data-tab');
-      if (!tabId) return;
+      try {
+        var tabId = this.getAttribute('data-tab');
+        if (!tabId) return;
 
-      document.querySelectorAll('.sidebar-link[data-tab]')
-        .forEach(function (l) { l.classList.remove('active'); });
-      allTabs.forEach(function (t) { t.classList.remove('active'); });
+        document.querySelectorAll('.sidebar-link[data-tab]')
+          .forEach(function (l) { l.classList.remove('active'); });
+        allTabs.forEach(function (t) { t.classList.remove('active'); });
 
-      this.classList.add('active');
-      var tabEl = document.getElementById('tab-' + tabId);
-      if (tabEl) tabEl.classList.add('active');
+        this.classList.add('active');
+        var tabEl = document.getElementById('tab-' + tabId);
+        if (tabEl) tabEl.classList.add('active');
 
-      var sidebar = document.getElementById('sidebar');
-      if (sidebar) sidebar.classList.remove('sidebar-open');
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.remove('sidebar-open');
+      } catch (err) {
+        showFatalError('Switching to "' + (this.getAttribute('data-tab') || '?') + '" tab', err);
+      }
     });
   });
 }
