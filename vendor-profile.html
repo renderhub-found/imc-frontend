@@ -351,14 +351,12 @@
       return;
     }
 
-    var vendorResult = await IMC_API.getVendors();
-    if (!vendorResult.success) { showNotFound(); return; }
+    var vendorResult = await IMC_API.getVendorById(vendorId);
+    if (!vendorResult.success || !vendorResult.vendor) { showNotFound(); return; }
 
-    var vendor = (vendorResult.vendors || []).find(function (v) {
-      return (v._id || v.id) === vendorId;
-    });
+    var vendor = vendorResult.vendor;
 
-    if (!vendor) { showNotFound(); return; }
+    if (vendor.status !== 'approved') { showNotFound(); return; }
 
     document.title = vendor.bizName + ' — Inside My Campus';
 
@@ -417,7 +415,13 @@
     var waBtn = document.getElementById('vendorWhatsAppBtn');
     if (waBtn) {
       waBtn.href = phone ? 'https://wa.me/' + phone + '?text=' + waMsg : '#';
-      if (!phone) waBtn.onclick = function() { alert('WhatsApp not available.'); return false; };
+      if (!phone) {
+        waBtn.onclick = function() { alert('WhatsApp not available.'); return false; };
+      } else {
+        waBtn.addEventListener('click', function () {
+          if (IMC_API.logWhatsAppClick) IMC_API.logWhatsAppClick(vendor._id);
+        });
+      }
     }
 
     var aboutGrid = document.getElementById('vendorAboutGrid');
@@ -475,7 +479,9 @@
         '<div class="product-price">₦' + parseFloat(p.price || 0).toLocaleString() + '</div>' +
         (p.description ? '<p class="product-desc">' + esc(p.description) + '</p>' : '') +
         '<a href="product-details.html?id=' + esc(p._id) + '" class="btn-view-profile" style="display:block;text-align:center;text-decoration:none;margin-bottom:6px;">View Details</a>' +
-        '<a href="' + waOrderLink + '" target="_blank" class="btn-view-profile" style="background:#25D366;display:block;text-align:center;text-decoration:none;">' +
+      '<a href="' + waOrderLink + '" target="_blank" class="btn-view-profile" ' +
+        'onclick="if(IMC_API.logProductLead)IMC_API.logProductLead(\'' + esc(p._id) + '\',\'A customer\');if(IMC_API.logWhatsAppClick)IMC_API.logWhatsAppClick(\'' + esc(vendor._id) + '\');" ' +
+        'style="background:#25D366;display:block;text-align:center;text-decoration:none;">' +
         '<i class="fab fa-whatsapp"></i> Order on WhatsApp</a>' +
         '</div></div>';
     }).join('');

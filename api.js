@@ -238,6 +238,10 @@ var IMC_API = (function () {
     return await request('GET', '/vendors' + q, null, false);
   }
 
+  async function getVendorById(id) {
+    return await request('GET', '/vendors/' + id, null, false);
+  }
+
   async function registerVendor(data) {
     console.log('[API] registerVendor:', JSON.stringify(data));
     return await request('POST', '/vendors/register', data, true);
@@ -274,6 +278,10 @@ var IMC_API = (function () {
 
   async function logProductClick(productId) {
     return await request('POST', '/vendors/products/' + productId + '/click', {}, false);
+  }
+
+  async function logWhatsAppClick(vendorId) {
+    return await request('POST', '/vendors/' + vendorId + '/whatsapp-click', {}, false);
   }
 
   async function rateVendor(vendorId, value) {
@@ -405,9 +413,9 @@ var IMC_API = (function () {
     // Google
     googleAuth,
     // Vendors
-    getVendors, registerVendor, getMyVendorProfile,
+    getVendors, getVendorById, registerVendor, getMyVendorProfile,
     addProduct, addProductWithFiles, deleteProduct, updateProduct,
-    getAllProducts, logProductLead, logProductClick, rateVendor, uploadVendorProfilePicture, updateVendorProfile,
+getAllProducts, logProductLead, logProductClick, logWhatsAppClick, rateVendor, uploadVendorProfilePicture, updateVendorProfile,
     // Events
     getEvents, getEventById, createEvent, createEventWithFile, updateEvent, deleteEvent,
     getMyEvents, purchaseTicket, getMyTickets,

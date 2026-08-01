@@ -146,13 +146,14 @@
       setTimeout(function () {
         var waBtn = document.getElementById('whatsappOrderBtn');
         if (waBtn) {
-          waBtn.addEventListener('click', function () {
+        waBtn.addEventListener('click', function () {
             if (!phone) return;
             var currentUser  = (typeof IMC_API.getCurrentUser === 'function') ? IMC_API.getCurrentUser() : null;
             var customerName = currentUser
               ? (currentUser.firstName + ' ' + (currentUser.lastName || '')).trim()
               : 'A customer';
             if (IMC_API.logProductLead) IMC_API.logProductLead(productId, customerName);
+            if (IMC_API.logWhatsAppClick && product.vendorId) IMC_API.logWhatsAppClick(product.vendorId);
           });
         }
       }, 0);

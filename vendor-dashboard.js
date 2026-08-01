@@ -84,10 +84,12 @@
     var statViewsEl   = document.getElementById('statProfileViews');
     var statClicksEl  = document.getElementById('statProductClicks');
     var statOrderCEl  = document.getElementById('statOrderCount');
+    var statWaEl      = document.getElementById('statWhatsAppClicks');
     var statRatingEl  = document.getElementById('statRating');
     if (statViewsEl)  statViewsEl.textContent  = vendorData.profileViews || 0;
     if (statClicksEl) statClicksEl.textContent = totalClicks;
     if (statOrderCEl) statOrderCEl.textContent = totalOrders;
+    if (statWaEl)      statWaEl.textContent     = vendorData.whatsappClicks || 0;
     if (statRatingEl) {
       statRatingEl.textContent = vendorData.avgRating
         ? vendorData.avgRating.toFixed(1) + ' ★ (' + (vendorData.ratingCount || 0) + ')'
