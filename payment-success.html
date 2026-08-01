@@ -233,6 +233,25 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
 
+    // ---- Event ticket ----
+    if (type === 'event_ticket') {
+      if (ur.updated === 'event_ticket' && ur.ticket) {
+        var t = ur.ticket;
+        var subMsg = 'Your event ticket has been reserved successfully. Your event ticket has been sent to your email.';
+        if (t.eventTitle) {
+          subMsg += ' (' + t.eventTitle + (t.eventDate ? ' · ' + t.eventDate : '') + ')';
+        }
+        ok('Congratulations! 🎉', subMsg, t.ticketCode || reference, ur.redirectUrl || 'index.html', 4000);
+      } else {
+        err(
+          'Payment confirmed but your ticket could not be issued automatically.<br>' +
+          '<strong>You will NOT be charged again.</strong><br><br>' +
+          'Contact support with reference: <strong>' + reference + '</strong>', ''
+        );
+      }
+      return;
+    }
+
     // ---- Course purchase ----
     if (type === 'course_purchase') {
       ok('Course Purchased! 🎓',
