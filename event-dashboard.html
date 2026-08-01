@@ -276,7 +276,9 @@
   <!-- WALLET TAB -->
   <div id="tab-wallet" style="display:none;">
     <div class="wallet-card" id="walletCard">
-      <div class="wallet-label">Total Wallet Balance</div>
+      <div class="wallet-label">Total Ticket Revenue</div>
+      <div class="wallet-amount" id="walletRevenue" style="font-size:20px;opacity:0.85;">₦0</div>
+      <div class="wallet-label" style="margin-top:14px;">Available Balance</div>
       <div class="wallet-amount" id="walletBalance">₦0</div>
       <button class="btn-withdraw" id="withdrawBtn" onclick="openWithdraw()">
         <i class="fas fa-money-bill-wave"></i> Request Withdrawal
@@ -308,6 +310,11 @@
         <select class="form-input" id="wEventSelect" style="margin-bottom:16px;"></select>
         <button class="btn-submit" onclick="submitWithdrawal()">Submit Request</button>
       </div>
+    </div>
+
+    <div class="form-card" style="margin-top:20px;">
+      <h2 style="margin-bottom:14px;">Withdrawal History</h2>
+      <div id="withdrawHistory"></div>
     </div>
   </div>
 
@@ -569,7 +576,11 @@ async function loadWallet() {
   var totalBalance = events.reduce(function (s, ev) {
     return s + (ev.wallet ? (ev.wallet.balance || 0) : 0);
   }, 0);
+  var totalRevenue = events.reduce(function (s, ev) {
+    return s + (ev.grossRevenue || 0);
+  }, 0);
 
+  document.getElementById('walletRevenue').textContent = '₦' + totalRevenue.toLocaleString();
   document.getElementById('walletBalance').textContent = '₦' + totalBalance.toLocaleString();
 
   // Populate event select for withdrawal
@@ -578,6 +589,48 @@ async function loadWallet() {
     return ev.wallet && (ev.wallet.balance || 0) > 0;
   }).map(function (ev) {
     return '<option value="' + ev._id + '">'+esc(ev.title)+' (₦'+(ev.wallet.balance||0).toLocaleString()+')</option>';
+  }).join('');
+
+  // Withdrawal history — flatten each event's wallet.withdrawals, newest first
+  var historyEl = document.getElementById('withdrawHistory');
+  var allWithdrawals = [];
+  events.forEach(function (ev) {
+    ((ev.wallet && ev.wallet.withdrawals) || []).forEach(function (w) {
+      allWithdrawals.push({
+        eventTitle: ev.title,
+        amount:     w.amount,
+        bankName:   w.bankName,
+        accountName:w.accountName,
+        accountNum: w.accountNum,
+        status:     w.status,
+        requestedAt:w.requestedAt
+      });
+    });
+  });
+  allWithdrawals.sort(function (a, b) { return new Date(b.requestedAt) - new Date(a.requestedAt); });
+
+  if (allWithdrawals.length === 0) {
+    historyEl.innerHTML = '<p style="color:#aaa;font-size:13px;">No withdrawal requests yet.</p>';
+    return;
+  }
+
+  var statusColor = { pending: '#f59f00', approved: '#1a3c8f', paid: '#2d8653', rejected: '#c62828' };
+  var statusLabel = { pending: '⏳ Pending', approved: '✅ Approved', paid: '💰 Paid', rejected: '❌ Rejected' };
+
+  historyEl.innerHTML = allWithdrawals.map(function (w) {
+    var color = statusColor[w.status] || '#888';
+    var label = statusLabel[w.status] || w.status;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">' +
+      '<div>' +
+      '<div style="font-weight:600;">' + esc(w.eventTitle) + '</div>' +
+      '<div style="font-size:12px;color:#888;">' + esc(w.bankName) + ' — ' + esc(w.accountNum) +
+      ' · ' + new Date(w.requestedAt).toLocaleDateString() + '</div>' +
+      '</div>' +
+      '<div style="text-align:right;">' +
+      '<div style="font-weight:700;">₦' + (w.amount || 0).toLocaleString() + '</div>' +
+      '<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:' + color + '22;color:' + color + ';">' + label + '</span>' +
+      '</div>' +
+      '</div>';
   }).join('');
 }
 
