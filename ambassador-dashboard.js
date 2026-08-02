@@ -147,9 +147,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       safeRun('Performance tab', function () { renderPerformance(ambassador, 0); });
     });
 
-    // Referral link
+    // Referral link — points directly at vendor.html (a real static file
+    // that already captures, stores, and submits the ref code) instead of
+    // through the /join rewrite, which has proven unreliable in production.
     var baseUrl = window.location.origin + '/';
-    var refLink = baseUrl + 'join?ref=' + ambassador.refCode;
+    var refLink = baseUrl + 'vendor.html?ref=' + ambassador.refCode;
 
     setEl('referralLinkText',     refLink);
     setEl('referralCodeDisplay',  ambassador.refCode);
