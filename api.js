@@ -366,6 +366,57 @@ var IMC_API = (function () {
     return await request('GET', '/courses/my-courses', null, true);
   }
 
+  // ---- LEARNING HUB ----
+  async function getLearningMaterials(f) {
+    var q = f ? '?' + new URLSearchParams(f).toString() : '';
+    return await request('GET', '/learning' + q, null, false);
+  }
+
+  async function getMaterialById(id) {
+    return await request('GET', '/learning/' + id, null, false);
+  }
+
+  async function uploadMaterial(formData) {
+    return await request('POST', '/learning', formData, true);
+  }
+
+  async function downloadFreeMaterial(id) {
+    return await request('POST', '/learning/' + id + '/free-download', {}, true);
+  }
+
+  async function getMaterialDownloadUrl(id) {
+    return await request('GET', '/learning/' + id + '/download-url', null, true);
+  }
+
+  async function getMyMaterialUploads() {
+    return await request('GET', '/learning/my/uploads', null, true);
+  }
+
+  async function getMyMaterialDownloads() {
+    return await request('GET', '/learning/my/downloads', null, true);
+  }
+
+  async function getMyMaterialPurchases() {
+    return await request('GET', '/learning/my/purchases', null, true);
+  }
+
+  async function getAllMaterialsAdmin(f) {
+    var q = f ? '?' + new URLSearchParams(f).toString() : '';
+    return await request('GET', '/learning/admin/all' + q, null, true);
+  }
+
+  async function updateMaterialStatus(id, status, reason) {
+    return await request('PUT', '/learning/admin/' + id + '/status', { status: status, reason: reason || '' }, true);
+  }
+
+  async function updateMaterialAdmin(id, data) {
+    return await request('PUT', '/learning/admin/' + id, data, true);
+  }
+
+  async function deleteMaterialAdmin(id) {
+    return await request('DELETE', '/learning/admin/' + id, null, true);
+  }
+
   // ---- PAYMENTS ----
   async function initializePayment(amount, type, description, metadata) {
     console.log('[API] initializePayment — type:', type, '| amount:', amount);
@@ -433,6 +484,11 @@ getAllProducts, logProductLead, logProductClick, logWhatsAppClick, rateVendor, u
     getNews, submitNews, createNewsAdmin,
     // Courses
     getCourses, getCourseById, getMyCourses,
+    // Learning Hub
+    getLearningMaterials, getMaterialById, uploadMaterial,
+    downloadFreeMaterial, getMaterialDownloadUrl,
+    getMyMaterialUploads, getMyMaterialDownloads, getMyMaterialPurchases,
+    getAllMaterialsAdmin, updateMaterialStatus, updateMaterialAdmin, deleteMaterialAdmin,
     // Payments
     initializePayment, verifyPayment,
     // Admin

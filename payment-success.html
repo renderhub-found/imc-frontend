@@ -260,6 +260,22 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
 
+    // ---- Learning Hub material purchase ----
+    if (type === 'learning_material') {
+      if (ur.updated === 'learning_material' && ur.fileUrl) {
+        ok('Purchase Complete! 📚',
+           'Your download is ready: ' + (ur.title || 'your material') + '. We also emailed you the link.',
+           reference, ur.redirectUrl || 'learning-hub.html', 3000);
+      } else {
+        err(
+          'Payment confirmed but access could not be granted automatically.<br>' +
+          '<strong>You will NOT be charged again.</strong><br><br>' +
+          'Contact support with reference: <strong>' + reference + '</strong>', ''
+        );
+      }
+      return;
+    }
+
    // ---- Ad posting ----
     if (type === 'ad_posting') {
       var adForm = null;

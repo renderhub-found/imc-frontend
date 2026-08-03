@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Material Details – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+  .md-wrap { max-width:900px; margin:0 auto; padding:24px 20px 60px; }
+  .md-cover { width:100%; max-height:320px; object-fit:cover; border-radius:14px; margin-bottom:20px; }
+  .md-badge { display:inline-block; background:#e8f0fe; color:#1a3c8f; font-size:12px; font-weight:700;
+    padding:4px 12px; border-radius:12px; margin-bottom:10px; }
+  .md-meta-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px;
+    background:#f9f9fb; border-radius:12px; padding:16px; margin:18px 0; }
+  .md-meta-item { font-size:13px; }
+  .md-meta-item strong { display:block; color:#333; font-size:13px; }
+  .md-meta-item span { color:#888; font-size:12px; }
+  .md-purchase-box { background:#fff; border:1.5px solid #e0e0e0; border-radius:14px; padding:20px; margin-top:20px; }
+  .md-price { font-size:28px; font-weight:800; color:#1a3c8f; }
+  .md-price.free { color:#2d8653; }
+</style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="learning-hub.html" style="color:#fff;font-weight:700;">Learning Hub</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="auth-buttons" id="authButtons">
+          <a href="login.html" class="btn-login">Login</a>
+          <a href="signup.html" class="btn-signup">Sign Up</a>
+        </div>
+        <div class="user-menu" id="userMenu" style="display:none;">
+          <button class="hamburger-btn" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <a href="learning-hub.html"><i class="fas fa-graduation-cap"></i> Learning Hub</a>
+            <a href="student-dashboard.html"><i class="fas fa-user-graduate"></i> My Dashboard</a>
+            <a href="#" id="logoutBtn" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <div id="mdLoading" class="news-loading" style="margin:40px 0;">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <div id="mdNotFound" class="empty-state-card" style="display:none;max-width:500px;margin:60px auto;">
+    <div style="font-size:48px;">📭</div>
+    <p>Material not found.</p>
+    <a href="learning-hub.html" class="btn-view-profile">Back to Learning Hub</a>
+  </div>
+
+  <div id="mdContent" class="md-wrap" style="display:none;">
+    <img id="mdCover" class="md-cover" src="" alt=""/>
+    <span id="mdTypeBadge" class="md-badge"></span>
+    <h1 id="mdTitle" style="font-size:26px;font-weight:800;margin-bottom:8px;"></h1>
+    <p id="mdDescription" style="color:#555;line-height:1.6;"></p>
+
+    <div class="md-meta-grid" id="mdMetaGrid"></div>
+
+    <div class="md-purchase-box">
+      <div id="mdPrice" class="md-price"></div>
+      <p id="mdOwnedNote" style="display:none;color:#2d8653;font-weight:600;margin:8px 0;">
+        <i class="fas fa-check-circle"></i> You already have access to this material.
+      </p>
+      <button id="mdActionBtn" class="btn-view-profile" style="width:100%;margin-top:14px;border:none;cursor:pointer;padding:14px;font-size:15px;">
+        Get Access
+      </button>
+    </div>
+  </div>
+
+  <footer class="auth-footer" style="margin-top:40px;">
+    <p>&copy; 2026 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="api.js"></script>
+  <script src="navbar.js"></script>
+  <script src="app.js"></script>
+  <script src="paystack.js"></script>
+  <script src="auth.js"></script>
+<script>
+var materialId = new URLSearchParams(window.location.search).get('id');
+var currentMaterial = null;
+
+var typeLabels = {
+  course: 'Course', ebook: 'E-book', past_question: 'Past Question',
+  lecture_note: 'Lecture Note', study_material: 'Study Material', exam_prep: 'Exam Prep'
+};
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
+  if (!materialId) { showNotFound(); return; }
+
+  var result = await IMC_API.getMaterialById(materialId);
+  if (!result.success || !result.material) { showNotFound(); return; }
+
+  currentMaterial = result.material;
+  render(currentMaterial);
+
+  document.getElementById('mdLoading').style.display = 'none';
+  document.getElementById('mdContent').style.display = 'block';
+});
+
+function showNotFound() {
+  document.getElementById('mdLoading').style.display = 'none';
+  document.getElementById('mdNotFound').style.display = 'block';
+}
+
+function render(m) {
+  document.title = m.title + ' – Inside My Campus';
+  document.getElementById('mdCover').src = m.coverImage ||
+    'https://placehold.co/900x320/1a3c8f/ffffff?text=' + encodeURIComponent(typeLabels[m.materialType] || 'Material');
+  document.getElementById('mdTypeBadge').textContent = typeLabels[m.materialType] || m.materialType;
+  document.getElementById('mdTitle').textContent = m.title;
+  document.getElementById('mdDescription').textContent = m.description;
+
+  var metaItems = [
+    ['University', m.university], ['Faculty', m.faculty], ['Department', m.department],
+    ['Level', m.level], ['Course Code', m.courseCode], ['Semester', m.semester],
+    ['Downloads', m.downloadCount || 0]
+  ].filter(function (pair) { return pair[1]; });
+
+  document.getElementById('mdMetaGrid').innerHTML = metaItems.map(function (pair) {
+    return '<div class="md-meta-item"><strong>' + esc(String(pair[1])) + '</strong><span>' + pair[0] + '</span></div>';
+  }).join('');
+
+  var priceEl = document.getElementById('mdPrice');
+  if (m.isFree) {
+    priceEl.textContent = 'FREE';
+    priceEl.classList.add('free');
+  } else {
+    priceEl.textContent = '₦' + (m.price || 0).toLocaleString();
+  }
+
+  document.getElementById('mdActionBtn').addEventListener('click', handleAction);
+}
+
+async function handleAction() {
+  if (!IMC_API.isLoggedIn()) {
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  }
+
+  var btn = document.getElementById('mdActionBtn');
+
+  if (currentMaterial.isFree) {
+    btn.disabled = true;
+    btn.textContent = 'Getting your download...';
+
+    var result = await IMC_API.downloadFreeMaterial(materialId);
+
+    btn.disabled = false;
+
+    if (result.success) {
+      document.getElementById('mdOwnedNote').style.display = 'block';
+      btn.textContent = 'Download Again';
+      btn.onclick = function () { window.open(result.fileUrl, '_blank'); };
+      window.open(result.fileUrl, '_blank');
+    } else {
+      alert(result.message || 'Could not process download.');
+      btn.textContent = 'Get Access';
+    }
+    return;
+  }
+
+  // Paid — go through Paystack (full-page redirect; verification and
+  // access grant happen on payment-success.html after the user pays)
+  IMCPaystack.openPayment({
+    amount:      currentMaterial.price,
+    type:        'learning_material',
+    description: 'Learning Hub: ' + currentMaterial.title,
+    metadata:    { materialId: materialId }
+  });
+}
+</script>
+</body>
+</html>
