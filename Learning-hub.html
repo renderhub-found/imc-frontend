@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Learning Hub – Inside My Campus</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-P5MZ2E3REK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-P5MZ2E3REK');
+</script>
+<style>
+  .hub-type-tabs {
+    display:flex; gap:8px; overflow-x:auto; padding:0 20px 14px;
+    max-width:1200px; margin:0 auto; -webkit-overflow-scrolling:touch;
+  }
+  .hub-type-tab {
+    flex-shrink:0; padding:8px 16px; border-radius:20px; font-size:13px;
+    font-weight:600; background:#f2f2f5; color:#555; cursor:pointer;
+    border:1px solid transparent; white-space:nowrap;
+  }
+  .hub-type-tab.active { background:#1a3c8f; color:#fff; }
+  .hub-adv-toggle {
+    display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600;
+    color:#1a3c8f; cursor:pointer; padding:10px 20px; max-width:1200px; margin:0 auto;
+  }
+  .hub-adv-panel {
+    display:none; max-width:1200px; margin:0 auto; padding:0 20px 14px;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;
+  }
+  .hub-adv-panel.open { display:grid; }
+  .hub-material-badge {
+    position:absolute; top:10px; left:10px; background:rgba(26,60,143,.92); color:#fff;
+    font-size:11px; font-weight:700; padding:3px 10px; border-radius:12px; z-index:2;
+  }
+  .hub-price-badge {
+    position:absolute; top:10px; right:10px; background:rgba(0,0,0,.7); color:#fff;
+    font-size:11px; font-weight:700; padding:3px 10px; border-radius:12px; z-index:2;
+  }
+  .hub-price-badge.free { background:#2d8653; }
+  .hub-meta-row { font-size:12px; color:#888; margin-top:4px; }
+</style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-icon">🏫</div>
+          <span class="logo-text">Inside My Campus</span>
+        </a>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="#">Vendors</a></li>
+        <li><a href="campus-news.html">Campus News</a></li>
+        <li><a href="learning-hub.html" style="color:#fff;font-weight:700;">Learning Hub</a></li>
+      </ul>
+      <div class="nav-right">
+        <div class="auth-buttons" id="authButtons">
+          <a href="login.html" class="btn-login">Login</a>
+          <a href="signup.html" class="btn-signup">Sign Up</a>
+        </div>
+        <div class="user-menu" id="userMenu" style="display:none;">
+          <button class="hamburger-btn" id="hamburgerBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="dropdown-menu" id="dropdownMenu">
+            <a href="vendor.html"><i class="fas fa-store"></i> Become Vendor</a>
+            <a href="ambassador.html"><i class="fas fa-user-tie"></i> Become Ambassador</a>
+            <a href="campus-news.html"><i class="fas fa-newspaper"></i> Campus News</a>
+            <a href="post-ad.html"><i class="fas fa-ad"></i> Post Ad</a>
+            <a href="learning-hub.html"><i class="fas fa-graduation-cap"></i> Learning Hub</a>
+            <a href="student-dashboard.html"><i class="fas fa-user-graduate"></i> My Dashboard</a>
+            <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+            <a href="#" id="logoutBtn" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero courses-hero">
+    <div class="page-hero-content">
+      <h1>📚 Learning Hub</h1>
+      <p>Courses, e-books, past questions, lecture notes & study materials — all in one place.</p>
+    </div>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="courses-stats-strip">
+    <div class="cstat-item"><strong id="totalMaterialsCount">0</strong><span>Materials Available</span></div>
+    <div class="cstat-item"><strong>PDF</strong><span>Instant Download</span></div>
+    <div class="cstat-item"><strong>₦15–20</strong><span>Per Page (Past Qs)</span></div>
+    <div class="cstat-item"><strong id="freeCountStat">0</strong><span>Free Downloads</span></div>
+  </div>
+
+  <!-- TYPE TABS -->
+  <div class="hub-type-tabs" id="hubTypeTabs">
+    <div class="hub-type-tab active" data-type="">All</div>
+    <div class="hub-type-tab" data-type="course">Courses</div>
+    <div class="hub-type-tab" data-type="ebook">E-books</div>
+    <div class="hub-type-tab" data-type="past_question">Past Questions</div>
+    <div class="hub-type-tab" data-type="lecture_note">Lecture Notes</div>
+    <div class="hub-type-tab" data-type="study_material">Study Materials</div>
+    <div class="hub-type-tab" data-type="exam_prep">Exam Prep</div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="courses-filter-bar">
+    <div class="courses-filter-inner">
+      <div class="news-search-wrap" style="flex:1;">
+        <i class="fas fa-search"></i>
+        <input type="text" id="hubSearchInput" placeholder="Search title, course code, description..."/>
+      </div>
+      <select id="hubPriceFilter" class="filter-select">
+        <option value="">Any Price</option>
+        <option value="free">Free</option>
+        <option value="paid">Paid</option>
+      </select>
+      <select id="hubSortFilter" class="filter-select">
+        <option value="newest">Newest</option>
+        <option value="mostDownloaded">Most Downloaded</option>
+        <option value="priceAsc">Price: Low to High</option>
+        <option value="priceDesc">Price: High to Low</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="hub-adv-toggle" id="hubAdvToggle">
+    <i class="fas fa-sliders-h"></i> More filters (University, Faculty, Department, Level, Course Code, Semester)
+    <i class="fas fa-chevron-down" id="hubAdvChevron"></i>
+  </div>
+  <div class="hub-adv-panel" id="hubAdvPanel">
+    <input type="text" id="hubUniversity" class="filter-select" placeholder="University"/>
+    <input type="text" id="hubFaculty"    class="filter-select" placeholder="Faculty"/>
+    <input type="text" id="hubDepartment" class="filter-select" placeholder="Department"/>
+    <input type="text" id="hubLevel"      class="filter-select" placeholder="Level (e.g. 200)"/>
+    <input type="text" id="hubCourseCode" class="filter-select" placeholder="Course Code"/>
+    <select id="hubSemester" class="filter-select">
+      <option value="">Any Semester</option>
+      <option value="First">First Semester</option>
+      <option value="Second">Second Semester</option>
+      <option value="Both">Both</option>
+    </select>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="courses-main">
+    <div style="max-width:1200px;margin:0 auto;padding:0 20px;">
+      <div class="section-header">
+        <h2>All Materials</h2>
+        <span id="hubResultCount" style="font-size:13px;color:#aaa;"></span>
+      </div>
+
+      <div id="hubLoading" class="news-loading">
+        <i class="fas fa-spinner fa-spin"></i> Loading materials...
+      </div>
+
+      <div class="courses-grid" id="hubGrid"></div>
+
+      <div id="hubEmpty" class="empty-state-card" style="display:none;">
+        <div style="font-size:48px;">📭</div>
+        <p>No materials found. Try a different search or filter.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin:20px 0 40px;">
+    <a href="student-dashboard.html?tab=upload" class="btn-view-profile" style="display:inline-block;">
+      <i class="fas fa-upload"></i> Submit Your Own Materials
+    </a>
+  </div>
+
+  <footer class="auth-footer" style="margin-top:40px;">
+    <p>&copy; 2026 Inside My Campus. All rights reserved.</p>
+  </footer>
+
+  <script src="api.js"></script>
+  <script src="navbar.js"></script>
+  <script src="app.js"></script>
+  <script src="auth.js"></script>
+  <script src="learning-hub.js"></script>
+</body>
+</html>

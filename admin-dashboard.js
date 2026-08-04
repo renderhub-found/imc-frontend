@@ -1,74 +1,87 @@
 // ================================================
 //   ADMIN DASHBOARD — admin-dashboard.js
-//   COMPLETELY FIXED VERSION
+//   REWRITTEN to use real backend data throughout.
+//   Previously almost every section here read/wrote
+//   localStorage mock data instead of calling the API,
+//   the sidebar navigation didn't match the HTML at all
+//   (JS expected .sidebar-link[data-tab], HTML actually
+//   has .nav-item[data-section]), and a ReferenceError
+//   on every page load silently broke everything after it.
+//   All three are fixed here.
 // ================================================
 
-window.addEventListener('DOMContentLoaded', function () {
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
-  // ---- Admin check ----
-  var isAdmin = localStorage.getItem('imc_admin');
-  if (!isAdmin) {
-    document.body.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:center;' +
-      'height:100vh;font-family:Inter,sans-serif;text-align:center;padding:20px;">' +
-      '<div>' +
-      '<div style="font-size:60px;margin-bottom:16px;">🔒</div>' +
-      '<h2 style="font-size:22px;color:#1a1a2e;margin-bottom:10px;">Admin Access Required</h2>' +
-      '<p style="color:#888;font-size:14px;margin-bottom:20px;">Open browser console (F12) and run:</p>' +
-      '<code style="display:block;background:#f4f6fb;padding:12px 18px;' +
-      'border-radius:8px;color:#1a3c8f;font-weight:700;margin-bottom:20px;">' +
-      "localStorage.setItem('imc_admin','true')" +
-      '</code>' +
-      '<p style="color:#aaa;font-size:13px;margin-bottom:16px;">Then refresh the page.</p>' +
-      '<a href="index.html" style="color:#1a3c8f;font-weight:700;">← Back to Home</a>' +
-      '</div></div>';
+function makeEmptyState(icon, text) {
+  return '<tr><td colspan="10" class="empty">' + icon + ' ' + esc(text) + '</td></tr>';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function statusBadgeHtml(status) {
+  return '<span class="status-badge ' + esc(status) + '">' + esc(status) + '</span>';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+
+  // ---- REAL admin auth check ----
+  // (previously checked a fake `imc_admin` localStorage flag that
+  // admin-login.html never even sets — a real admin logging in
+  // correctly would still hit the fake lock screen)
+  var currentUser = null;
+  try { currentUser = JSON.parse(localStorage.getItem('imc_user') || 'null'); } catch (e) {}
+  var token = localStorage.getItem('imc_token');
+
+  if (!token || !currentUser || currentUser.role !== 'admin') {
+    window.location.href = 'admin-login.html';
     return;
   }
 
-  // ---- Load all tabs ----
-  loadOverview();
-  loadVendorsTab('');
-  loadAmbassadorsTab();
-  loadUsersTab('');
-  loadAdsTab('');
-  loadNewsAdminTab('');
-  loadCoursesTab();
-  loadPaymentsTab();
-  loadReferralsTab();
+  // ---- Sidebar navigation (the ONLY working nav system —
+  //      matches the real HTML's .nav-item[data-section]) ----
+  var navItems = document.querySelectorAll('.nav-item[data-section]');
+  var sections = document.querySelectorAll('.section');
 
-// New tabs
-loadWithdrawalsTab();
-loadNotificationsTab();
-loadSettingsTab();
-initAdminNewsForm();
-updateNotifBadge();
+  navItems.forEach(function (item) {
+    item.addEventListener('click', function () {
+      var target = item.getAttribute('data-section');
 
-  // ---- TAB NAVIGATION ----
-  var links = document.querySelectorAll('.sidebar-link[data-tab]');
-  var tabs  = document.querySelectorAll('.dash-tab');
+      navItems.forEach(function (n) { n.classList.remove('active'); });
+      sections.forEach(function (s) { s.classList.remove('active'); });
 
-  links.forEach(function (link) {
-    link.addEventListener('click', function (e) {
-      e.preventDefault();
-      var tabId = this.getAttribute('data-tab');
-
-      links.forEach(function (l) { l.classList.remove('active'); });
-      tabs.forEach(function  (t) { t.classList.remove('active'); });
-
-      this.classList.add('active');
-      var tabEl = document.getElementById('tab-' + tabId);
-      if (tabEl) tabEl.classList.add('active');
+      item.classList.add('active');
+      var sectionEl = document.getElementById('section-' + target);
+      if (sectionEl) sectionEl.classList.add('active');
 
       var sidebar = document.getElementById('sidebar');
       if (sidebar) sidebar.classList.remove('sidebar-open');
+
+      // Reload fresh data every time a section is opened
+      reloadSection(target);
     });
   });
 
-// Reload dynamic tabs on switch
-if (tabId === 'notifications') loadNotificationsTab();
-if (tabId === 'withdrawals')   loadWithdrawalsTab();
-if (tabId === 'settings')      loadSettingsTab();
-if (tabId === 'news')          loadNewsAdminTab('');
+  function reloadSection(name) {
+    if (name === 'overview')          loadOverview();
+    else if (name === 'users')        loadUsersTab('');
+    else if (name === 'vendors')      loadVendorsTab('');
+    else if (name === 'ambassadors')  loadAmbassadorsTab();
+    else if (name === 'ads')          loadAdsTab('');
+    else if (name === 'news')         loadNewsAdminTab('');
+    else if (name === 'courses')      loadCoursesTab();
+    else if (name === 'learning')     { if (typeof loadLearningAdminTab === 'function') loadLearningAdminTab(''); }
+    else if (name === 'events')       loadEventsTab();
+    else if (name === 'notifications')loadNotificationsTab();
+    else if (name === 'payments')     loadPaymentsTab();
+    else if (name === 'withdrawals')  loadWithdrawalsTab();
+    else if (name === 'event-withdrawals') loadEventWithdrawalsTab();
+    else if (name === 'logs')         loadLogsTab();
+  }
 
   // ---- Mobile sidebar ----
   var sidebarToggle = document.getElementById('sidebarToggle');
@@ -79,1009 +92,634 @@ if (tabId === 'news')          loadNewsAdminTab('');
     });
   }
 
-  // ---- Filter listeners ----
-  var vendorFilter = document.getElementById('vendorStatusFilter');
-  if (vendorFilter) {
-    vendorFilter.addEventListener('change', function () {
-      loadVendorsTab(this.value);
-    });
-  }
+  // ---- Filter-tab pills (Vendors / Ads / News) ----
+  document.querySelectorAll('.filter-tabs').forEach(function (group) {
+    var section = group.closest('.section');
+    if (!section) return;
+    var sectionName = section.id.replace('section-', '');
 
-  var adFilter = document.getElementById('adStatusFilter');
-  if (adFilter) {
-    adFilter.addEventListener('change', function () {
-      loadAdsTab(this.value);
-    });
-  }
+    group.querySelectorAll('.filter-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        group.querySelectorAll('.filter-tab').forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var status = tab.getAttribute('data-filter');
+        var f = status === 'all' ? '' : status;
 
-  var newsFilter = document.getElementById('newsStatusFilter');
-  if (newsFilter) {
-    newsFilter.addEventListener('change', function () {
-      loadNewsAdminTab(this.value);
+        if (sectionName === 'vendors') loadVendorsTab(f);
+        if (sectionName === 'ads')     loadAdsTab(f);
+        if (sectionName === 'news')    loadNewsAdminTab(f);
+      });
     });
-  }
+  });
 
+  // ---- User search ----
   var userSearch = document.getElementById('userSearch');
   if (userSearch) {
+    var searchTimer = null;
     userSearch.addEventListener('input', function () {
-      loadUsersTab(this.value.trim());
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function () { loadUsersTab(userSearch.value.trim()); }, 400);
     });
   }
 
-  // ---- Add course toggle ----
-  var showCourseForm = document.getElementById('showAddCourseForm');
-  if (showCourseForm) {
-    showCourseForm.addEventListener('click', function () {
-      var form = document.getElementById('addCourseForm');
-      if (form) form.style.display = 'block';
-      this.style.display = 'none';
+  // ---- Initial load (Overview is the default active section) ----
+  loadOverview();
+  initNewsAdminCreate();
+  initCourseModal();
+
+  // ---- Logout ----
+  var logoutBtn = document.getElementById('adminLogoutBtn') || document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('imc_token');
+      localStorage.removeItem('imc_user');
+      window.location.href = 'admin-login.html';
     });
   }
-
-  var cancelCourse = document.getElementById('cancelCourseForm');
-  if (cancelCourse) {
-    cancelCourse.addEventListener('click', function () {
-      var form = document.getElementById('addCourseForm');
-      if (form) form.style.display = 'none';
-      if (showCourseForm) showCourseForm.style.display = 'flex';
-    });
-  }
-
-  var saveCourse = document.getElementById('saveCourseBtn');
-  if (saveCourse) {
-    saveCourse.addEventListener('click', saveNewCourse);
-  }
-
-}); // end DOMContentLoaded
-
+});
 
 // ================================================
 //   OVERVIEW
 // ================================================
-function loadOverview() {
-  var users       = JSON.parse(localStorage.getItem('imc_users')       || '[]');
-  var vendors     = JSON.parse(localStorage.getItem('imc_vendors')     || '[]');
-  var ambassadors = JSON.parse(localStorage.getItem('imc_ambassadors') || '[]');
-  var ads         = JSON.parse(localStorage.getItem('imc_ads')         || '[]');
-  var news        = JSON.parse(localStorage.getItem('imc_news')        || '[]');
-  var courses     = JSON.parse(localStorage.getItem('imc_courses')     || '[]');
-  var purchases   = JSON.parse(localStorage.getItem('imc_purchases')   || '[]');
-  var messages    = JSON.parse(localStorage.getItem('imc_contact_messages') || '[]');
+async function loadOverview() {
+  var result = await IMC_API.getAdminStats();
+  if (!result.success) return;
+  var s = result.stats;
 
-  var pendingVendors  = vendors.filter(function(v){ return v.status==='pending';  }).length;
-  var approvedVendors = vendors.filter(function(v){ return v.status==='approved'; }).length;
-  var pendingAds      = ads.filter(function(a){ return a.status==='pending'; }).length;
-  var pendingNews     = news.filter(function(n){ return n.status==='pending'; }).length;
+  var setText = function (id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
 
-  var vendorRevenue  = vendors.filter(function(v){ return v.paymentStatus==='paid'; }).length * 5000;
-  var adRevenue      = 0;
-  for(var i=0;i<ads.length;i++){ if(ads[i].paymentStatus==='paid') adRevenue += (ads[i].price||0); }
-  var courseRevenue  = 0;
-  for(var j=0;j<purchases.length;j++){ courseRevenue += (purchases[j].price||0); }
-  var totalRevenue   = vendorRevenue + adRevenue + courseRevenue;
+  setText('totalRevenue', '₦' + (s.revenue.total || 0).toLocaleString());
+  setText('revVendors',   '₦' + (s.revenue.vendors || 0).toLocaleString());
+  setText('revAds',       '₦' + (s.revenue.ads || 0).toLocaleString());
+  setText('revTickets',   '₦' + (s.revenue.eventTickets || 0).toLocaleString());
+  setText('revCourses',   '₦' + (s.revenue.courses || 0).toLocaleString());
 
-  var statsEl = document.getElementById('overviewStats');
-  if (statsEl) {
-    statsEl.innerHTML =
-      makeStatCard('Total Users',       users.length,       'fas fa-users',          '#e8f0fe','#1a3c8f') +
-      makeStatCard('Total Vendors',     vendors.length,     'fas fa-store',          '#fff3e0','#e85d04') +
-      makeStatCard('Ambassadors',       ambassadors.length, 'fas fa-user-tie',       '#e8f5e9','#2d8653') +
-      makeStatCard('Pending Vendors',   pendingVendors,     'fas fa-clock',          '#fff8e1','#f59f00') +
-      makeStatCard('Active Vendors',    approvedVendors,    'fas fa-check-circle',   '#e8f5e9','#2d8653') +
-      makeStatCard('Pending Ads',       pendingAds,         'fas fa-ad',             '#fce4ec','#c62828') +
-      makeStatCard('Total Courses',     courses.length,     'fas fa-graduation-cap', '#e0f2fe','#0369a1') +
-      makeStatCard('Revenue',           '₦'+totalRevenue.toLocaleString(), 'fas fa-wallet','#e8f5e9','#2d8653');
+  setText('stat-users',            s.totalUsers);
+  setText('stat-vendors',          s.totalVendors);
+  setText('stat-pending-vendors',  s.pendingVendors);
+  setText('stat-ambassadors',      s.totalAmbassadors);
+  setText('stat-ads',              s.totalAds);
+  setText('stat-news',             s.totalNews);
+  setText('stat-courses',          s.totalCourses);
+  setText('stat-withdrawals',      s.pendingWithdrawals);
+
+  var badgeNews = document.getElementById('badgeNews');
+  if (badgeNews) {
+    if (s.pendingNews > 0) { badgeNews.textContent = s.pendingNews; badgeNews.style.display = 'inline-block'; }
+    else badgeNews.style.display = 'none';
   }
-
-  var activityEl = document.getElementById('recentActivity');
-  if (activityEl) {
-    activityEl.innerHTML =
-      '<div class="admin-activity-card">' +
-      '<h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">📊 Quick Summary</h3>' +
-      '<div class="activity-rows">' +
-      makeActivityRow('Approved Vendors', approvedVendors, 'approved') +
-      makeActivityRow('Pending Vendors',  pendingVendors,  'pending')  +
-      makeActivityRow('Pending Ads',      pendingAds,      'pending')  +
-      makeActivityRow('Pending News',     pendingNews,     'pending')  +
-      makeActivityRow('Course Purchases', purchases.length,'approved') +
-      makeActivityRow('Contact Messages', messages.length, 'approved') +
-      '<div class="activity-row" style="border-top:2px solid #f0f0f0;padding-top:12px;margin-top:6px;">' +
-      '<span style="font-weight:700;">Total Revenue</span>' +
-      '<span style="font-weight:800;color:#2d8653;">₦' + totalRevenue.toLocaleString() + '</span>' +
-      '</div>' +
-      '</div></div>';
+  var badgeAds = document.getElementById('badgeAds');
+  if (badgeAds) {
+    if (s.pendingAds > 0) { badgeAds.textContent = s.pendingAds; badgeAds.style.display = 'inline-block'; }
+    else badgeAds.style.display = 'none';
   }
 }
-
-function makeStatCard(label, value, icon, bg, color) {
-  return '<div class="stat-card">' +
-    '<div class="stat-icon" style="background:' + bg + ';">' +
-    '<i class="' + icon + '" style="color:' + color + ';"></i></div>' +
-    '<div><p class="stat-label">' + label + '</p>' +
-    '<h3 class="stat-value">' + value + '</h3></div>' +
-    '</div>';
-}
-
-function makeActivityRow(label, value, status) {
-  return '<div class="activity-row">' +
-    '<span>' + label + '</span>' +
-    '<span class="status-badge ' + status + '">' + value + '</span>' +
-    '</div>';
-}
-
 
 // ================================================
-//   VENDORS TAB
+//   USERS
 // ================================================
-function loadVendorsTab(filter) {
-  var vendors = JSON.parse(localStorage.getItem('imc_vendors') || '[]');
-  if (filter) {
-    vendors = vendors.filter(function(v){ return v.status === filter; });
-  }
-  var container = document.getElementById('vendorsTable');
-  if (!container) return;
+async function loadUsersTab(search) {
+  var tbody = document.getElementById('usersTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
 
-  if (vendors.length === 0) {
-    container.innerHTML = makeEmptyState('🏪','No vendors found.'); return;
-  }
-
-  var rows = '';
-  for (var i = 0; i < vendors.length; i++) {
-    var v = vendors[i];
-    var statusLabel = v.status==='approved' ? '✅ Approved'
-      : v.status==='rejected' ? '❌ Rejected' : '⏳ Pending';
-    rows +=
-      '<tr>' +
-      '<td><strong>' + v.bizName + '</strong></td>' +
-      '<td>' + v.fullName + '<br><small style="color:#aaa;">' + v.email + '</small></td>' +
-      '<td>' + v.university + '</td>' +
-      '<td>' + v.category + '</td>' +
-      '<td>' + v.joinedDate + '</td>' +
-      '<td><span class="status-badge ' + v.status + '">' + statusLabel + '</span></td>' +
-      '<td><div class="action-btns">' +
-      (v.status !== 'approved' ?
-        '<button class="btn-approve" onclick="updateVendorStatus(\'' + v.id + '\',\'approved\')">Approve</button>' : '') +
-      (v.status !== 'rejected' ?
-        '<button class="btn-reject" onclick="updateVendorStatus(\'' + v.id + '\',\'rejected\')">Reject</button>' : '') +
-      '<button class="btn-view-detail" onclick="viewVendorDetail(\'' + v.id + '\')">View</button>' +
-      '</div></td>' +
-      '</tr>';
-  }
-
-  container.innerHTML =
-    '<table class="data-table"><thead><tr>' +
-    '<th>Business</th><th>Owner</th><th>University</th>' +
-    '<th>Category</th><th>Date</th><th>Status</th><th>Actions</th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
-}
-
-function updateVendorStatus(vendorId, newStatus) {
-  var vendors = JSON.parse(localStorage.getItem('imc_vendors') || '[]');
-  for (var i = 0; i < vendors.length; i++) {
-    if (vendors[i].id === vendorId) {
-      vendors[i].status = newStatus; break;
-    }
-  }
-  localStorage.setItem('imc_vendors', JSON.stringify(vendors));
-  alert('Vendor ' + newStatus + ' successfully!');
-  var filter = document.getElementById('vendorStatusFilter');
-  loadVendorsTab(filter ? filter.value : '');
-  loadOverview();
-}
-
-function viewVendorDetail(vendorId) {
-  var vendors = JSON.parse(localStorage.getItem('imc_vendors') || '[]');
-  var v = null;
-  for (var i = 0; i < vendors.length; i++) {
-    if (vendors[i].id === vendorId) { v = vendors[i]; break; }
-  }
-  if (!v) return;
-  alert('VENDOR DETAILS\n\n' +
-    'Business: ' + v.bizName + '\n' +
-    'Owner: '    + v.fullName + '\n' +
-    'Email: '    + v.email + '\n' +
-    'WhatsApp: ' + v.whatsApp + '\n' +
-    'University: '+ v.university + '\n' +
-    'Category: ' + v.category + '\n' +
-    'Status: '   + v.status + '\n\n' +
-    'Description:\n' + v.description);
-}
-
-
-// ================================================
-//   AMBASSADORS TAB
-// ================================================
-function loadAmbassadorsTab() {
-  var ambassadors = JSON.parse(localStorage.getItem('imc_ambassadors') || '[]');
-  var container   = document.getElementById('ambassadorsTable');
-  if (!container) return;
-
-  if (ambassadors.length === 0) {
-    container.innerHTML = makeEmptyState('🎓','No ambassadors yet.'); return;
-  }
-
-  var rows = '';
-  for (var i = 0; i < ambassadors.length; i++) {
-    var a = ambassadors[i];
-    rows +=
-      '<tr>' +
-      '<td><strong>' + a.fullName + '</strong><br>' +
-      '<small style="color:#aaa;">' + a.email + '</small></td>' +
-      '<td>@' + a.username + '</td>' +
-      '<td>' + a.university + '</td>' +
-      '<td>' + (a.referrals||[]).length + '</td>' +
-      '<td style="color:#2d8653;font-weight:700;">₦' + (a.earnings||0).toLocaleString() + '</td>' +
-      '<td>' + a.joinedDate + '</td>' +
-      '<td><span style="background:#e8f5e9;color:#2d8653;font-size:11px;' +
-      'font-weight:700;padding:3px 8px;border-radius:5px;">' + a.refCode + '</span></td>' +
-      '</tr>';
-  }
-
-  container.innerHTML =
-    '<table class="data-table"><thead><tr>' +
-    '<th>Name</th><th>Username</th><th>University</th>' +
-    '<th>Referrals</th><th>Earnings</th><th>Joined</th><th>Ref Code</th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
-}
-
-
-// ================================================
-//   USERS TAB
-// ================================================
-function loadUsersTab(search) {
-  var users     = JSON.parse(localStorage.getItem('imc_users') || '[]');
-  var container = document.getElementById('usersTable');
-  if (!container) return;
+  var result = await IMC_API.adminGetUsers({ limit: 200 });
+  var users = (result.success && result.users) ? result.users : [];
 
   if (search) {
     var q = search.toLowerCase();
-    users = users.filter(function(u) {
-      return u.email.toLowerCase().includes(q) ||
-        ((u.firstName||'') + ' ' + (u.lastName||'')).toLowerCase().includes(q);
+    users = users.filter(function (u) {
+      return (u.firstName + ' ' + u.lastName + ' ' + u.email).toLowerCase().indexOf(q) !== -1;
     });
   }
 
-  if (users.length === 0) {
-    container.innerHTML = makeEmptyState('👤','No users found.'); return;
-  }
+  if (users.length === 0) { tbody.innerHTML = makeEmptyState('👥', 'No users found.'); return; }
 
-  var rows = '';
-  for (var i = 0; i < users.length; i++) {
-    var u       = users[i];
-    var blocked = u.blocked || false;
-    var role    = u.role || 'student';
-    rows +=
-      '<tr>' +
-      '<td><strong>' + (u.firstName||'') + ' ' + (u.lastName||'') + '</strong></td>' +
-      '<td>' + u.email + '</td>' +
-      '<td>' + (u.university||'—') + '</td>' +
-      '<td>' +
-      '<select class="role-select" onchange="changeUserRole(\'' + u.email + '\',this.value)">' +
-      '<option value="student"'    + (role==='student'    ?' selected':'') + '>Student</option>' +
-      '<option value="vendor"'     + (role==='vendor'     ?' selected':'') + '>Vendor</option>' +
-      '<option value="ambassador"' + (role==='ambassador' ?' selected':'') + '>Ambassador</option>' +
-      '<option value="admin"'      + (role==='admin'      ?' selected':'') + '>Admin</option>' +
-      '</select></td>' +
-      '<td>' + (u.joined||'—') + '</td>' +
-      '<td><span class="status-badge ' + (blocked?'rejected':'approved') + '">' +
-      (blocked?'🚫 Blocked':'✅ Active') + '</span></td>' +
-      '<td><button class="' + (blocked?'btn-approve':'btn-reject') + '" ' +
-      'onclick="toggleBlockUser(\'' + u.email + '\')">' +
-      (blocked?'Unblock':'Block') + '</button></td>' +
+  tbody.innerHTML = users.map(function (u) {
+    return '<tr>' +
+      '<td>' + esc((u.firstName || '') + ' ' + (u.lastName || '')) + '</td>' +
+      '<td>' + esc(u.email) + '</td>' +
+      '<td>' + esc(u.role) + '</td>' +
+      '<td>' + esc(u.university || '—') + '</td>' +
+      '<td>' + (u.isBlocked
+        ? '<span class="status-badge rejected">Blocked</span>'
+        : '<span class="status-badge approved">Active</span>') + '</td>' +
+      '<td>' + fmtDate(u.createdAt) + '</td>' +
+      '<td><div class="btn-group">' +
+      '<button class="btn btn-sm ' + (u.isBlocked ? 'btn-success' : 'btn-danger') + '" ' +
+      'onclick="toggleUserBlock(\'' + u._id + '\',' + (!u.isBlocked) + ')">' +
+      (u.isBlocked ? 'Unblock' : 'Block') + '</button>' +
+      '<button class="btn btn-ghost btn-sm" onclick="deleteUserAdmin(\'' + u._id + '\')">Delete</button>' +
+      '</div></td>' +
       '</tr>';
-  }
-
-  container.innerHTML =
-    '<table class="data-table"><thead><tr>' +
-    '<th>Name</th><th>Email</th><th>University</th>' +
-    '<th>Role</th><th>Joined</th><th>Status</th><th>Action</th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
-}
-
-function toggleBlockUser(email) {
-  var users = JSON.parse(localStorage.getItem('imc_users') || '[]');
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].email === email) {
-      users[i].blocked = !users[i].blocked;
-      alert('User ' + (users[i].blocked ? 'blocked' : 'unblocked') + '.');
-      break;
-    }
-  }
-  localStorage.setItem('imc_users', JSON.stringify(users));
-  loadUsersTab('');
-}
-
-function changeUserRole(email, newRole) {
-  var users = JSON.parse(localStorage.getItem('imc_users') || '[]');
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].email === email) {
-      users[i].role = newRole; break;
-    }
-  }
-  localStorage.setItem('imc_users', JSON.stringify(users));
-}
-
-
-// ================================================
-//   ADS TAB
-// ================================================
-function loadAdsTab(filter) {
-  var ads = JSON.parse(localStorage.getItem('imc_ads') || '[]');
-  if (filter) {
-    ads = ads.filter(function(a){ return a.status === filter; });
-  }
-  var container = document.getElementById('adsAdminList');
-  if (!container) return;
-
-  if (ads.length === 0) {
-    container.innerHTML = makeEmptyState('📢','No ads found.'); return;
-  }
-
-  var html = '';
-  for (var i = 0; i < ads.length; i++) {
-    var ad        = ads[i];
-    var statusLbl = ad.status==='approved' ? '✅ Live'
-      : ad.status==='rejected' ? '❌ Rejected' : '⏳ Pending';
-
-    html +=
-      '<div class="admin-review-card">' +
-      '<img src="' + ad.image + '" alt="' + ad.title + '" class="admin-review-img" ' +
-      'onerror="this.src=\'https://via.placeholder.com/120x80\'"/>' +
-      '<div class="admin-review-body">' +
-      '<h4>' + ad.title + '</h4>' +
-      '<p class="admin-review-meta">' +
-      '<i class="fas fa-tag"></i> ' + ad.category + ' &nbsp;|&nbsp; ' +
-      '<i class="fas fa-map-marker-alt"></i> ' + ad.location + ' &nbsp;|&nbsp; ' +
-      '<i class="fas fa-calendar"></i> ' + ad.date + '</p>' +
-      '<p class="admin-review-desc">' + ad.description + '</p>' +
-      '<p style="font-size:12px;color:#888;">By: ' + ad.ownerName +
-      ' · ₦' + (ad.price||0).toLocaleString() + ' paid</p>' +
-      '</div>' +
-      '<div class="admin-review-actions">' +
-      '<span class="status-badge ' + ad.status + '" style="margin-bottom:8px;display:block;">' +
-      statusLbl + '</span>' +
-      (ad.status !== 'approved' ?
-        '<button class="btn-approve" onclick="updateAdStatus(\'' + ad.id + '\',\'approved\')">Approve</button>' : '') +
-      (ad.status !== 'rejected' ?
-        '<button class="btn-reject" onclick="updateAdStatus(\'' + ad.id + '\',\'rejected\')">Reject</button>' : '') +
-      '</div></div>';
-  }
-
-  container.innerHTML = html;
-}
-
-function updateAdStatus(adId, newStatus) {
-  var ads = JSON.parse(localStorage.getItem('imc_ads') || '[]');
-  for (var i = 0; i < ads.length; i++) {
-    if (ads[i].id === adId) { ads[i].status = newStatus; break; }
-  }
-  localStorage.setItem('imc_ads', JSON.stringify(ads));
-  alert('Ad ' + newStatus + '!');
-  var filter = document.getElementById('adStatusFilter');
-  loadAdsTab(filter ? filter.value : '');
-  loadOverview();
-}
-
-
-// ================================================
-//   NEWS TAB
-// ================================================
-function loadNewsAdminTab(filter) {
-  var news = JSON.parse(localStorage.getItem('imc_news') || '[]');
-  if (filter) {
-    news = news.filter(function(n){ return n.status === filter; });
-  }
-  var container = document.getElementById('newsAdminList');
-  if (!container) return;
-
-  if (news.length === 0) {
-    container.innerHTML = makeEmptyState('📰','No news found.'); return;
-  }
-
-  var html = '';
-  for (var i = 0; i < news.length; i++) {
-    var n         = news[i];
-    var statusLbl = n.status==='approved' ? '✅ Published'
-      : n.status==='rejected' ? '❌ Rejected' : '⏳ Pending';
-
-    html +=
-      '<div class="admin-review-card">' +
-      '<img src="' + n.image + '" alt="' + n.title + '" class="admin-review-img" ' +
-      'onerror="this.src=\'https://via.placeholder.com/120x80\'"/>' +
-      '<div class="admin-review-body">' +
-      '<h4>' + n.title + (n.pinned ? ' <span class="pinned-badge" style="font-size:11px;">📌 Pinned</span>' : '') + '</h4>' +
-      '<p class="admin-review-meta">' +
-      '<i class="fas fa-university"></i> ' + n.university +
-      ' &nbsp;|&nbsp; <i class="fas fa-calendar"></i> ' + n.date + '</p>' +
-      '<p class="admin-review-desc">' + n.content.substring(0,100) + '...</p>' +
-      '<p style="font-size:12px;color:#888;">By: ' + n.authorName + '</p>' +
-      '</div>' +
-      '<div class="admin-review-actions">' +
-      '<span class="status-badge ' + n.status + '" style="margin-bottom:8px;display:block;">' +
-      statusLbl + '</span>' +
-      (n.status !== 'approved' ?
-        '<button class="btn-approve" onclick="updateNewsStatus(\'' + n.id + '\',\'approved\')">Approve</button>' : '') +
-      (n.status !== 'rejected' ?
-        '<button class="btn-reject" onclick="updateNewsStatus(\'' + n.id + '\',\'rejected\')">Reject</button>' : '') +
-      '<button class="btn-view-detail" onclick="togglePinNews(\'' + n.id + '\')">' +
-      (n.pinned ? 'Unpin' : '📌 Pin') + '</button>' +
-      '</div></div>';
-  }
-
-  container.innerHTML = html;
-}
-
-function updateNewsStatus(newsId, newStatus) {
-  var news = JSON.parse(localStorage.getItem('imc_news') || '[]');
-  for (var i = 0; i < news.length; i++) {
-    if (news[i].id === newsId) { news[i].status = newStatus; break; }
-  }
-  localStorage.setItem('imc_news', JSON.stringify(news));
-  alert('News ' + newStatus + '!');
-  var filter = document.getElementById('newsStatusFilter');
-  loadNewsAdminTab(filter ? filter.value : '');
-  loadOverview();
-}
-
-function togglePinNews(newsId) {
-  var news = JSON.parse(localStorage.getItem('imc_news') || '[]');
-  for (var i = 0; i < news.length; i++) {
-    if (news[i].id === newsId) {
-      news[i].pinned = !news[i].pinned;
-      alert('News ' + (news[i].pinned ? 'pinned' : 'unpinned') + '!');
-      break;
-    }
-  }
-  localStorage.setItem('imc_news', JSON.stringify(news));
-  var filter = document.getElementById('newsStatusFilter');
-  loadNewsAdminTab(filter ? filter.value : '');
-}
-
-
-// ================================================
-//   COURSES TAB
-// ================================================
-function loadCoursesTab() {
-  var courses   = JSON.parse(localStorage.getItem('imc_courses') || '[]');
-  var container = document.getElementById('coursesAdminTable');
-  if (!container) return;
-
-  if (courses.length === 0) {
-    container.innerHTML = makeEmptyState('🎓','No courses yet.'); return;
-  }
-
-  var rows = '';
-  for (var i = 0; i < courses.length; i++) {
-    var c = courses[i];
-    rows +=
-      '<tr>' +
-      '<td><strong>' + c.title + '</strong><br>' +
-      '<small style="color:#aaa;">' + c.duration + ' · ' + c.lessons + ' lessons</small></td>' +
-      '<td>' + c.category + '</td>' +
-      '<td>' + (c.isFree ?
-        '<span class="status-badge approved">FREE</span>' :
-        '<strong style="color:#e85d04;">₦' + c.price.toLocaleString() + '</strong>') + '</td>' +
-      '<td>' + c.level + '</td>' +
-      '<td>' + c.students + '</td>' +
-      '<td><button class="btn-reject" onclick="deleteCourse(\'' + c.id + '\')">Delete</button></td>' +
-      '</tr>';
-  }
-
-  container.innerHTML =
-    '<table class="data-table"><thead><tr>' +
-    '<th>Course</th><th>Category</th><th>Price</th>' +
-    '<th>Level</th><th>Students</th><th>Action</th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
-}
-
-function deleteCourse(courseId) {
-  if (!confirm('Delete this course? This cannot be undone.')) return;
-  var courses = JSON.parse(localStorage.getItem('imc_courses') || '[]');
-  courses = courses.filter(function(c){ return c.id !== courseId; });
-  localStorage.setItem('imc_courses', JSON.stringify(courses));
-  alert('Course deleted.');
-  loadCoursesTab();
-  loadOverview();
-}
-
-function saveNewCourse() {
-  var title    = document.getElementById('newCourseTitle').value.trim();
-  var category = document.getElementById('newCourseCategory').value;
-  var price    = document.getElementById('newCoursePrice').value;
-  var level    = document.getElementById('newCourseLevel').value;
-  var duration = document.getElementById('newCourseDuration').value.trim();
-  var lessons  = document.getElementById('newCourseLessons').value;
-  var image    = document.getElementById('newCourseImage').value.trim();
-  var fileUrl  = document.getElementById('newCourseFile').value.trim();
-  var desc     = document.getElementById('newCourseDesc').value.trim();
-
-  var errBox = document.getElementById('courseFormError');
-  var errMsg = document.getElementById('courseFormErrorMsg');
-  if (errBox) errBox.style.display = 'none';
-
-  function showErr(msg) {
-    if (errMsg) errMsg.textContent = msg;
-    if (errBox) errBox.style.display = 'flex';
-  }
-
-  if (!title)    { showErr('Please enter a course title.'); return; }
-  if (!category) { showErr('Please select a category.'); return; }
-  if (price==='') { showErr('Please enter a price (0 for free).'); return; }
-  if (!fileUrl)  { showErr('Please enter a download URL.'); return; }
-  if (!desc)     { showErr('Please add a description.'); return; }
-
-  var priceNum = parseInt(price);
-  var courses  = JSON.parse(localStorage.getItem('imc_courses') || '[]');
-
-  courses.push({
-    id:          'CRS-' + Date.now(),
-    title:       title,
-    category:    category,
-    instructor:  'IMC Academy',
-    description: desc,
-    price:       priceNum,
-    isFree:      priceNum === 0,
-    image:       image || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&h=300&fit=crop',
-    fileUrl:     fileUrl,
-    duration:    duration || '2 hours',
-    lessons:     parseInt(lessons) || 10,
-    level:       level,
-    rating:      4.5,
-    students:    0,
-    tags:        [category]
-  });
-
-  localStorage.setItem('imc_courses', JSON.stringify(courses));
-  alert('✅ Course added successfully!');
-
-  var ids = ['newCourseTitle','newCoursePrice','newCourseDuration',
-             'newCourseLessons','newCourseImage','newCourseFile','newCourseDesc'];
-  ids.forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  var catEl = document.getElementById('newCourseCategory');
-  if (catEl) catEl.value = '';
-
-  var form        = document.getElementById('addCourseForm');
-  var showBtn     = document.getElementById('showAddCourseForm');
-  if (form)    form.style.display    = 'none';
-  if (showBtn) showBtn.style.display = 'flex';
-
-  loadCoursesTab();
-  loadOverview();
-}
-
-
-// ================================================
-//   PAYMENTS TAB
-// ================================================
-function loadPaymentsTab() {
-  var vendors   = JSON.parse(localStorage.getItem('imc_vendors')   || '[]');
-  var ads       = JSON.parse(localStorage.getItem('imc_ads')       || '[]');
-  var purchases = JSON.parse(localStorage.getItem('imc_purchases') || '[]');
-
-  var allPayments = [];
-
-  for (var i = 0; i < vendors.length; i++) {
-    if (vendors[i].paymentStatus === 'paid') {
-      allPayments.push({
-        type:'Vendor Registration', name:vendors[i].bizName,
-        email:vendors[i].email, amount:5000, date:vendors[i].joinedDate
-      });
-    }
-  }
-  for (var j = 0; j < ads.length; j++) {
-    if (ads[j].paymentStatus === 'paid') {
-      allPayments.push({
-        type:'Ad Posting', name:ads[j].title,
-        email:ads[j].ownerEmail, amount:ads[j].price||0, date:ads[j].date
-      });
-    }
-  }
-  for (var k = 0; k < purchases.length; k++) {
-    allPayments.push({
-      type:'Course Purchase', name:purchases[k].courseTitle,
-      email:purchases[k].userEmail, amount:purchases[k].price||0, date:purchases[k].date
-    });
-  }
-
-  var container = document.getElementById('paymentsAdminTable');
-  if (!container) return;
-
-  if (allPayments.length === 0) {
-    container.innerHTML = makeEmptyState('💰','No payments yet.'); return;
-  }
-
-  var total = 0;
-  for (var p = 0; p < allPayments.length; p++) {
-    total += allPayments[p].amount;
-  }
-
-  var rows = '';
-  for (var r = 0; r < allPayments.length; r++) {
-    var pay = allPayments[r];
-    rows +=
-      '<tr>' +
-      '<td><span class="admin-type-badge">' + pay.type + '</span></td>' +
-      '<td>' + pay.name + '</td>' +
-      '<td style="font-size:12px;color:#888;">' + pay.email + '</td>' +
-      '<td style="font-weight:700;color:#2d8653;">₦' + (pay.amount||0).toLocaleString() + '</td>' +
-      '<td>' + pay.date + '</td>' +
-      '<td><span class="status-badge approved">✅ Paid</span></td>' +
-      '</tr>';
-  }
-
-  container.innerHTML =
-    '<div style="background:linear-gradient(135deg,#1a3c8f,#2d5fd4);' +
-    'border-radius:12px;padding:20px 24px;margin-bottom:20px;color:white;">' +
-    '<p style="font-size:13px;opacity:0.8;">Total Platform Revenue</p>' +
-    '<h2 style="font-size:32px;font-weight:800;">₦' + total.toLocaleString() + '</h2>' +
-    '</div>' +
-    '<table class="data-table"><thead><tr>' +
-    '<th>Type</th><th>Name</th><th>Email</th>' +
-    '<th>Amount</th><th>Date</th><th>Status</th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
-}
-
-
-// ================================================
-//   REFERRALS TAB
-// ================================================
-function loadReferralsTab() {
-  var ambassadors = JSON.parse(localStorage.getItem('imc_ambassadors') || '[]');
-  var container   = document.getElementById('referralsAdminTable');
-  if (!container) return;
-
-  if (ambassadors.length === 0) {
-    container.innerHTML = makeEmptyState('🔗','No referral data yet.'); return;
-  }
-
-  var rows = '';
-  for (var i = 0; i < ambassadors.length; i++) {
-    var a     = ambassadors[i];
-    var count = (a.referrals || []).length;
-    var comm  = a.earnings || 0;
-    rows +=
-      '<tr>' +
-      '<td><strong>' + a.fullName + '</strong><br>' +
-      '<small style="color:#aaa;">' + a.email + '</small></td>' +
-      '<td><span style="background:#e8f5e9;color:#2d8653;font-size:11px;' +
-      'font-weight:700;padding:3px 8px;border-radius:5px;">' + a.refCode + '</span></td>' +
-      '<td>' + a.university + '</td>' +
-      '<td style="font-weight:700;text-align:center;">' + count + '</td>' +
-      '<td style="font-weight:700;color:#e85d04;">₦' + comm.toLocaleString() + '</td>' +
-      '<td><span class="status-badge approved">✅ Active</span></td>' +
-      '</tr>';
-  }
-
-  container.innerHTML =
-    '<table class="data-table"><thead><tr>' +
-    '<th>Ambassador</th><th>Ref Code</th><th>University</th>' +
-    '<th>Referrals</th><th>Commission</th><th>Status</th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
-}
-
-
-// ================================================
-//   HELPER
-// ================================================
-function makeEmptyState(icon, msg) {
-  return '<div class="empty-state-card">' +
-    '<div style="font-size:40px;">' + icon + '</div>' +
-    '<p>' + msg + '</p></div>';
-}
-
-// ================================================
-//   ADMIN NOTIFICATION SYSTEM
-// ================================================
-
-function addAdminNotification(type, message) {
-  var notifs = JSON.parse(
-    localStorage.getItem('imc_admin_notifs') || '[]'
-  );
-  notifs.unshift({
-    id:      'NOTIF-' + Date.now(),
-    type:    type,
-    message: message,
-    date:    new Date().toLocaleDateString(),
-    time:    new Date().toLocaleTimeString(),
-    read:    false
-  });
-  // Keep only last 50
-  if (notifs.length > 50) notifs = notifs.slice(0, 50);
-  localStorage.setItem('imc_admin_notifs', JSON.stringify(notifs));
-  updateNotifBadge();
-}
-
-function updateNotifBadge() {
-  var notifs  = JSON.parse(
-    localStorage.getItem('imc_admin_notifs') || '[]'
-  );
-  var unread  = notifs.filter(function (n) { return !n.read; }).length;
-  var badge   = document.getElementById('adminNotifBadge');
-  if (!badge) return;
-  if (unread > 0) {
-    badge.style.display  = 'inline-block';
-    badge.textContent    = unread > 99 ? '99+' : unread;
-  } else {
-    badge.style.display  = 'none';
-  }
-}
-
-function loadNotificationsTab() {
-  var notifs    = JSON.parse(
-    localStorage.getItem('imc_admin_notifs') || '[]'
-  );
-  var container = document.getElementById('adminNotificationsList');
-  if (!container) return;
-
-  // Mark all as read when tab opens
-  notifs.forEach(function (n) { n.read = true; });
-  localStorage.setItem('imc_admin_notifs', JSON.stringify(notifs));
-  updateNotifBadge();
-
-  if (notifs.length === 0) {
-    container.innerHTML = makeEmptyState('🔔', 'No notifications yet.');
-    return;
-  }
-
-  var iconMap = {
-    vendor:     '🏪',
-    ambassador: '🎓',
-    withdrawal: '💰',
-    ad:         '📢',
-    news:       '📰',
-    course:     '🎓'
-  };
-
-  container.innerHTML = notifs.map(function (n) {
-    return '<div class="notif-card' + (n.read ? ' read' : '') + '">' +
-      '<div class="notif-icon">' +
-      (iconMap[n.type] || '🔔') + '</div>' +
-      '<div class="notif-body">' +
-      '<h4>' + n.message + '</h4>' +
-      '<p>' + n.date + ' at ' + n.time + '</p>' +
-      '</div>' +
-      '</div>';
   }).join('');
 }
 
-function clearAllNotifications() {
-  localStorage.setItem('imc_admin_notifs', '[]');
-  updateNotifBadge();
-  loadNotificationsTab();
+async function toggleUserBlock(id, shouldBlock) {
+  var result = await IMC_API.adminBlockUser(id, shouldBlock);
+  if (result.success) loadUsersTab('');
+  else alert(result.message || 'Could not update user.');
 }
 
+async function deleteUserAdmin(id) {
+  if (!confirm('Delete this user permanently? This cannot be undone.')) return;
+  var result = await IMC_API.adminDeleteUser(id);
+  if (result.success) { loadUsersTab(''); loadOverview(); }
+  else alert(result.message || 'Could not delete user.');
+}
 
 // ================================================
-//   WITHDRAWAL REQUESTS TAB
+//   VENDORS
 // ================================================
+async function loadVendorsTab(filter) {
+  var tbody = document.getElementById('vendorsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
 
-function loadWithdrawalsTab() {
-  var requests  = JSON.parse(
-    localStorage.getItem('imc_withdrawals') || '[]'
-  );
-  var container = document.getElementById('withdrawalRequestsList');
-  if (!container) return;
+  var result = await IMC_API.adminGetVendors(filter);
+  var vendors = (result.success && result.vendors) ? result.vendors : [];
 
-  if (requests.length === 0) {
-    container.innerHTML = makeEmptyState('💰', 'No withdrawal requests yet.');
-    return;
-  }
+  if (vendors.length === 0) { tbody.innerHTML = makeEmptyState('🏪', 'No vendors found.'); return; }
 
-  container.innerHTML = requests.map(function (r) {
-    var statusColor = r.status === 'paid'
-      ? '#2d8653' : r.status === 'rejected'
-      ? '#c62828' : '#f59f00';
-    var statusLabel = r.status === 'paid'
-      ? '✅ Paid' : r.status === 'rejected'
-      ? '❌ Rejected' : '⏳ Pending';
+  tbody.innerHTML = vendors.map(function (v) {
+    var actions = '<div class="btn-group">';
+    if (v.status !== 'approved') actions += '<button class="btn btn-success btn-sm" onclick="setVendorStatus(\'' + v._id + '\',\'approved\')">Approve</button>';
+    if (v.status !== 'rejected') actions += '<button class="btn btn-danger btn-sm" onclick="setVendorStatus(\'' + v._id + '\',\'rejected\')">Reject</button>';
+    if (v.status !== 'suspended') actions += '<button class="btn btn-ghost btn-sm" onclick="setVendorStatus(\'' + v._id + '\',\'suspended\')">Suspend</button>';
+    actions += '</div>';
 
-    return '<div class="admin-review-card" ' +
-      'style="flex-wrap:wrap;gap:12px;">' +
-      '<div style="flex:1;min-width:200px;">' +
-      '<h4 style="font-size:14px;font-weight:700;' +
-      'color:#1a1a2e;margin-bottom:6px;">' +
-      r.ambName + '</h4>' +
-      '<p style="font-size:13px;color:#555;margin-bottom:3px;">' +
-      '<i class="fas fa-university" style="color:#1a3c8f;' +
-      'margin-right:6px;"></i>' + r.bankName + '</p>' +
-      '<p style="font-size:13px;color:#555;margin-bottom:3px;">' +
-      '<i class="fas fa-hashtag" style="color:#1a3c8f;' +
-      'margin-right:6px;"></i>' + r.accountNum + '</p>' +
-      '<p style="font-size:13px;color:#555;margin-bottom:3px;">' +
-      '<i class="fas fa-user" style="color:#1a3c8f;' +
-      'margin-right:6px;"></i>' + r.accountName + '</p>' +
-      '<p style="font-size:12px;color:#aaa;">' + r.date + '</p>' +
-      '</div>' +
-      '<div style="text-align:center;">' +
-      '<div style="font-size:22px;font-weight:800;' +
-      'color:#2d8653;margin-bottom:8px;">' +
-      '₦' + r.amount.toLocaleString() + '</div>' +
-      '<span class="status-badge" ' +
-      'style="background:' + statusColor + '22;' +
-      'color:' + statusColor + ';display:block;' +
-      'margin-bottom:10px;">' + statusLabel + '</span>' +
-      (r.status === 'pending' ?
-        '<div class="action-btns" style="justify-content:center;">' +
-        '<button class="btn-approve" ' +
-        'onclick="updateWithdrawal(\'' + r.id + '\',\'paid\')">' +
-        'Mark Paid</button>' +
-        '<button class="btn-reject" ' +
-        'onclick="updateWithdrawal(\'' + r.id + '\',\'rejected\')">' +
-        'Reject</button>' +
-        '</div>' : '') +
-      '</div>' +
-      '</div>';
+    return '<tr>' +
+      '<td>' + esc(v.bizName) + '</td>' +
+      '<td>' + esc(v.fullName || '—') + '</td>' +
+      '<td>' + esc(v.university || '—') + '</td>' +
+      '<td>' + esc(v.category || '—') + '</td>' +
+      '<td>' + esc(v.paymentStatus || '—') + '</td>' +
+      '<td>' + statusBadgeHtml(v.status) + '</td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
   }).join('');
 }
 
-function updateWithdrawal(id, newStatus) {
-  var requests = JSON.parse(
-    localStorage.getItem('imc_withdrawals') || '[]'
-  );
-  for (var i = 0; i < requests.length; i++) {
-    if (requests[i].id === id) {
-      requests[i].status = newStatus; break;
-    }
+async function setVendorStatus(id, status) {
+  var result = await IMC_API.updateVendorStatus(id, status);
+  if (result.success) { loadVendorsTab(''); loadOverview(); }
+  else alert(result.message || 'Could not update vendor.');
+}
+
+// ================================================
+//   AMBASSADORS
+// ================================================
+async function loadAmbassadorsTab() {
+  var tbody = document.getElementById('ambassadorsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetAmbassadors();
+  var ambassadors = (result.success && result.ambassadors) ? result.ambassadors : [];
+
+  if (ambassadors.length === 0) { tbody.innerHTML = makeEmptyState('⭐', 'No ambassadors found.'); return; }
+
+  tbody.innerHTML = ambassadors.map(function (a) {
+    var actions = '<div class="btn-group">';
+    if (a.status !== 'active') actions += '<button class="btn btn-success btn-sm" onclick="setAmbassadorStatus(\'' + a._id + '\',\'active\')">Activate</button>';
+    if (a.status !== 'suspended') actions += '<button class="btn btn-danger btn-sm" onclick="setAmbassadorStatus(\'' + a._id + '\',\'suspended\')">Suspend</button>';
+    actions += '</div>';
+
+    return '<tr>' +
+      '<td>' + esc(a.fullName) + '</td>' +
+      '<td>' + esc(a.email || '—') + '</td>' +
+      '<td>' + esc(a.university || '—') + '</td>' +
+      '<td>' + esc(a.refCode) + '</td>' +
+      '<td>₦' + (a.earnings || 0).toLocaleString() + '</td>' +
+      '<td>' + ((a.referrals || []).length) + '</td>' +
+      '<td>' + statusBadgeHtml(a.status || 'active') + '</td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function setAmbassadorStatus(id, status) {
+  var result = await IMC_API.adminUpdateAmbassadorStatus(id, status);
+  if (result.success) { loadAmbassadorsTab(); loadOverview(); }
+  else alert(result.message || 'Could not update ambassador.');
+}
+
+// ================================================
+//   ADS
+// ================================================
+async function loadAdsTab(filter) {
+  var tbody = document.getElementById('adsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetAds(filter);
+  var ads = (result.success && result.ads) ? result.ads : [];
+
+  if (ads.length === 0) { tbody.innerHTML = makeEmptyState('📢', 'No ads found.'); return; }
+
+  tbody.innerHTML = ads.map(function (a) {
+    var actions = '<div class="btn-group">';
+    if (a.status !== 'approved') actions += '<button class="btn btn-success btn-sm" onclick="setAdStatus(\'' + a._id + '\',\'approved\')">Approve</button>';
+    if (a.status !== 'rejected') actions += '<button class="btn btn-danger btn-sm" onclick="setAdStatus(\'' + a._id + '\',\'rejected\')">Reject</button>';
+    actions += '<button class="btn btn-ghost btn-sm" onclick="deleteAdAdmin(\'' + a._id + '\')">Delete</button>';
+    actions += '</div>';
+
+    return '<tr>' +
+      '<td>' + esc(a.title) + '</td>' +
+      '<td>' + esc(a.category || '—') + '</td>' +
+      '<td>' + esc(a.ownerName || a.ownerEmail || '—') + '</td>' +
+      '<td>' + esc(a.duration || '—') + '</td>' +
+      '<td>' + esc(a.paymentStatus || '—') + '</td>' +
+      '<td>' + statusBadgeHtml(a.status) + '</td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function setAdStatus(id, status) {
+  var result = await IMC_API.adminUpdateAdStatus(id, status);
+  if (result.success) { loadAdsTab(''); loadOverview(); }
+  else alert(result.message || 'Could not update ad.');
+}
+
+async function deleteAdAdmin(id) {
+  if (!confirm('Delete this ad permanently?')) return;
+  var result = await IMC_API.adminDeleteAd(id);
+  if (result.success) { loadAdsTab(''); loadOverview(); }
+  else alert(result.message || 'Could not delete ad.');
+}
+
+// ================================================
+//   NEWS (moderation list — the create-news form
+//   below this already used the real API correctly)
+// ================================================
+async function loadNewsAdminTab(filter) {
+  var tbody = document.getElementById('newsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetNews(filter);
+  var newsList = (result.success && result.news) ? result.news : [];
+
+  if (newsList.length === 0) { tbody.innerHTML = makeEmptyState('📰', 'No news found.'); return; }
+
+  tbody.innerHTML = newsList.map(function (n) {
+    var actions = '<div class="btn-group">';
+    if (n.status !== 'approved') actions += '<button class="btn btn-success btn-sm" onclick="setNewsStatus(\'' + n._id + '\',\'approved\')">Approve</button>';
+    if (n.status !== 'rejected') actions += '<button class="btn btn-danger btn-sm" onclick="setNewsStatus(\'' + n._id + '\',\'rejected\')">Reject</button>';
+    actions += '<button class="btn btn-ghost btn-sm" onclick="toggleNewsPin(\'' + n._id + '\',' + (!n.pinned) + ')">' + (n.pinned ? 'Unpin' : 'Pin') + '</button>';
+    actions += '<button class="btn btn-ghost btn-sm" onclick="deleteNewsAdmin(\'' + n._id + '\')">Delete</button>';
+    actions += '</div>';
+
+    return '<tr>' +
+      '<td>' + esc(n.title) + '</td>' +
+      '<td>' + esc(n.university || '—') + '</td>' +
+      '<td>' + esc(n.authorName || '—') + '</td>' +
+      '<td>' + (n.views || 0) + '</td>' +
+      '<td>' + (n.pinned ? '📌' : '—') + '</td>' +
+      '<td>' + statusBadgeHtml(n.status) + '</td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function setNewsStatus(id, status) {
+  var result = await IMC_API.adminUpdateNewsStatus(id, status);
+  if (result.success) { loadNewsAdminTab(''); loadOverview(); }
+  else alert(result.message || 'Could not update news.');
+}
+
+async function toggleNewsPin(id, pinned) {
+  var result = await IMC_API.adminUpdateNewsStatus(id, undefined, pinned);
+  if (result.success) loadNewsAdminTab('');
+  else alert(result.message || 'Could not update news.');
+}
+
+async function deleteNewsAdmin(id) {
+  if (!confirm('Delete this news article permanently?')) return;
+  var result = await IMC_API.adminDeleteNews(id);
+  if (result.success) { loadNewsAdminTab(''); loadOverview(); }
+  else alert(result.message || 'Could not delete news.');
+}
+
+// ================================================
+//   COURSES
+// ================================================
+async function loadCoursesTab() {
+  var tbody = document.getElementById('coursesTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetCourses();
+  var courses = (result.success && result.courses) ? result.courses : [];
+
+  if (courses.length === 0) { tbody.innerHTML = makeEmptyState('🎓', 'No courses yet.'); return; }
+
+  tbody.innerHTML = courses.map(function (c) {
+    var priceText = c.isFree ? '<span class="status-badge approved">FREE</span>' : '₦' + (c.price || 0).toLocaleString();
+    return '<tr>' +
+      '<td>' + esc(c.title) + '<br><small style="color:#aaa;">' + esc(c.duration || '') + (c.lessons ? ' · ' + c.lessons + ' lessons' : '') + '</small></td>' +
+      '<td>' + esc(c.category || '—') + '</td>' +
+      '<td>' + priceText + '</td>' +
+      '<td>' + esc(c.level || '—') + '</td>' +
+      '<td>' + ((c.purchases || []).length) + '</td>' +
+      '<td><div class="btn-group">' +
+      '<button class="btn btn-ghost btn-sm" onclick="openCourseModal(\'' + c._id + '\')">Edit</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="deleteCourseAdmin(\'' + c._id + '\')">Delete</button>' +
+      '</div></td>' +
+      '</tr>';
+  }).join('');
+
+  window.coursesCache = courses;
+}
+
+async function deleteCourseAdmin(id) {
+  if (!confirm('Delete this course permanently?')) return;
+  var result = await IMC_API.adminDeleteCourse(id);
+  if (result.success) { loadCoursesTab(); loadOverview(); }
+  else alert(result.message || 'Could not delete course.');
+}
+
+function initCourseModal() {
+  var createBtn  = document.getElementById('createCourseBtn');
+  var cancelBtn  = document.getElementById('courseModalCancel');
+  var saveBtn    = document.getElementById('courseModalSave');
+  var modal      = document.getElementById('courseModal');
+
+  if (createBtn) createBtn.addEventListener('click', function () { openCourseModal(null); });
+  if (cancelBtn) cancelBtn.addEventListener('click', function () { if (modal) modal.style.display = 'none'; });
+  if (saveBtn)   saveBtn.addEventListener('click', saveCourseAdmin);
+}
+
+window.openCourseModal = function (courseId) {
+  var modal = document.getElementById('courseModal');
+  var errEl = document.getElementById('courseModalError');
+  if (errEl) errEl.style.display = 'none';
+
+  var course = null;
+  if (courseId && window.coursesCache) {
+    course = window.coursesCache.find(function (c) { return c._id === courseId; });
   }
-  localStorage.setItem('imc_withdrawals', JSON.stringify(requests));
-  alert('Withdrawal ' + newStatus + '!');
-  loadWithdrawalsTab();
+
+  document.getElementById('courseModalTitle').textContent = course ? 'Edit Course' : 'Add New Course';
+  document.getElementById('courseModal').setAttribute('data-editing-id', course ? course._id : '');
+
+  document.getElementById('courseTitle').value       = course ? course.title       : '';
+  document.getElementById('courseCategory').value    = course ? course.category    : '';
+  document.getElementById('courseDescription').value = course ? course.description : '';
+  document.getElementById('coursePrice').value        = course ? course.price       : '';
+  document.getElementById('courseFileUrl').value      = course ? course.fileUrl     : '';
+  document.getElementById('courseDuration').value     = course ? course.duration    : '';
+  document.getElementById('courseLessons').value      = course ? course.lessons     : '';
+  if (document.getElementById('courseLevel')) {
+    document.getElementById('courseLevel').value = course ? (course.level || '') : '';
+  }
+
+  if (modal) modal.style.display = 'flex';
+};
+
+async function saveCourseAdmin() {
+  var errEl = document.getElementById('courseModalError');
+  if (errEl) errEl.style.display = 'none';
+
+  var title = document.getElementById('courseTitle').value.trim();
+  var category = document.getElementById('courseCategory').value.trim();
+  var description = document.getElementById('courseDescription').value.trim();
+  var price = document.getElementById('coursePrice').value;
+  var fileUrl = document.getElementById('courseFileUrl').value.trim();
+
+  if (!title || !category || !description || !fileUrl) {
+    if (errEl) { errEl.textContent = 'Title, category, description, and file URL are required.'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  var formData = new FormData();
+  formData.append('title', title);
+  formData.append('category', category);
+  formData.append('description', description);
+  formData.append('price', price || '0');
+  formData.append('isFree', (!price || parseFloat(price) === 0) ? 'true' : 'false');
+  formData.append('fileUrl', fileUrl);
+  formData.append('duration', document.getElementById('courseDuration').value.trim());
+  formData.append('lessons', document.getElementById('courseLessons').value || '0');
+  var levelEl = document.getElementById('courseLevel');
+  if (levelEl) formData.append('level', levelEl.value);
+
+  var imageInput = document.getElementById('courseImageFile');
+  if (imageInput && imageInput.files && imageInput.files[0]) {
+    formData.append('image', imageInput.files[0]);
+  }
+
+  var editingId = document.getElementById('courseModal').getAttribute('data-editing-id');
+  var result = editingId
+    ? await IMC_API.adminUpdateCourse(editingId, formData)
+    : await IMC_API.adminCreateCourse(formData);
+
+  if (result.success) {
+    document.getElementById('courseModal').style.display = 'none';
+    loadCoursesTab();
+    loadOverview();
+  } else if (errEl) {
+    errEl.textContent = result.message || 'Could not save course.';
+    errEl.style.display = 'block';
+  }
+}
+
+// ================================================
+//   EVENTS (read-only)
+// ================================================
+async function loadEventsTab() {
+  var tbody = document.getElementById('eventsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.getAdminEvents();
+  var events = (result.success && result.events) ? result.events : [];
+
+  if (events.length === 0) { tbody.innerHTML = makeEmptyState('📅', 'No events found.'); return; }
+
+  tbody.innerHTML = events.map(function (e) {
+    return '<tr>' +
+      '<td>' + esc(e.title) + '</td>' +
+      '<td>' + esc(e.university || '—') + '</td>' +
+      '<td>' + fmtDate(e.eventDate) + '</td>' +
+      '<td>' + esc(e.eventType || '—') + '</td>' +
+      '<td>' + (e.ticketsSold || 0) + '</td>' +
+      '<td>' + statusBadgeHtml(e.status || 'active') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ================================================
+//   NOTIFICATIONS
+// ================================================
+async function loadNotificationsTab() {
+  var tbody = document.getElementById('notificationsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.getAdminNotifications();
+  var notifs = (result.success && result.notifications) ? result.notifications : [];
+
+  var totalEl  = document.getElementById('notif-total');
+  var unreadEl = document.getElementById('notif-unread');
+  if (totalEl)  totalEl.textContent  = result.totalCount  != null ? result.totalCount  : notifs.length;
+  if (unreadEl) unreadEl.textContent = result.unreadCount != null ? result.unreadCount : notifs.filter(function (n) { return !n.isRead; }).length;
+
+  if (notifs.length === 0) { tbody.innerHTML = makeEmptyState('🔔', 'No notifications yet.'); return; }
+
+  tbody.innerHTML = notifs.slice(0, 100).map(function (n) {
+    return '<tr>' +
+      '<td>' + esc(n.type || 'general') + '</td>' +
+      '<td>' + esc(n.title || '') + (n.message ? ' — ' + esc(n.message) : '') + '</td>' +
+      '<td>' + (n.isRead
+        ? '<span class="status-badge approved">Read</span>'
+        : '<span class="status-badge pending">Unread</span>') + '</td>' +
+      '<td>' + fmtDate(n.createdAt) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ================================================
+//   PAYMENTS (read-only)
+// ================================================
+async function loadPaymentsTab() {
+  var tbody = document.getElementById('paymentsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetPayments();
+  var payments = (result.success && result.payments) ? result.payments : [];
+
+  if (payments.length === 0) { tbody.innerHTML = makeEmptyState('💳', 'No payments found.'); return; }
+
+  tbody.innerHTML = payments.slice(0, 200).map(function (p) {
+    return '<tr>' +
+      '<td>' + esc(p.type || '—') + '</td>' +
+      '<td>' + esc(p.name || '—') + '</td>' +
+      '<td>' + esc(p.email || '—') + '</td>' +
+      '<td>₦' + (p.amount || 0).toLocaleString() + '</td>' +
+      '<td>' + esc(p.reference || '—') + '</td>' +
+      '<td>' + fmtDate(p.date || p.createdAt) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ================================================
+//   AMBASSADOR WITHDRAWALS
+// ================================================
+async function loadWithdrawalsTab() {
+  var tbody = document.getElementById('withdrawalsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetWithdrawals();
+  var requests = (result.success && result.withdrawals) ? result.withdrawals : [];
+
+  if (requests.length === 0) { tbody.innerHTML = makeEmptyState('💸', 'No withdrawal requests.'); return; }
+
+  tbody.innerHTML = requests.map(function (w) {
+    var actions = w.status === 'pending'
+      ? '<div class="btn-group">' +
+        '<button class="btn btn-success btn-sm" onclick="setAmbassadorWithdrawal(\'' + w.ambassadorId + '\',\'' + w._id + '\',\'paid\')">Mark Paid</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="setAmbassadorWithdrawal(\'' + w.ambassadorId + '\',\'' + w._id + '\',\'rejected\')">Reject</button>' +
+        '</div>'
+      : '—';
+
+    return '<tr>' +
+      '<td>' + esc(w.ambassadorName || '—') + '</td>' +
+      '<td>' + esc(w.bankName || '—') + '</td>' +
+      '<td>' + esc(w.accountNum || '—') + '</td>' +
+      '<td>₦' + (w.amount || 0).toLocaleString() + '</td>' +
+      '<td>' + statusBadgeHtml(w.status) + '</td>' +
+      '<td>' + fmtDate(w.requestedAt) + '</td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function setAmbassadorWithdrawal(ambId, withdrawalId, status) {
+  var result = await IMC_API.adminUpdateWithdrawal(ambId, withdrawalId, status);
+  if (result.success) { loadWithdrawalsTab(); loadOverview(); }
+  else alert(result.message || 'Could not update withdrawal.');
+}
+
+// ================================================
+//   EVENT CREATOR WITHDRAWALS (previously not
+//   implemented at all — the section/table existed
+//   in the HTML but no JS ever populated it)
+// ================================================
+async function loadEventWithdrawalsTab() {
+  var tbody = document.getElementById('eventWithdrawalsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetEventWithdrawals();
+  var requests = (result.success && result.withdrawals) ? result.withdrawals : [];
+
+  if (requests.length === 0) { tbody.innerHTML = makeEmptyState('💸', 'No event withdrawal requests.'); return; }
+
+  tbody.innerHTML = requests.map(function (w) {
+    var actions = w.status === 'pending'
+      ? '<div class="btn-group">' +
+        '<button class="btn btn-success btn-sm" onclick="setEventWithdrawal(\'' + w.eventId + '\',\'' + w._id + '\',\'paid\')">Mark Paid</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="setEventWithdrawal(\'' + w.eventId + '\',\'' + w._id + '\',\'rejected\')">Reject</button>' +
+        '</div>'
+      : '—';
+
+    return '<tr>' +
+      '<td>' + esc(w.eventTitle || '—') + '</td>' +
+      '<td>' + esc(w.organizerName || '—') + '</td>' +
+      '<td>' + esc(w.bankName || '—') + '</td>' +
+      '<td>' + esc(w.accountNum || '—') + '</td>' +
+      '<td>₦' + (w.amount || 0).toLocaleString() + '</td>' +
+      '<td>' + statusBadgeHtml(w.status) + '</td>' +
+      '<td>' + fmtDate(w.requestedAt) + '</td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function setEventWithdrawal(eventId, withdrawalId, status) {
+  var result = await IMC_API.adminUpdateEventWithdrawal(eventId, withdrawalId, status);
+  if (result.success) { loadEventWithdrawalsTab(); loadOverview(); }
+  else alert(result.message || 'Could not update withdrawal.');
+}
+
+// ================================================
+//   AUDIT LOGS (previously not implemented at all)
+// ================================================
+async function loadLogsTab() {
+  var tbody = document.getElementById('logsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetLogs();
+  var logs = (result.success && result.logs) ? result.logs : [];
+
+  if (logs.length === 0) { tbody.innerHTML = makeEmptyState('📋', 'No logs yet.'); return; }
+
+  tbody.innerHTML = logs.slice(0, 200).map(function (l) {
+    return '<tr>' +
+      '<td>' + esc(l.adminEmail || '—') + '</td>' +
+      '<td>' + esc(l.action || '—') + '</td>' +
+      '<td>' + esc(l.targetType || '—') + '</td>' +
+      '<td>' + esc(l.details || '—') + '</td>' +
+      '<td>' + esc(l.ip || '—') + '</td>' +
+      '<td>' + fmtDate(l.createdAt) + '</td>' +
+      '<td>' + statusBadgeHtml(l.status || 'success') + '</td>' +
+      '</tr>';
+  }).join('');
 }
 
 
 // ================================================
-//   ADMIN POST NEWS SYSTEM
+//   CREATE NEWS FORM (already real - was just never called)
 // ================================================
-
-function initAdminNewsForm() {
-  var showBtn    = document.getElementById('showPostNewsForm');
-  var cancelBtn  = document.getElementById('cancelAdminNewsForm');
-  var saveBtn    = document.getElementById('saveAdminNewsBtn');
-  var formEl     = document.getElementById('adminPostNewsForm');
-  var imgInput   = document.getElementById('adminNewsImageFile');
-  var vidInput   = document.getElementById('adminNewsVideoFile');
-
-  if (showBtn) {
-    showBtn.addEventListener('click', function () {
-      if (formEl) formEl.style.display = 'block';
-      this.style.display = 'none';
-    });
-  }
-
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', function () {
-      if (formEl)  formEl.style.display    = 'none';
-      if (showBtn) showBtn.style.display   = 'flex';
-    });
-  }
-
-  // Image preview
-  if (imgInput) {
-    imgInput.addEventListener('change', function () {
-      var file = this.files[0];
-      if (!file) return;
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image must be under 5MB.'); this.value = ''; return;
-      }
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        var prev = document.getElementById('adminNewsImgPreview');
-        var ph   = document.getElementById('adminNewsImgPlaceholder');
-        var wrap = document.getElementById('adminNewsImgPreviewWrap');
-        if (prev) prev.src = e.target.result;
-        if (ph)   ph.style.display   = 'none';
-        if (wrap) wrap.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // Video preview
-  if (vidInput) {
-    vidInput.addEventListener('change', function () {
-      var file = this.files[0];
-      if (!file) return;
-      if (file.size > 50 * 1024 * 1024) {
-        alert('Video must be under 50MB.'); this.value = ''; return;
-      }
-      var url  = URL.createObjectURL(file);
-      var prev = document.getElementById('adminNewsVidPreview');
-      var ph   = document.getElementById('adminNewsVidPlaceholder');
-      var wrap = document.getElementById('adminNewsVidPreviewWrap');
-      if (prev) prev.src = url;
-      if (ph)   ph.style.display   = 'none';
-      if (wrap) wrap.style.display = 'block';
-    });
-  }
-
-  if (saveBtn) {
-    saveBtn.addEventListener('click', function () {
-      var title   = (document.getElementById('adminNewsTitle') || {}).value || '';
-      var uni     = (document.getElementById('adminNewsUni') || {}).value || '';
-      var content = (document.getElementById('adminNewsContent') || {}).value || '';
-      var pinned  = (document.getElementById('adminNewsPin') || {}).value === 'yes';
-      var imgFile = document.getElementById('adminNewsImageFile');
-      var vidFile = document.getElementById('adminNewsVideoFile');
-
-      title   = title.trim();
-      uni     = uni.trim();
-      content = content.trim();
-
-      var errBox = document.getElementById('adminNewsError');
-      var errMsg = document.getElementById('adminNewsErrorMsg');
-
-      function showErr(msg) {
-        if (errMsg) errMsg.textContent = msg;
-        if (errBox) errBox.style.display = 'flex';
-      }
-      if (errBox) errBox.style.display = 'none';
-
-      if (!title)   { showErr('Please enter a title.'); return; }
-      if (!uni)     { showErr('Please enter university.'); return; }
-      if (!content) { showErr('Please write the content.'); return; }
-
-      function saveAdminNews(imgData, vidData) {
-        var allNews = JSON.parse(
-          localStorage.getItem('imc_news') || '[]'
-        );
-        allNews.unshift({
-          id:          'NEWS-ADM-' + Date.now(),
-          title:       title,
-          university:  uni,
-          image:       imgData || 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&h=300&fit=crop',
-          video:       vidData || null,
-          content:     content,
-          authorEmail: 'admin@imc.com',
-          authorName:  'IMC Editorial',
-          status:      'approved',
-          pinned:      pinned,
-          date:        new Date().toLocaleDateString(),
-          tags:        [uni]
-        });
-        localStorage.setItem('imc_news', JSON.stringify(allNews));
-        alert('✅ News published successfully!');
-        if (formEl)  formEl.style.display  = 'none';
-        if (showBtn) showBtn.style.display = 'flex';
-        // Clear form
-        var ids = ['adminNewsTitle','adminNewsUni','adminNewsContent'];
-        ids.forEach(function (id) {
-          var el = document.getElementById(id);
-          if (el) el.value = '';
-        });
-        removeAdminNewsUpload();
-        removeAdminNewsVideoUpload();
-        loadNewsAdminTab('');
-        loadOverview();
-      }
-
-      var imgFileObj = imgFile ? imgFile.files[0] : null;
-      var vidFileObj = vidFile ? vidFile.files[0] : null;
-
-      if (imgFileObj) {
-        var rdr = new FileReader();
-        rdr.onload = function (e) {
-          var imgData = e.target.result;
-          if (vidFileObj) {
-            var vrdr = new FileReader();
-            vrdr.onload = function (ve) {
-              saveAdminNews(imgData, ve.target.result);
-            };
-            vrdr.readAsDataURL(vidFileObj);
-          } else {
-            saveAdminNews(imgData, null);
-          }
-        };
-        rdr.readAsDataURL(imgFileObj);
-      } else {
-        saveAdminNews(null, null);
-      }
-    });
-  }
-}
-
 function initNewsAdminCreate() {
   var imgInput = document.getElementById('newsAdminImageFile');
   var vidInput = document.getElementById('newsAdminVideoFile');
@@ -1158,6 +796,8 @@ function initNewsAdminCreate() {
         document.getElementById('newsAdminImagePreviewWrap').style.display = 'none';
         document.getElementById('newsAdminVideoPlaceholder').style.display = 'flex';
         document.getElementById('newsAdminVideoPreviewWrap').style.display = 'none';
+        loadNewsAdminTab('');
+        loadOverview();
       } else {
         errMsg.textContent = result.message || 'Could not publish news.';
         errBox.style.display = 'flex';
@@ -1206,46 +846,294 @@ function removeAdminNewsVideoUpload() {
 }
 
 
-// ================================================
-//   SETTINGS TAB
-// ================================================
 
-function loadSettingsTab() {
-  var settings = JSON.parse(
-    localStorage.getItem('imc_settings') || '{}'
-  );
-  var fields = {
-    'settingsPlatformName': settings.platformName || 'Inside My Campus',
-    'settingsEmail':        settings.email        || 'hello@insidemycampus.com',
-    'settingsWhatsApp':     settings.whatsApp     || '+2348012345678',
-    'settingsInstagram':    settings.instagram    || '@insidemycampus',
-    'settingsTwitter':      settings.twitter      || '@insidemycampus',
-    'settingsVendorFee':    settings.vendorFee    || '5000',
-    'settingsAmbComm':      settings.ambComm      || '2000'
+// ================================================
+//   LEARNING HUB ADMIN — self-contained block, wired
+//   to the real API (unlike most of the rest of this
+//   file, which reads/writes localStorage mock data).
+//   Deliberately a separate DOMContentLoaded listener
+//   so it runs independently of the existing handler
+//   above, which throws partway through on every load.
+// ================================================
+document.addEventListener('DOMContentLoaded', function () {
+
+  var typeLabels = {
+    course: 'Course', ebook: 'E-book', past_question: 'Past Question',
+    lecture_note: 'Lecture Note', study_material: 'Study Material', exam_prep: 'Exam Prep'
   };
-  Object.keys(fields).forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) el.value = fields[id];
-  });
 
-  var saveBtn = document.getElementById('saveSettingsBtn');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', function () {
-      var newSettings = {
-        platformName: (document.getElementById('settingsPlatformName') || {}).value || '',
-        email:        (document.getElementById('settingsEmail')        || {}).value || '',
-        whatsApp:     (document.getElementById('settingsWhatsApp')     || {}).value || '',
-        instagram:    (document.getElementById('settingsInstagram')    || {}).value || '',
-        twitter:      (document.getElementById('settingsTwitter')      || {}).value || '',
-        vendorFee:    (document.getElementById('settingsVendorFee')    || {}).value || '',
-        ambComm:      (document.getElementById('settingsAmbComm')      || {}).value || ''
-      };
-      localStorage.setItem('imc_settings', JSON.stringify(newSettings));
-      var okBox = document.getElementById('settingsSuccess');
-      if (okBox) {
-        okBox.style.display = 'flex';
-        setTimeout(function () { okBox.style.display = 'none'; }, 3000);
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ---- Load + render moderation table ----
+  window.loadLearningAdminTab = async function (filter) {
+    var tbody = document.getElementById('learningTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
+
+    var result = await IMC_API.getAllMaterialsAdmin(filter ? { status: filter } : {});
+    var materials = (result.success && result.materials) ? result.materials : [];
+
+    updateLearningBadge(materials);
+
+    if (materials.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">No materials found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = materials.map(function (m) {
+      var statusBadge = '<span class="status-badge ' + m.status + '">' + m.status + '</span>';
+      var priceText = m.isFree ? 'Free' : '₦' + (m.price || 0).toLocaleString();
+
+      var actions = '<div class="btn-group">';
+      if (m.status !== 'approved') {
+        actions += '<button class="btn btn-success btn-sm" onclick="approveLearningMaterial(\'' + m._id + '\')">Approve</button>';
+      }
+      if (m.status !== 'rejected') {
+        actions += '<button class="btn btn-danger btn-sm" onclick="rejectLearningMaterial(\'' + m._id + '\')">Reject</button>';
+      }
+      actions += '<button class="btn btn-ghost btn-sm" onclick="deleteLearningMaterialAdmin(\'' + m._id + '\')">Delete</button>';
+      actions += '</div>';
+
+      return '<tr>' +
+        '<td>' + esc(m.title) + '</td>' +
+        '<td>' + (typeLabels[m.materialType] || m.materialType) + '</td>' +
+        '<td>' + esc(m.uploaderName || m.uploaderEmail || '—') + ' <span style="color:#aaa;font-size:11px;">(' + m.uploaderRole + ')</span></td>' +
+        '<td>' + priceText + '</td>' +
+        '<td>' + statusBadge + '</td>' +
+        '<td>' + (m.downloadCount || 0) + '</td>' +
+        '<td>' + actions + '</td>' +
+        '</tr>';
+    }).join('');
+  };
+
+  function updateLearningBadge(materials) {
+    var badge = document.getElementById('badgeLearning');
+    if (!badge) return;
+    var pendingCount = materials.filter(function (m) { return m.status === 'pending'; }).length;
+    if (pendingCount > 0) {
+      badge.textContent = pendingCount;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  window.approveLearningMaterial = async function (id) {
+    var result = await IMC_API.updateMaterialStatus(id, 'approved');
+    if (result.success) {
+      loadLearningAdminTab(document.getElementById('learningStatusFilter').value);
+    } else {
+      alert(result.message || 'Could not approve.');
+    }
+  };
+
+  window.rejectLearningMaterial = async function (id) {
+    var reason = prompt('Reason for rejection (optional):', '');
+    if (reason === null) return;
+    var result = await IMC_API.updateMaterialStatus(id, 'rejected', reason);
+    if (result.success) {
+      loadLearningAdminTab(document.getElementById('learningStatusFilter').value);
+    } else {
+      alert(result.message || 'Could not reject.');
+    }
+  };
+
+  window.deleteLearningMaterialAdmin = async function (id) {
+    if (!confirm('Delete this material permanently? This cannot be undone.')) return;
+    var result = await IMC_API.deleteMaterialAdmin(id);
+    if (result.success) {
+      loadLearningAdminTab(document.getElementById('learningStatusFilter').value);
+    } else {
+      alert(result.message || 'Could not delete.');
+    }
+  };
+
+  // ---- Filter dropdown ----
+  var filterEl = document.getElementById('learningStatusFilter');
+  if (filterEl) {
+    filterEl.addEventListener('change', function () {
+      loadLearningAdminTab(this.value);
+    });
+  }
+
+  // ---- Admin direct upload modal ----
+  var openBtn  = document.getElementById('openLearningUploadBtn');
+  var modal    = document.getElementById('learningUploadModal');
+  var isFreeCk = document.getElementById('adminUpIsFree');
+  var priceField = document.getElementById('adminUpPriceField');
+
+  if (openBtn && modal) {
+    openBtn.addEventListener('click', function () { modal.style.display = 'flex'; });
+  }
+  window.closeLearningUploadModal = function () { modal.style.display = 'none'; };
+
+  if (isFreeCk) {
+    isFreeCk.addEventListener('change', function () {
+      priceField.style.display = this.checked ? 'none' : 'block';
+    });
+  }
+
+  var submitBtn = document.getElementById('adminUpSubmitBtn');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', async function () {
+      var errBox = document.getElementById('learningUploadError');
+      var okBox  = document.getElementById('learningUploadSuccess');
+      errBox.style.display = 'none';
+      okBox.style.display  = 'none';
+
+      var title = document.getElementById('adminUpTitle').value.trim();
+      var description = document.getElementById('adminUpDescription').value.trim();
+      var fileInput = document.getElementById('adminUpFile');
+
+      if (!title || !description) {
+        errBox.textContent = 'Title and description are required.';
+        errBox.style.display = 'block';
+        return;
+      }
+      if (!fileInput.files || !fileInput.files[0]) {
+        errBox.textContent = 'Please select a file.';
+        errBox.style.display = 'block';
+        return;
+      }
+
+      var formData = new FormData();
+      formData.append('materialType', document.getElementById('adminUpType').value);
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('university', document.getElementById('adminUpUniversity').value.trim());
+      formData.append('courseCode', document.getElementById('adminUpCourseCode').value.trim());
+      formData.append('isFree', isFreeCk.checked ? 'true' : 'false');
+      if (!isFreeCk.checked) {
+        formData.append('pricingMode', 'fixed');
+        formData.append('price', document.getElementById('adminUpPrice').value);
+      }
+      formData.append('file', fileInput.files[0]);
+      var coverInput = document.getElementById('adminUpCoverImage');
+      if (coverInput.files && coverInput.files[0]) {
+        formData.append('coverImage', coverInput.files[0]);
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Publishing...';
+
+      var result = await IMC_API.uploadMaterial(formData);
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-upload"></i> Publish';
+
+      if (result.success) {
+        okBox.textContent = 'Published!';
+        okBox.style.display = 'block';
+        setTimeout(function () {
+          closeLearningUploadModal();
+          okBox.style.display = 'none';
+          loadLearningAdminTab('');
+        }, 1000);
+      } else {
+        errBox.textContent = result.message || 'Upload failed.';
+        errBox.style.display = 'block';
       }
     });
   }
-}
+
+});
+
+// ================================================
+//   CAMPUS CONNECT ADMIN — same pattern as Learning Hub admin
+// ================================================
+document.addEventListener('DOMContentLoaded', function () {
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  var navItem = document.querySelector('.nav-item[data-section="connect"]');
+  if (navItem) {
+    navItem.addEventListener('click', function () {
+      loadConnectAdminTab('');
+    });
+  }
+
+  window.loadConnectAdminTab = async function (filter) {
+    var tbody = document.getElementById('connectTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
+
+    var result = await IMC_API.adminGetCommunities(filter);
+    var communities = (result.success && result.communities) ? result.communities : [];
+
+    var badge = document.getElementById('badgeConnect');
+    if (badge) {
+      var pending = communities.filter(function (c) { return c.status === 'pending'; }).length;
+      if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-block'; }
+      else { badge.style.display = 'none'; }
+    }
+
+    if (communities.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">No communities found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = communities.map(function (c) {
+      var statusBadge = '<span class="status-badge ' + c.status + '">' + c.status + '</span>';
+      var actions = '<div class="btn-group">';
+      if (c.status !== 'approved') {
+        actions += '<button class="btn btn-success btn-sm" onclick="approveCommunity(\'' + c._id + '\')">Approve</button>';
+      }
+      if (c.status !== 'rejected') {
+        actions += '<button class="btn btn-danger btn-sm" onclick="rejectCommunity(\'' + c._id + '\')">Reject</button>';
+      }
+      if (!c.verified) {
+        actions += '<button class="btn btn-ghost btn-sm" onclick="verifyCommunity(\'' + c._id + '\')">Verify</button>';
+      }
+      actions += '<button class="btn btn-ghost btn-sm" onclick="deleteCommunityAdmin(\'' + c._id + '\')">Delete</button>';
+      actions += '</div>';
+
+      return '<tr>' +
+        '<td>' + esc(c.communityName) + (c.featured ? ' ⭐' : '') + (c.verified ? ' ✅' : '') + '</td>' +
+        '<td>' + esc(c.university) + '</td>' +
+        '<td>' + esc(c.platform) + '</td>' +
+        '<td>' + esc(c.creatorName || c.creatorEmail || '—') + '</td>' +
+        '<td>' + statusBadge + '</td>' +
+        '<td>' + (c.memberCount || 0) + '</td>' +
+        '<td>' + actions + '</td>' +
+        '</tr>';
+    }).join('');
+  };
+
+  window.approveCommunity = async function (id) {
+    var result = await IMC_API.adminUpdateCommunityStatus(id, 'approved');
+    if (result.success) loadConnectAdminTab(document.getElementById('connectStatusFilter').value);
+    else alert(result.message || 'Could not approve.');
+  };
+
+  window.rejectCommunity = async function (id) {
+    var reason = prompt('Reason for rejection (optional):', '');
+    if (reason === null) return;
+    var result = await IMC_API.adminUpdateCommunityStatus(id, 'rejected', reason);
+    if (result.success) loadConnectAdminTab(document.getElementById('connectStatusFilter').value);
+    else alert(result.message || 'Could not reject.');
+  };
+
+  window.verifyCommunity = async function (id) {
+    var result = await IMC_API.adminUpdateCommunity(id, { verified: true });
+    if (result.success) loadConnectAdminTab(document.getElementById('connectStatusFilter').value);
+    else alert(result.message || 'Could not verify.');
+  };
+
+  window.deleteCommunityAdmin = async function (id) {
+    if (!confirm('Delete this community permanently?')) return;
+    var result = await IMC_API.adminDeleteCommunity(id);
+    if (result.success) loadConnectAdminTab(document.getElementById('connectStatusFilter').value);
+    else alert(result.message || 'Could not delete.');
+  };
+
+  var filterEl = document.getElementById('connectStatusFilter');
+  if (filterEl) {
+    filterEl.addEventListener('change', function () { loadConnectAdminTab(this.value); });
+  }
+
+  loadConnectAdminTab('');
+});

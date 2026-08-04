@@ -201,6 +201,129 @@ var IMC_API = (function () {
     return await request('GET', '/admin/notifications', null, true);
   }
 
+  // ---- Admin: Users ----
+  async function adminGetUsers(f) {
+    var q = f ? '?' + new URLSearchParams(f).toString() : '';
+    return await request('GET', '/admin/users' + q, null, true);
+  }
+  async function adminBlockUser(id, isBlocked) {
+    return await request('PUT', '/admin/users/' + id + '/block', { isBlocked: isBlocked }, true);
+  }
+  async function adminChangeUserRole(id, role) {
+    return await request('PUT', '/admin/users/' + id + '/role', { role: role }, true);
+  }
+  async function adminDeleteUser(id) {
+    return await request('DELETE', '/admin/users/' + id, null, true);
+  }
+
+  // ---- Admin: Vendors ----
+  async function adminGetVendors(status) {
+    var q = status ? '?status=' + status : '';
+    return await request('GET', '/admin/vendors' + q, null, true);
+  }
+
+  // ---- Admin: Ambassadors ----
+  async function adminGetAmbassadors() {
+    return await request('GET', '/admin/ambassadors', null, true);
+  }
+  async function adminUpdateAmbassadorStatus(id, status) {
+    return await request('PUT', '/admin/ambassadors/' + id + '/status', { status: status }, true);
+  }
+
+  // ---- Admin: Ads ----
+  async function adminGetAds(status) {
+    var q = status ? '?status=' + status : '';
+    return await request('GET', '/admin/ads' + q, null, true);
+  }
+  async function adminUpdateAdStatus(id, status) {
+    return await request('PUT', '/admin/ads/' + id + '/status', { status: status }, true);
+  }
+  async function adminDeleteAd(id) {
+    return await request('DELETE', '/admin/ads/' + id, null, true);
+  }
+
+  // ---- Admin: News ----
+  async function adminGetNews(status) {
+    var q = status ? '?status=' + status : '';
+    return await request('GET', '/admin/news' + q, null, true);
+  }
+  async function adminUpdateNewsStatus(id, status, pinned) {
+    var body = { status: status };
+    if (typeof pinned !== 'undefined') body.pinned = pinned;
+    return await request('PUT', '/admin/news/' + id + '/status', body, true);
+  }
+  async function adminDeleteNews(id) {
+    return await request('DELETE', '/admin/news/' + id, null, true);
+  }
+
+  // ---- Admin: Courses ----
+  async function adminGetCourses() {
+    return await request('GET', '/admin/courses', null, true);
+  }
+  async function adminCreateCourse(formData) {
+    return await request('POST', '/admin/courses', formData, true);
+  }
+  async function adminUpdateCourse(id, formData) {
+    return await request('PUT', '/admin/courses/' + id, formData, true);
+  }
+  async function adminDeleteCourse(id) {
+    return await request('DELETE', '/admin/courses/' + id, null, true);
+  }
+
+  // ---- Admin: Payments (read-only) ----
+  async function adminGetPayments() {
+    return await request('GET', '/admin/payments', null, true);
+  }
+
+  // ---- Admin: Ambassador withdrawals ----
+  async function adminGetWithdrawals() {
+    return await request('GET', '/admin/withdrawals', null, true);
+  }
+  async function adminUpdateWithdrawal(ambId, withdrawalId, status) {
+    return await request('PUT', '/admin/withdrawals/' + ambId + '/' + withdrawalId, { status: status }, true);
+  }
+
+  // ---- Admin: Event creator withdrawals ----
+  async function adminGetEventWithdrawals() {
+    return await request('GET', '/admin/event-withdrawals', null, true);
+  }
+  async function adminUpdateEventWithdrawal(eventId, withdrawalId, status) {
+    return await request('PUT', '/admin/event-withdrawals/' + eventId + '/' + withdrawalId, { status: status }, true);
+  }
+
+  // ---- Admin: Audit logs ----
+  async function adminGetLogs() {
+    return await request('GET', '/admin/logs', null, true);
+  }
+
+  // ---- Campus Connect ----
+  async function getConnectUniversities() {
+    return await request('GET', '/connect/universities', null, false);
+  }
+  async function getConnectCommunities(f) {
+    var q = f ? '?' + new URLSearchParams(f).toString() : '';
+    return await request('GET', '/connect/communities' + q, null, false);
+  }
+  async function createCommunity(data) {
+    return await request('POST', '/connect', data, true);
+  }
+  async function reportCommunity(id, reason) {
+    return await request('POST', '/connect/' + id + '/report', { reason: reason || '' }, true);
+  }
+  async function adminGetCommunities(status) {
+    var q = status ? '?status=' + status : '';
+    return await request('GET', '/connect/admin/all' + q, null, true);
+  }
+  async function adminUpdateCommunityStatus(id, status, reason) {
+    return await request('PUT', '/connect/admin/' + id + '/status', { status: status, reason: reason || '' }, true);
+  }
+  async function adminUpdateCommunity(id, data) {
+    return await request('PUT', '/connect/admin/' + id, data, true);
+  }
+  async function adminDeleteCommunity(id) {
+    return await request('DELETE', '/connect/admin/' + id, null, true);
+  }
+
   // ---- Ambassador withdrawals ----
   async function getMyWithdrawals() {
     return await request('GET', '/ambassadors/my-withdrawals', null, true);
@@ -444,7 +567,7 @@ var IMC_API = (function () {
   }
 
   async function updateVendorStatus(id, status) {
-    return await request('PUT', '/admin/vendors/' + id, { status: status }, true);
+    return await request('PUT', '/admin/vendors/' + id + '/status', { status: status }, true);
   }
 
   // ---- EVENT IMAGE UPLOAD ----
@@ -493,6 +616,19 @@ getAllProducts, logProductLead, logProductClick, logWhatsAppClick, rateVendor, u
     initializePayment, verifyPayment,
     // Admin
     getAdminStats, updateVendorStatus,
+    adminGetUsers, adminBlockUser, adminChangeUserRole, adminDeleteUser,
+    adminGetVendors,
+    adminGetAmbassadors, adminUpdateAmbassadorStatus,
+    adminGetAds, adminUpdateAdStatus, adminDeleteAd,
+    adminGetNews, adminUpdateNewsStatus, adminDeleteNews,
+    adminGetCourses, adminCreateCourse, adminUpdateCourse, adminDeleteCourse,
+    adminGetPayments,
+    adminGetWithdrawals, adminUpdateWithdrawal,
+    adminGetEventWithdrawals, adminUpdateEventWithdrawal,
+    adminGetLogs,
+    getConnectUniversities, getConnectCommunities, createCommunity,
+    reportCommunity, adminGetCommunities, adminUpdateCommunityStatus,
+    adminUpdateCommunity, adminDeleteCommunity,
     // Health
     checkHealth
   };
