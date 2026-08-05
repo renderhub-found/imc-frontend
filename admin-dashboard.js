@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
     else if (name === 'news')         loadNewsAdminTab('');
     else if (name === 'courses')      loadCoursesTab();
     else if (name === 'learning')     { if (typeof loadLearningAdminTab === 'function') loadLearningAdminTab(''); }
+    else if (name === 'connect')      { if (typeof loadConnectAdminTab === 'function') loadConnectAdminTab(''); }
     else if (name === 'events')       loadEventsTab();
     else if (name === 'notifications')loadNotificationsTab();
     else if (name === 'payments')     loadPaymentsTab();
@@ -872,8 +873,20 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
 
-    var result = await IMC_API.getAllMaterialsAdmin(filter ? { status: filter } : {});
-    var materials = (result.success && result.materials) ? result.materials : [];
+    var result;
+    try {
+      result = await IMC_API.getAllMaterialsAdmin(filter ? { status: filter } : {});
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Error loading materials: ' + err.message + '</td></tr>';
+      return;
+    }
+
+    if (!result.success) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Error: ' + (result.message || 'Could not load materials.') + '</td></tr>';
+      return;
+    }
+
+    var materials = result.materials || [];
 
     updateLearningBadge(materials);
 
@@ -1018,7 +1031,16 @@ document.addEventListener('DOMContentLoaded', function () {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Publishing...';
 
-      var result = await IMC_API.uploadMaterial(formData);
+      var result;
+      try {
+        result = await IMC_API.uploadMaterial(formData);
+      } catch (err) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-upload"></i> Publish';
+        errBox.textContent = 'Upload failed: ' + err.message;
+        errBox.style.display = 'block';
+        return;
+      }
 
       submitBtn.disabled = false;
       submitBtn.innerHTML = '<i class="fas fa-upload"></i> Publish';
@@ -1061,8 +1083,20 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
 
-    var result = await IMC_API.adminGetCommunities(filter);
-    var communities = (result.success && result.communities) ? result.communities : [];
+    var result;
+    try {
+      result = await IMC_API.adminGetCommunities(filter);
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Error loading communities: ' + err.message + '</td></tr>';
+      return;
+    }
+
+    if (!result.success) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Error: ' + (result.message || 'Could not load communities.') + '</td></tr>';
+      return;
+    }
+
+    var communities = result.communities || [];
 
     var badge = document.getElementById('badgeConnect');
     if (badge) {

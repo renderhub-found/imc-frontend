@@ -48,6 +48,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     // ---- Tabs ----
     safeRun('Tab navigation', initTabs);
 
+    var sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function () {
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('sidebar-open');
+      });
+    }
+
     // ---- Logout ----
     var logoutEl = document.getElementById('sdLogout');
     if (logoutEl) {
@@ -93,6 +101,8 @@ function initTabs() {
         this.classList.add('active');
         var target = document.getElementById('tab-' + tabId);
         if (target) target.classList.add('active');
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.remove('sidebar-open');
       } catch (err) {
         showFatalError('Switching tab', err);
       }
