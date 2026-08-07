@@ -3,63 +3,6 @@
 //   Connected to real backend API
 // ================================================
 
-var AMBASSADOR_TASKS = [
-  {
-    id: 'T001',
-    title: 'Share referral link on WhatsApp Status',
-    reward: 100,
-    icon: '📲',
-    desc: 'Post your referral link on WhatsApp Status for 24 hours.',
-    link: 'https://wa.me/?text=Join%20Inside%20My%20Campus!',
-    linkLabel: 'Open WhatsApp'
-  },
-  {
-    id: 'T002',
-    title: 'Refer your first vendor',
-    reward: 2000,
-    icon: '🏪',
-    desc: 'Get one business owner to register as a vendor.',
-    link: null,
-    linkLabel: null
-  },
-  {
-    id: 'T003',
-    title: 'Submit a campus news article',
-    reward: 100,
-    icon: '📰',
-    desc: 'Submit one news article about your university.',
-    link: null,
-    linkLabel: 'Go to Submit News'
-  },
-  {
-    id: 'T004',
-    title: 'Get 3 vendor referrals',
-    reward: 6000,
-    icon: '🎯',
-    desc: 'Refer 3 different vendors using your referral link.',
-    link: null,
-    linkLabel: null
-  },
-  {
-    id: 'T005',
-    title: 'Post about IMC on Instagram',
-    reward: 300,
-    icon: '📸',
-    desc: 'Tag @insidemycampus in an Instagram post.',
-    link: 'https://www.instagram.com/insidemycampus',
-    linkLabel: 'Open Instagram'
-  },
-  {
-    id: 'T006',
-    title: 'Refer 5 vendors — Superstar Task',
-    reward: 10000,
-    icon: '⭐',
-    desc: 'Refer 5 vendors and claim your superstar reward.',
-    link: null,
-    linkLabel: null
-  }
-];
-
 // Holds the logged-in ambassador's real record from the backend so
 // action handlers (claim task, etc.) don't need to re-fetch it.
 var CURRENT_AMBASSADOR = null;
@@ -100,7 +43,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   try {
 
     // ---- Auth check ----
-    var loggedIn    = localStorage.getItem('imc_logged_in');
+    // Token is the real session — not the separate imc_logged_in flag,
+    // which can drift from it (see navbar.js for the general fix).
+    var loggedIn    = localStorage.getItem('imc_token');
     var currentUser = JSON.parse(localStorage.getItem('imc_user') || 'null');
 
     if (!loggedIn || !currentUser) {
@@ -384,80 +329,72 @@ function renderEarnings(ambassador) {
 
 
 // ================================================
-//   TASKS TAB
+//   TASKS TAB — admin-defined tasks, server-verified.
+//   No reward is ever credited client-side; ambassadors submit
+//   proof and an admin approves it before earnings change.
 // ================================================
-function renderTasks(ambassador) {
+var TASKS_CACHE       = [];
+var MY_SUBMISSIONS_CACHE = [];
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function renderTasks(ambassador) {
   var container = document.getElementById('tasksGrid');
   if (!container) return;
 
-  var tasks = AMBASSADOR_TASKS || [];
-  if (tasks.length === 0) {
+  container.innerHTML = '<div class="empty-state-card"><p>Loading tasks…</p></div>';
+
+  var tasksResult = await IMC_API.getAmbassadorTasks();
+  var subsResult  = await IMC_API.getMyTaskSubmissions();
+
+  TASKS_CACHE          = (tasksResult.success ? tasksResult.tasks : []) || [];
+  MY_SUBMISSIONS_CACHE = (subsResult.success ? subsResult.submissions : []) || [];
+
+  if (TASKS_CACHE.length === 0) {
     container.innerHTML =
       '<div class="empty-state-card"><div style="font-size:40px;">📋</div>' +
       '<p>No tasks available yet.</p></div>';
     return;
   }
 
-  var doneTasks    = ambassador.tasksDone || [];
-  var refCount     = (ambassador.referrals || []).length;
-  var visitedTasks = {};
-  try {
-    visitedTasks = JSON.parse(localStorage.getItem('imc_visited_tasks') || '{}');
-  } catch (e) { visitedTasks = {}; }
+  var doneCount = MY_SUBMISSIONS_CACHE.filter(function (s) { return s.status === 'approved'; }).length;
+  setEl('statTasks', doneCount);
 
   var html = '';
 
-  for (var i = 0; i < tasks.length; i++) {
-    var task    = tasks[i];
-    var isDone  = doneTasks.indexOf(task.id) !== -1;
-    var visited = visitedTasks[task.id] || false;
+  for (var i = 0; i < TASKS_CACHE.length; i++) {
+    var task = TASKS_CACHE[i];
+    var submission = MY_SUBMISSIONS_CACHE.find(function (s) { return s.task && s.task._id === task._id; });
 
-    var canClaim = false;
-    if (task.id === 'T002' && refCount >= 1) canClaim = true;
-    if (task.id === 'T004' && refCount >= 3) canClaim = true;
-    if (task.id === 'T006' && refCount >= 5) canClaim = true;
-    if (task.id === 'T003') canClaim = true;
-    if ((task.id === 'T001' || task.id === 'T005') && visited) canClaim = true;
-
-    var linkHtml = '';
-    if (task.link) {
-      linkHtml =
-        '<div style="margin-top:8px;">' +
-        '<a href="' + task.link + '" target="_blank" class="btn-task-link" ' +
-        'onclick="markTaskVisited(\'' + task.id + '\')">' +
-        '<i class="fas fa-external-link-alt"></i> ' + (task.linkLabel || 'Open Link') +
-        '</a></div>';
-    } else if (task.id === 'T003') {
-      linkHtml =
-        '<div style="margin-top:8px;">' +
-        '<button class="btn-task-link" onclick="switchToNewsTab()">' +
-        '<i class="fas fa-newspaper"></i> Submit News</button></div>';
-    }
-
-    var actionHtml = '';
-    if (isDone) {
-      actionHtml = '<span class="status-badge approved">✅ Done</span>';
-    } else if (canClaim) {
+    var actionHtml;
+    if (submission && submission.status === 'approved') {
+      actionHtml = '<span class="status-badge approved">✅ Approved</span>';
+    } else if (submission && submission.status === 'pending') {
+      actionHtml = '<span class="status-badge pending">⏳ Awaiting review</span>';
+    } else if (submission && submission.status === 'rejected') {
       actionHtml =
-        '<button class="btn-claim-task" onclick="claimTask(\'' + task.id + '\',' + task.reward + ')">' +
-        'Claim ₦' + task.reward.toLocaleString() + '</button>';
-    } else if (task.link && !visited) {
-      actionHtml =
-        '<span class="status-badge pending" style="font-size:11px;white-space:nowrap;">' +
-        '👆 Click link first</span>';
+        '<span class="status-badge rejected" style="display:block;margin-bottom:6px;">❌ Rejected' +
+        (submission.rejectionReason ? ': ' + esc(submission.rejectionReason) : '') + '</span>' +
+        '<button class="btn-claim-task" onclick="openTaskSubmitModal(\'' + task._id + '\')">Resubmit</button>';
     } else {
-      actionHtml = '<span class="status-badge pending">⏳ In Progress</span>';
+      actionHtml =
+        '<button class="btn-claim-task" onclick="openTaskSubmitModal(\'' + task._id + '\')">' +
+        'Submit proof</button>';
     }
 
     html +=
-      '<div class="task-card' + (isDone ? ' task-done' : '') + '">' +
-      '<div class="task-icon">' + task.icon + '</div>' +
+      '<div class="task-card' + (submission && submission.status === 'approved' ? ' task-done' : '') + '">' +
+      '<div class="task-icon">🎯</div>' +
       '<div class="task-body">' +
-      '<h4>' + task.title + '</h4>' +
-      '<p>' + task.desc + '</p>' +
+      '<h4>' + esc(task.title) + '</h4>' +
+      '<p>' + esc(task.description) + '</p>' +
+      (task.rules ? '<p style="font-size:12px;color:#888;">Rules: ' + esc(task.rules) + '</p>' : '') +
+      (task.taskUrl ? '<div style="margin-top:8px;"><a href="' + esc(task.taskUrl) + '" target="_blank" class="btn-task-link">' +
+        '<i class="fas fa-external-link-alt"></i> Open Task Link</a></div>' : '') +
       '<div class="task-reward"><i class="fas fa-coins" style="color:#f59f00;"></i> ' +
-      'Reward: <strong>₦' + task.reward.toLocaleString() + '</strong></div>' +
-      linkHtml +
+      'Reward: <strong>₦' + (task.rewardAmount || 0).toLocaleString() + '</strong></div>' +
       '</div>' +
       '<div class="task-action">' + actionHtml + '</div>' +
       '</div>';
@@ -466,49 +403,41 @@ function renderTasks(ambassador) {
   container.innerHTML = html;
 }
 
-// ---- Claim task ----
-async function claimTask(taskId, reward) {
-  if (!CURRENT_AMBASSADOR) return;
+// ---- Submit proof for a task (server verifies + admin approves; no client-side reward) ----
+function openTaskSubmitModal(taskId) {
+  var task = TASKS_CACHE.find(function (t) { return t._id === taskId; });
+  if (!task) return;
 
-  var doneTasks = CURRENT_AMBASSADOR.tasksDone || [];
-  if (doneTasks.indexOf(taskId) !== -1) {
-    alert('You already claimed this reward!');
+  var proof = prompt(
+    (task.verificationMethod === 'link_proof'
+      ? 'Paste the link proving you completed "' + task.title + '":'
+      : 'Describe how you completed "' + task.title + '" (or paste a proof link):'),
+    ''
+  );
+  if (proof === null) return;
+  if (!proof.trim() && task.verificationMethod !== 'auto_referral') {
+    alert('Proof is required.');
     return;
   }
 
-  var result = await IMC_API.claimTaskReward(taskId, reward);
-
-  if (!result.success) {
-    alert(result.message || 'Could not claim reward. Please try again.');
-    return;
-  }
-
-  CURRENT_AMBASSADOR.tasksDone = result.tasksDone || doneTasks.concat([taskId]);
-  CURRENT_AMBASSADOR.earnings  = (result.earnings != null)
-    ? result.earnings
-    : (CURRENT_AMBASSADOR.earnings || 0) + reward;
-
-  setEl('statTasks',    CURRENT_AMBASSADOR.tasksDone.length);
-  setEl('statEarnings', '₦' + CURRENT_AMBASSADOR.earnings.toLocaleString());
-
-  renderTasks(CURRENT_AMBASSADOR);
-  renderEarnings(CURRENT_AMBASSADOR);
-
-  alert('🎉 ₦' + reward.toLocaleString() + ' reward claimed!');
+  submitTaskProof(taskId, proof.trim());
 }
 
-// ---- Mark task link visited (local UI hint only — not business data) ----
-function markTaskVisited(taskId) {
-  var visited = {};
-  try {
-    visited = JSON.parse(localStorage.getItem('imc_visited_tasks') || '{}');
-  } catch (e) { visited = {}; }
-
-  visited[taskId] = true;
-  localStorage.setItem('imc_visited_tasks', JSON.stringify(visited));
-
+async function submitTaskProof(taskId, proof) {
+  var result = await IMC_API.submitAmbassadorTask(taskId, proof);
+  if (!result.success) {
+    alert(result.message || 'Could not submit task.');
+    return;
+  }
+  alert(result.message || 'Submitted!');
   if (CURRENT_AMBASSADOR) {
-    setTimeout(function () { renderTasks(CURRENT_AMBASSADOR); }, 600);
+    // Refresh ambassador profile in case an auto_referral task auto-approved
+    var refreshed = await IMC_API.getMyAmbassadorProfile();
+    if (refreshed.success && refreshed.vendor === undefined) {
+      // getMyAmbassadorProfile shape varies by endpoint; re-pull earnings if present
+    }
+    renderTasks(CURRENT_AMBASSADOR);
+    renderEarnings(CURRENT_AMBASSADOR);
   }
 }
 

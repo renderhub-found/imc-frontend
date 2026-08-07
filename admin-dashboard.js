@@ -70,9 +70,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (name === 'overview')          loadOverview();
     else if (name === 'users')        loadUsersTab('');
     else if (name === 'vendors')      loadVendorsTab('');
-    else if (name === 'ambassadors')  loadAmbassadorsTab();
+    else if (name === 'ambassadors')  {
+      loadAmbassadorsTab();
+      if (typeof loadAmbassadorTasksTab === 'function') loadAmbassadorTasksTab();
+      if (typeof loadTaskSubmissionsTab === 'function') loadTaskSubmissionsTab('pending');
+    }
     else if (name === 'ads')          loadAdsTab('');
-    else if (name === 'news')         loadNewsAdminTab('');
+    else if (name === 'news')         { if (typeof loadNews === 'function') loadNews(); }
     else if (name === 'courses')      loadCoursesTab();
     else if (name === 'learning')     { if (typeof loadLearningAdminTab === 'function') loadLearningAdminTab(''); }
     else if (name === 'connect')      { if (typeof loadConnectAdminTab === 'function') loadConnectAdminTab(''); }
@@ -108,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (sectionName === 'vendors') loadVendorsTab(f);
         if (sectionName === 'ads')     loadAdsTab(f);
-        if (sectionName === 'news')    loadNewsAdminTab(f);
+        if (sectionName === 'news')    { if (typeof loadNews === 'function') { loadNews().then(function () { renderNews(f || 'all'); }); } }
       });
     });
   });
@@ -310,6 +314,165 @@ async function setAmbassadorStatus(id, status) {
 }
 
 // ================================================
+//   AMBASSADOR TASKS — admin create/edit/delete/pause/activate
+// ================================================
+async function loadAmbassadorTasksTab() {
+  var tbody = document.getElementById('ambassadorTasksTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetAmbassadorTasks();
+  var tasks = (result.success && result.tasks) ? result.tasks : [];
+
+  if (tasks.length === 0) { tbody.innerHTML = makeEmptyState('🎯', 'No tasks yet. Create one above.'); return; }
+
+  tbody.innerHTML = tasks.map(function (t) {
+    var actions = '<div class="btn-group">';
+    actions += '<button class="btn btn-ghost btn-sm" onclick="openEditTaskForm(\'' + t._id + '\')">Edit</button>';
+    if (t.status === 'active') {
+      actions += '<button class="btn btn-warning btn-sm" onclick="setTaskStatus(\'' + t._id + '\',\'paused\')">Pause</button>';
+    } else {
+      actions += '<button class="btn btn-success btn-sm" onclick="setTaskStatus(\'' + t._id + '\',\'active\')">Activate</button>';
+    }
+    actions += '<button class="btn btn-danger btn-sm" onclick="deleteAmbassadorTask(\'' + t._id + '\')">Delete</button>';
+    actions += '</div>';
+
+    return '<tr>' +
+      '<td>' + esc(t.title) + '</td>' +
+      '<td>₦' + (t.rewardAmount || 0).toLocaleString() + '</td>' +
+      '<td>' + esc(t.verificationMethod) + '</td>' +
+      '<td><span class="status-badge ' + (t.status === 'active' ? 'approved' : 'pending') + '">' + esc(t.status) + '</span></td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+var EDITING_TASK_ID = null;
+
+function openCreateTaskForm() {
+  EDITING_TASK_ID = null;
+  showTaskForm({ title: '', description: '', rewardAmount: '', rules: '', verificationMethod: 'manual', taskUrl: '' });
+}
+
+function openEditTaskForm(id) {
+  IMC_API.adminGetAmbassadorTasks().then(function (result) {
+    var task = (result.tasks || []).find(function (t) { return t._id === id; });
+    if (!task) { alert('Task not found.'); return; }
+    EDITING_TASK_ID = id;
+    showTaskForm(task);
+  });
+}
+
+function showTaskForm(task) {
+  var title = prompt('Task title:', task.title || '');
+  if (title === null) return;
+  var description = prompt('Description:', task.description || '');
+  if (description === null) return;
+  var rewardAmount = prompt('Reward amount (₦):', task.rewardAmount || '');
+  if (rewardAmount === null) return;
+  var verificationMethod = prompt(
+    'Verification method — one of: manual, link_proof, auto_referral\n' +
+    '(for auto_referral, put the required referral count in Rules)',
+    task.verificationMethod || 'manual'
+  );
+  if (verificationMethod === null) return;
+  var rules = prompt('Rules (e.g. required referral count for auto_referral tasks):', task.rules || '');
+  if (rules === null) return;
+  var taskUrl = prompt('Task URL (optional, e.g. Telegram invite link):', task.taskUrl || '');
+  if (taskUrl === null) return;
+
+  var payload = {
+    title: title.trim(),
+    description: (description || '').trim(),
+    rewardAmount: parseFloat(rewardAmount) || 0,
+    verificationMethod: ['manual', 'link_proof', 'auto_referral'].indexOf(verificationMethod) !== -1 ? verificationMethod : 'manual',
+    rules: (rules || '').trim(),
+    taskUrl: (taskUrl || '').trim()
+  };
+
+  var apiCall = EDITING_TASK_ID
+    ? IMC_API.adminUpdateAmbassadorTask(EDITING_TASK_ID, payload)
+    : IMC_API.adminCreateAmbassadorTask(payload);
+
+  apiCall.then(function (result) {
+    if (result.success) loadAmbassadorTasksTab();
+    else alert(result.message || 'Could not save task.');
+  });
+}
+
+async function setTaskStatus(id, status) {
+  var result = await IMC_API.adminSetAmbassadorTaskStatus(id, status);
+  if (result.success) loadAmbassadorTasksTab();
+  else alert(result.message || 'Could not update task.');
+}
+
+async function deleteAmbassadorTask(id) {
+  if (!confirm('Delete this task permanently?')) return;
+  var result = await IMC_API.adminDeleteAmbassadorTask(id);
+  if (result.success) loadAmbassadorTasksTab();
+  else alert(result.message || 'Could not delete task.');
+}
+
+// ================================================
+//   TASK SUBMISSIONS — admin review (approve/reject)
+// ================================================
+async function loadTaskSubmissionsTab(filter) {
+  var tbody = document.getElementById('taskSubmissionsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
+
+  var result = await IMC_API.adminGetTaskSubmissions(filter || '');
+  var submissions = (result.success && result.submissions) ? result.submissions : [];
+
+  if (submissions.length === 0) { tbody.innerHTML = makeEmptyState('📋', 'No submissions found.'); return; }
+
+  tbody.innerHTML = submissions.map(function (s) {
+    var statusBadge = '<span class="status-badge ' + (s.status === 'approved' ? 'approved' : (s.status === 'rejected' ? 'rejected' : 'pending')) + '">' + esc(s.status) + '</span>';
+    var actions = '';
+    if (s.status === 'pending') {
+      actions = '<div class="btn-group">' +
+        '<button class="btn btn-success btn-sm" onclick="reviewTaskSubmission(\'' + s._id + '\',\'approved\')">Approve</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="reviewTaskSubmission(\'' + s._id + '\',\'rejected\')">Reject</button>' +
+        '</div>';
+    } else {
+      actions = '—';
+    }
+
+    var userLabel = s.user ? ((s.user.firstName || '') + ' ' + (s.user.lastName || '') + ' (' + (s.user.email || '') + ')') : '—';
+
+    return '<tr>' +
+      '<td>' + esc(userLabel) + '</td>' +
+      '<td>' + esc(s.task ? s.task.title : '—') + '</td>' +
+      '<td>₦' + (s.rewardAmount || 0).toLocaleString() + '</td>' +
+      '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(s.proof) + '">' + esc(s.proof || '—') + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function reviewTaskSubmission(id, status) {
+  var reason = '';
+  if (status === 'rejected') {
+    reason = prompt('Reason for rejection (optional):', '') || '';
+  }
+  var result = await IMC_API.adminReviewTaskSubmission(id, status, reason);
+  if (result.success) {
+    loadTaskSubmissionsTab(document.getElementById('taskSubmissionFilter').value);
+    loadAmbassadorsTab();
+  } else {
+    alert(result.message || 'Could not review submission.');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var subFilterEl = document.getElementById('taskSubmissionFilter');
+  if (subFilterEl) {
+    subFilterEl.addEventListener('change', function () { loadTaskSubmissionsTab(this.value); });
+  }
+});
+
+// ================================================
 //   ADS
 // ================================================
 async function loadAdsTab(filter) {
@@ -352,59 +515,6 @@ async function deleteAdAdmin(id) {
   var result = await IMC_API.adminDeleteAd(id);
   if (result.success) { loadAdsTab(''); loadOverview(); }
   else alert(result.message || 'Could not delete ad.');
-}
-
-// ================================================
-//   NEWS (moderation list — the create-news form
-//   below this already used the real API correctly)
-// ================================================
-async function loadNewsAdminTab(filter) {
-  var tbody = document.getElementById('newsTableBody');
-  if (!tbody) return;
-  tbody.innerHTML = makeEmptyState('⏳', 'Loading...');
-
-  var result = await IMC_API.adminGetNews(filter);
-  var newsList = (result.success && result.news) ? result.news : [];
-
-  if (newsList.length === 0) { tbody.innerHTML = makeEmptyState('📰', 'No news found.'); return; }
-
-  tbody.innerHTML = newsList.map(function (n) {
-    var actions = '<div class="btn-group">';
-    if (n.status !== 'approved') actions += '<button class="btn btn-success btn-sm" onclick="setNewsStatus(\'' + n._id + '\',\'approved\')">Approve</button>';
-    if (n.status !== 'rejected') actions += '<button class="btn btn-danger btn-sm" onclick="setNewsStatus(\'' + n._id + '\',\'rejected\')">Reject</button>';
-    actions += '<button class="btn btn-ghost btn-sm" onclick="toggleNewsPin(\'' + n._id + '\',' + (!n.pinned) + ')">' + (n.pinned ? 'Unpin' : 'Pin') + '</button>';
-    actions += '<button class="btn btn-ghost btn-sm" onclick="deleteNewsAdmin(\'' + n._id + '\')">Delete</button>';
-    actions += '</div>';
-
-    return '<tr>' +
-      '<td>' + esc(n.title) + '</td>' +
-      '<td>' + esc(n.university || '—') + '</td>' +
-      '<td>' + esc(n.authorName || '—') + '</td>' +
-      '<td>' + (n.views || 0) + '</td>' +
-      '<td>' + (n.pinned ? '📌' : '—') + '</td>' +
-      '<td>' + statusBadgeHtml(n.status) + '</td>' +
-      '<td>' + actions + '</td>' +
-      '</tr>';
-  }).join('');
-}
-
-async function setNewsStatus(id, status) {
-  var result = await IMC_API.adminUpdateNewsStatus(id, status);
-  if (result.success) { loadNewsAdminTab(''); loadOverview(); }
-  else alert(result.message || 'Could not update news.');
-}
-
-async function toggleNewsPin(id, pinned) {
-  var result = await IMC_API.adminUpdateNewsStatus(id, undefined, pinned);
-  if (result.success) loadNewsAdminTab('');
-  else alert(result.message || 'Could not update news.');
-}
-
-async function deleteNewsAdmin(id) {
-  if (!confirm('Delete this news article permanently?')) return;
-  var result = await IMC_API.adminDeleteNews(id);
-  if (result.success) { loadNewsAdminTab(''); loadOverview(); }
-  else alert(result.message || 'Could not delete news.');
 }
 
 // ================================================

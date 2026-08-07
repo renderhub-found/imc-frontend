@@ -205,9 +205,23 @@ function stripHtml(html) {
 // ================================================
 //   OPEN NEWS MODAL (Full Article View)
 // ================================================
-function openNewsModal(newsId) {
+async function openNewsModal(newsId) {
   var news = CURRENT_NEWS_LIST.find(function (n) { return n._id === newsId; });
-  if (!news) return;
+
+  if (!news) {
+    // Not in the currently-loaded/filtered feed (shared link to an older,
+    // filtered-out, or paginated article) — fetch it directly instead of
+    // silently doing nothing.
+    try {
+      var result = await IMC_API.getNewsById(newsId);
+      if (result.success && result.news) news = result.news;
+    } catch (err) { /* fall through to not-found handling below */ }
+  }
+
+  if (!news) {
+    alert('This article could not be found. It may have been removed.');
+    return;
+  }
 
   var modal   = document.getElementById('newsModal');
   var content = document.getElementById('newsModalContent');

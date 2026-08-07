@@ -95,6 +95,7 @@
     .table-header{
       padding:16px 20px;display:flex;align-items:center;
       justify-content:space-between;border-bottom:1px solid #f0f0f0;
+      flex-wrap:wrap;gap:10px;
     }
     .table-title{font-size:15px;font-weight:700;}
     .table-scroll{overflow-x:auto;}
@@ -416,6 +417,47 @@
             </tr></thead>
             <tbody id="ambassadorsTableBody">
               <tr><td colspan="8" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:24px;">
+        <div class="table-header">
+          <div class="table-title">Ambassador Tasks</div>
+          <button class="btn btn-sm btn-success" onclick="openCreateTaskForm()">+ New Task</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Title</th><th>Reward</th><th>Verification</th>
+              <th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="ambassadorTasksTableBody">
+              <tr><td colspan="5" class="empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:24px;">
+        <div class="table-header">
+          <div class="table-title">Task Submissions — Review</div>
+          <select id="taskSubmissionFilter" class="filter-select" style="max-width:180px;">
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="">All</option>
+          </select>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>Ambassador</th><th>Task</th><th>Reward</th>
+              <th>Proof</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="taskSubmissionsTableBody">
+              <tr><td colspan="6" class="empty">Loading...</td></tr>
             </tbody>
           </table>
         </div>
@@ -902,6 +944,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@43.3.1/build/ckeditor.js"></script>
 <script src="api.js"></script>
+<script src="admin-dashboard.js"></script>
 <script>
 var ADMIN_TOKEN = null;
 var ADMIN_USER  = null;
@@ -1221,7 +1264,11 @@ function initNewsAdminCreate() {
     btnText.style.display = 'none';
     spinner.style.display = 'inline';
 
-    IMC_API.createNewsAdmin(formData).then(function (result) {
+    var apiCall = window.EDITING_NEWS_ID
+      ? IMC_API.updateNewsAdmin(window.EDITING_NEWS_ID, formData)
+      : IMC_API.createNewsAdmin(formData);
+
+    apiCall.then(function (result) {
       btnText.style.display = 'inline';
       spinner.style.display = 'none';
 
@@ -1240,13 +1287,17 @@ function initNewsAdminCreate() {
         document.getElementById('newsAdminImagePreviewWrap').style.display = 'none';
         document.getElementById('newsAdminVideoPlaceholder').style.display = 'block';
         document.getElementById('newsAdminVideoPreviewWrap').style.display = 'none';
+        window.EDITING_NEWS_ID = null;
+        btnText.innerHTML = '<i class="fas fa-bullhorn"></i> Publish';
         loadNews();
       } else {
-        errMsg.textContent = result.message || 'Could not publish news.';
+        errMsg.textContent = result.message || 'Could not save news.';
         errBox.style.display = 'flex';
       }
     });
   }
+
+  window.__doNewsPublish = doPublish;
 
   function showPreview() {
     var title   = document.getElementById('newsAdminTitle').value.trim() || 'Untitled';
@@ -1635,9 +1686,32 @@ function renderNews(filter) {
           ? '<button class="btn btn-sm btn-danger" onclick="updateNews(\'' +
             n._id + '\',\'rejected\')">Reject</button>'
           : '') +
+        '<button class="btn btn-sm btn-ghost" onclick="editNewsAdmin(\'' + n._id + '\')">Edit</button>' +
         '<button class="btn btn-sm btn-ghost" onclick="deleteNews(\'' + n._id + '\')">Delete</button>' +
       '</div></td></tr>';
   }).join(''));
+}
+
+function editNewsAdmin(id) {
+  var article = (allNews || []).find(function (n) { return n._id === id; });
+  if (!article) { alert('Article not found.'); return; }
+
+  window.EDITING_NEWS_ID = id;
+
+  document.getElementById('newsAdminTitle').value    = article.title || '';
+  document.getElementById('newsAdminCategory').value  = article.category || '';
+  document.getElementById('newsAdminSeoTitle').value  = article.seoTitle || '';
+  document.getElementById('newsAdminMetaDesc').value  = article.metaDescription || '';
+  document.getElementById('newsAdminSlug').value      = article.slug || '';
+
+  if (window.newsEditorInstance) {
+    window.newsEditorInstance.setData(article.content || '');
+  }
+
+  var publishText = document.getElementById('newsAdminPublishText');
+  if (publishText) publishText.innerHTML = '<i class="fas fa-save"></i> Update Article';
+
+  document.getElementById('section-news').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function updateNews(id, status) {

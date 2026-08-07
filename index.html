@@ -865,6 +865,48 @@
 
 <hr class="section-divider"/>
 
+<!-- CAMPUS CONNECT -->
+<div class="section-alt">
+  <div class="home-section">
+    <div class="section-head">
+      <div class="section-head-left">
+        <div class="section-icon green">🎓</div>
+        <h2>Campus Connect</h2>
+      </div>
+      <a href="campus-connect.html" class="see-all-link">
+        See more communities <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+      </a>
+    </div>
+    <div class="products-grid" id="ccHomeGrid">
+      <div class="skel" style="height:120px;"></div>
+      <div class="skel" style="height:120px;"></div>
+      <div class="skel" style="height:120px;"></div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-divider"/>
+
+<!-- LEARNING HUB -->
+<div class="home-section">
+  <div class="section-head">
+    <div class="section-head-left">
+      <div class="section-icon orange">📚</div>
+      <h2>Learning Hub</h2>
+    </div>
+    <a href="learning-hub.html" class="see-all-link">
+      See more materials <i class="fas fa-chevron-right" style="font-size:10px;"></i>
+    </a>
+  </div>
+  <div class="products-grid" id="learningHomeGrid">
+    <div class="skel" style="height:160px;"></div>
+    <div class="skel" style="height:160px;"></div>
+    <div class="skel" style="height:160px;"></div>
+  </div>
+</div>
+
+<hr class="section-divider"/>
+
 <!-- SPONSORED POSTS -->
 <div class="section-alt" id="sponsoredSection">
   <div class="home-section">
@@ -1065,13 +1107,13 @@ document.addEventListener('DOMContentLoaded', async function () {
   var allEventsResult = await IMC_API.getEvents();
   var everyEvent = (allEventsResult.events || []);
 
-  if (ALL_EVENTS.length < 3) {
+  if (ALL_EVENTS.length < 6) {
     var sortedEvents = everyEvent.slice().sort(function (a, b) {
       return new Date(b.eventDate) - new Date(a.eventDate);
     });
     var existingIds = ALL_EVENTS.map(function (e) { return e._id; });
     sortedEvents.forEach(function (e) {
-      if (ALL_EVENTS.length >= 3) return;
+      if (ALL_EVENTS.length >= 6) return;
       if (existingIds.indexOf(e._id) === -1) {
         ALL_EVENTS.push(e);
         existingIds.push(e._id);
@@ -1089,7 +1131,53 @@ document.addEventListener('DOMContentLoaded', async function () {
   renderProducts('all');
   renderEvents();
   renderSponsored((results[4].ads || []).filter(function(a){ return a.status === 'approved'; }));
+  renderCampusConnectHome();
+  renderLearningHubHome();
 });
+
+async function renderCampusConnectHome() {
+  var grid = document.getElementById('ccHomeGrid');
+  if (!grid) return;
+  var result = await IMC_API.getConnectCommunities();
+  var communities = (result.success ? result.communities : []) || [];
+
+  if (!communities.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-users"></i><p>No communities yet.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = communities.slice(0,6).map(function (c) {
+    return '<a href="campus-connect.html" class="product-card">' +
+      '<div class="product-card-body">' +
+      '<div class="product-card-category">' + esc(c.university || '') + '</div>' +
+      '<div class="product-card-name">' + esc(c.communityName) + '</div>' +
+      '<div class="product-card-vendor"><i class="fas fa-user-friends" style="color:#1a3c8f;margin-right:4px;font-size:10px;"></i>' +
+      (c.memberCount || 0) + ' members</div>' +
+      '</div></a>';
+  }).join('');
+}
+
+async function renderLearningHubHome() {
+  var grid = document.getElementById('learningHomeGrid');
+  if (!grid) return;
+  var result = await IMC_API.getLearningMaterials({ status: 'approved' });
+  var materials = (result.success ? result.materials : []) || [];
+
+  if (!materials.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-book"></i><p>No materials yet.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = materials.slice(0,6).map(function (m) {
+    var priceText = m.isFree ? 'Free' : '₦' + (m.price || 0).toLocaleString();
+    return '<a href="material-details.html?id=' + m._id + '" class="product-card">' +
+      '<div class="product-card-body">' +
+      '<div class="product-card-category">' + esc(m.department || m.materialType || '') + '</div>' +
+      '<div class="product-card-name">' + esc(m.title) + '</div>' +
+      '<div class="product-card-price">' + priceText + '</div>' +
+      '</div></a>';
+  }).join('');
+}
 
 function initNavbar() {
   var loggedIn = typeof IMC_API !== 'undefined' && IMC_API.isLoggedIn
@@ -1386,7 +1474,7 @@ function renderProducts(category) {
     return;
   }
 
-  grid.innerHTML = items.slice(0,8).map(function(p){
+  grid.innerHTML = items.slice(0,10).map(function(p){
     var img = p.image || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=300&fit=crop';
     return '<a href="product-details.html?id=' + p._id + '" class="product-card">' +
       '<img class="product-card-img" src="' + img + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.src=\'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=300&fit=crop\'"/>' +
@@ -1414,7 +1502,7 @@ function renderEvents() {
     return;
   }
 
-  grid.innerHTML = ALL_EVENTS.slice(0,3).map(function(e){
+  grid.innerHTML = ALL_EVENTS.slice(0,6).map(function(e){
     var img   = e.coverImage || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=500&h=300&fit=crop';
     var d     = e.eventDate ? new Date(e.eventDate) : null;
     var month = d ? d.toLocaleDateString('en-GB', { month:'short' }).toUpperCase() : '';
@@ -1444,7 +1532,12 @@ function sponsoredAdLink(a) {
   if (a.whatsapp) {
     var phone = String(a.whatsapp).replace(/[^0-9]/g, '');
     if (phone.startsWith('0')) phone = '234' + phone.substring(1);
-    if (phone) return 'https://wa.me/' + phone;
+    if (phone) {
+      var prefill = encodeURIComponent(
+        "Hello, I saw your advertisement on Inside My Campus and I'm interested."
+      );
+      return 'https://wa.me/' + phone + '?text=' + prefill;
+    }
   }
   if (a.websiteUrl) return a.websiteUrl;
   return a.link || 'post-ad.html';

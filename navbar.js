@@ -33,11 +33,18 @@
     if (window.__imcAuthStateHandled) return;
     window.__imcAuthStateHandled = true;
 
-    var loggedIn    = localStorage.getItem('imc_logged_in');
+    // Use the real session (token + user) as the source of truth, not the
+    // separate imc_logged_in flag — that flag is only ever set/cleared
+    // alongside the token today, but any future path that touches one
+    // without the other silently desyncs the navbar from the actual
+    // logged-in state while leaving the session itself perfectly valid.
+    var loggedIn    = (typeof IMC_API !== 'undefined' && IMC_API.isLoggedIn)
+      ? IMC_API.isLoggedIn()
+      : (localStorage.getItem('imc_logged_in') === 'true' && !!localStorage.getItem('imc_token'));
     var authButtons = document.getElementById('authButtons');
     var userMenu    = document.getElementById('userMenu');
 
-    if (loggedIn === 'true') {
+    if (loggedIn) {
       if (authButtons) authButtons.style.display = 'none';
       if (userMenu)    userMenu.style.display    = 'flex';
     } else {

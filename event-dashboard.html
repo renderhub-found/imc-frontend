@@ -348,6 +348,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       if (tabId === 'my-events') loadMyEvents();
       if (tabId === 'wallet')    loadWallet();
+
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     });
   });
 

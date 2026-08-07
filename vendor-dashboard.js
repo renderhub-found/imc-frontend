@@ -12,7 +12,9 @@
   document.addEventListener('DOMContentLoaded', async function () {
 
     // ---- Auth check ----
-    var loggedIn = localStorage.getItem('imc_logged_in');
+    // Token is the real session — not the separate imc_logged_in flag,
+    // which can drift from it (see navbar.js for the general fix).
+    var loggedIn = localStorage.getItem('imc_token');
     currentUser  = JSON.parse(
       localStorage.getItem('imc_user') || 'null'
     );
@@ -174,6 +176,14 @@
 
         var sidebar = document.getElementById('sidebar');
         if (sidebar) sidebar.classList.remove('sidebar-open');
+
+        // ---- Scroll selected section into view immediately ----
+        var dashMain = document.getElementById('dashboardMain');
+        if (dashMain) dashMain.scrollTop = 0;
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        if (tabEl && typeof tabEl.scrollIntoView === 'function') {
+          tabEl.scrollIntoView({ block: 'start', behavior: 'auto' });
+        }
       });
     });
   }

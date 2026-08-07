@@ -1,3 +1,4 @@
+
 // ================================================
 //   INSIDE MY CAMPUS — api.js
 //   Complete production API client
@@ -441,9 +442,40 @@ var IMC_API = (function () {
     return await request('POST', '/ambassadors/withdraw', data, true);
   }
 
-  async function claimTaskReward(taskId, reward) {
-    return await request('POST', '/ambassadors/claim-task',
-      { taskId: taskId, reward: reward }, true);
+  // ---- Ambassador Tasks ----
+  async function getAmbassadorTasks() {
+    return await request('GET', '/ambassadors/tasks', null, true);
+  }
+  async function submitAmbassadorTask(taskId, proof) {
+    return await request('POST', '/ambassadors/tasks/' + taskId + '/submit', { proof: proof }, true);
+  }
+  async function getMyTaskSubmissions() {
+    return await request('GET', '/ambassadors/my-submissions', null, true);
+  }
+
+  // ---- Admin: Ambassador Tasks ----
+  async function adminGetAmbassadorTasks() {
+    return await request('GET', '/ambassadors/tasks/admin/all', null, true);
+  }
+  async function adminCreateAmbassadorTask(data) {
+    return await request('POST', '/ambassadors/tasks/admin', data, true);
+  }
+  async function adminUpdateAmbassadorTask(id, data) {
+    return await request('PUT', '/ambassadors/tasks/admin/' + id, data, true);
+  }
+  async function adminSetAmbassadorTaskStatus(id, status) {
+    return await request('PUT', '/ambassadors/tasks/admin/' + id + '/status', { status: status }, true);
+  }
+  async function adminDeleteAmbassadorTask(id) {
+    return await request('DELETE', '/ambassadors/tasks/admin/' + id, null, true);
+  }
+  async function adminGetTaskSubmissions(status) {
+    var q = status ? '?status=' + status : '';
+    return await request('GET', '/ambassadors/submissions/admin/all' + q, null, true);
+  }
+  async function adminReviewTaskSubmission(id, status, reason) {
+    return await request('PUT', '/ambassadors/submissions/admin/' + id + '/review',
+      { status: status, reason: reason || '' }, true);
   }
 
   // ---- ADS ----
@@ -465,6 +497,10 @@ var IMC_API = (function () {
   async function getNews(f) {
     var q = f ? '?' + new URLSearchParams(f).toString() : '';
     return await request('GET', '/news' + q, null, false);
+  }
+
+  async function getNewsById(id) {
+    return await request('GET', '/news/' + id, null, false);
   }
 
   async function submitNews(data) {
@@ -599,12 +635,16 @@ getAllProducts, logProductLead, logProductClick, logWhatsAppClick, rateVendor, u
     getNotifications, getMyNotifications, getUnreadCount,
     markNotificationRead, markAllNotificationsRead,
     // Ambassadors
-    registerAmbassador, getMyAmbassadorProfile, requestWithdrawal, claimTaskReward,
+    registerAmbassador, getMyAmbassadorProfile, requestWithdrawal,
+    getAmbassadorTasks, submitAmbassadorTask, getMyTaskSubmissions,
+    adminGetAmbassadorTasks, adminCreateAmbassadorTask, adminUpdateAmbassadorTask,
+    adminSetAmbassadorTaskStatus, adminDeleteAmbassadorTask,
+    adminGetTaskSubmissions, adminReviewTaskSubmission,
     updateAmbassadorProfile, uploadAmbassadorProfilePicture,
     // Ads
     getAds, getMyAds, submitAd,
     // News
-    getNews, submitNews, createNewsAdmin,
+    getNews, getNewsById, submitNews, createNewsAdmin,
     // Courses
     getCourses, getCourseById, getMyCourses,
     // Learning Hub
