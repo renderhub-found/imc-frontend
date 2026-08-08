@@ -203,14 +203,18 @@ document.addEventListener('DOMContentLoaded', async function () {
       step('Creating your vendor account...');
 
       var regResult = await IMC_API.registerVendor({
-        fullName:    vendorForm.fullName,
-        university:  vendorForm.university,
-        bizName:     vendorForm.bizName,
-        whatsApp:    vendorForm.whatsApp,
-        category:    vendorForm.category,
-        description: vendorForm.description,
-        refCode:     vendorForm.refCode || '',
-        paymentRef:  reference
+        fullName:       vendorForm.fullName,
+        university:     vendorForm.university,
+        bizName:        vendorForm.bizName,
+        whatsApp:       vendorForm.whatsApp,
+        phone:          vendorForm.phone          || '',
+        campusLocation: vendorForm.campusLocation || '',
+        profilePicture: vendorForm.profilePicture || '',
+        coverImage:     vendorForm.coverImage      || '',
+        category:       vendorForm.category,
+        description:    vendorForm.description,
+        refCode:        vendorForm.refCode || '',
+        paymentRef:     reference
       });
 
       console.log('[PaySuccess] registerVendor:', JSON.stringify(regResult));

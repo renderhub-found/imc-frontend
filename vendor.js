@@ -5,6 +5,9 @@
 window.addEventListener('DOMContentLoaded', async function () {
   'use strict';
 
+  var UPLOADED_LOGO_URL  = '';
+  var UPLOADED_COVER_URL = '';
+
   // ---- Persist referral code from URL ----
   var urlParams  = new URLSearchParams(window.location.search);
   var refFromUrl = urlParams.get('ref') || '';
@@ -50,29 +53,17 @@ window.addEventListener('DOMContentLoaded', async function () {
         if (msg)   msg.textContent   = 'Your vendor application was not approved. Contact support if you believe this was a mistake.';
         if (link)  { link.style.display = 'inline-block'; link.href = 'contact.html'; link.textContent = 'Contact Support'; }
       } else {
-        // pending
-        if (icon)  icon.textContent  = '⏳';
-        if (title) title.textContent = 'Vendor Application Pending';
-        if (msg)   msg.textContent   = "We've received your application and it's under review. We'll notify you once it's approved — usually within 48 hours.";
+        // pending — payment is already confirmed at this point in the new
+        // flow (a vendor record only exists once payment succeeded), so
+        // frame this as "awaiting approval," not "incomplete."
+        if (icon)  icon.textContent  = '✅';
+        if (title) title.textContent = 'Your Vendor Account Is Ready';
+        if (msg)   msg.textContent   = "Payment received — your subscription is active. We're reviewing your store now and will notify you once it's live, usually within 48 hours.";
         if (link)  link.style.display = 'none';
       }
 
       alreadyBox.style.display = 'flex';
     }
-    return;
-  }
-
-  // ---- Auto-recover from incomplete registration ----
-  var savedRef  = localStorage.getItem('imc_vendor_payref');
-  var savedForm = null;
-  try {
-    savedForm = JSON.parse(localStorage.getItem('imc_vendor_form') || 'null');
-  } catch (e) {}
-
-  if (savedRef && savedForm) {
-    console.log('[Vendor] Found saved ref + form. Auto-completing...');
-    showBanner('Completing your registration from previous payment...', 'info');
-    await completeVendorRegistration(savedForm, savedRef);
     return;
   }
 
@@ -105,11 +96,96 @@ window.addEventListener('DOMContentLoaded', async function () {
     submitBtn.addEventListener('click', handleVendorSubmit);
   }
 
-  // ================================================
-  //   HANDLE SUBMIT
-  // ================================================
+  // ---- Step navigation ----
+  var step1 = document.getElementById('vendorStep1');
+  var step2 = document.getElementById('vendorStep2');
+  var continueBtn = document.getElementById('vendorContinueBtn');
+  var backBtn     = document.getElementById('vendorBackBtn');
 
-  function handleVendorSubmit() {
+  function setStep(n) {
+    if (step1) step1.style.display = n === 1 ? 'block' : 'none';
+    if (step2) step2.style.display = n === 2 ? 'block' : 'none';
+    document.querySelectorAll('.vendor-step-dot').forEach(function (dot) {
+      dot.classList.toggle('active', parseInt(dot.getAttribute('data-step-dot')) <= n);
+    });
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  if (continueBtn) {
+    continueBtn.addEventListener('click', function () {
+      if (!validateProfileStep()) return;
+      setStep(2);
+    });
+  }
+  if (backBtn) {
+    backBtn.addEventListener('click', function () { setStep(1); });
+  }
+
+  // ---- Plan selection ----
+  function updatePlanUI() {
+    document.querySelectorAll('.vendor-plan-card').forEach(function (card) {
+      var input = card.querySelector('input');
+      card.classList.toggle('is-checked', input && input.checked);
+    });
+    var checked = document.querySelector('input[name="vendorPlan"]:checked');
+    var btnText = document.getElementById('vendorBtnText');
+    if (checked && btnText) {
+      var amount = checked.closest('.vendor-plan-card').getAttribute('data-amount');
+      btnText.innerHTML = '<i class="fas fa-credit-card"></i> Pay ₦' +
+        parseInt(amount).toLocaleString() + ' & Activate Store';
+    }
+  }
+  document.querySelectorAll('input[name="vendorPlan"]').forEach(function (input) {
+    input.addEventListener('change', updatePlanUI);
+  });
+  updatePlanUI();
+
+  // ---- Logo / cover image upload ----
+  wireImageUpload('vendorLogoFile', 'vendorLogoBox', 'vendorLogoPlaceholder',
+    'vendorLogoPreview', 'vendorLogoProgress', function (url) { UPLOADED_LOGO_URL = url; });
+  wireImageUpload('vendorCoverFile', 'vendorCoverBox', 'vendorCoverPlaceholder',
+    'vendorCoverPreview', 'vendorCoverProgress', function (url) { UPLOADED_COVER_URL = url; });
+
+  function wireImageUpload(fileInputId, boxId, placeholderId, previewId, progressId, onDone) {
+    var fileInput   = document.getElementById(fileInputId);
+    var placeholder = document.getElementById(placeholderId);
+    var preview     = document.getElementById(previewId);
+    var progress    = document.getElementById(progressId);
+    if (!fileInput) return;
+
+    fileInput.addEventListener('change', async function () {
+      var file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      if (placeholder) placeholder.style.display = 'none';
+      if (progress)    progress.style.display    = 'flex';
+
+      var formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        var result = await IMC_API.uploadVendorImage(formData);
+        if (progress) progress.style.display = 'none';
+
+        if (result.success && result.imageUrl) {
+          if (preview) {
+            preview.src = result.imageUrl;
+            preview.style.display = 'block';
+          }
+          onDone(result.imageUrl);
+        } else {
+          if (placeholder) placeholder.style.display = 'flex';
+          alert(result.message || 'Image upload failed. Please try again.');
+        }
+      } catch (err) {
+        if (progress)    progress.style.display    = 'none';
+        if (placeholder) placeholder.style.display = 'flex';
+        alert('Image upload failed. Please try again.');
+      }
+    });
+  }
+
+  function validateProfileStep() {
     var fullName    = getVal('vendorFullName');
     var university  = getVal('vendorUniversity');
     var bizName     = getVal('vendorBizName');
@@ -117,125 +193,96 @@ window.addEventListener('DOMContentLoaded', async function () {
     var category    = getVal('vendorCategory');
     var customCat   = getVal('vendorCustomCategory');
     var description = getVal('vendorDescription');
-    var refCode     = (refInput ? refInput.value.trim() : '') ||
-                      localStorage.getItem('imc_ref_code') || '';
 
     var errorBox = document.getElementById('vendorError');
     var errorMsg = document.getElementById('vendorErrorMsg');
-    if (errorBox) errorBox.style.display = 'none';
-
     function showErr(msg) {
       if (errorMsg) errorMsg.textContent   = msg;
       if (errorBox) errorBox.style.display = 'flex';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    if (errorBox) errorBox.style.display = 'none';
 
-    if (!fullName)    { showErr('Please enter your full name.');       return; }
-    if (!university)  { showErr('Please enter your university.');      return; }
-    if (!bizName)     { showErr('Please enter your business name.');   return; }
-    if (!whatsApp)    { showErr('Please enter your WhatsApp number.'); return; }
-    if (!category)    { showErr('Please select a category.');          return; }
+    if (!fullName)    { showErr('Please enter your full name.');       return false; }
+    if (!university)  { showErr('Please enter your university.');      return false; }
+    if (!bizName)     { showErr('Please enter your business name.');   return false; }
+    if (!whatsApp)    { showErr('Please enter your WhatsApp number.'); return false; }
+    if (!category)    { showErr('Please select a category.');          return false; }
     if (category === 'Others' && !customCat) {
-      showErr('Please specify your category.'); return;
+      showErr('Please specify your category.'); return false;
     }
-    if (!description) { showErr('Please add a business description.'); return; }
-
-    var finalCategory = category === 'Others' ? customCat : category;
-
-    var formData = {
-      fullName:    fullName,
-      university:  university,
-      bizName:     bizName,
-      whatsApp:    whatsApp,
-      category:    finalCategory,
-      description: description,
-      refCode:     refCode
-    };
-
-    // Save form BEFORE payment redirect
-    localStorage.setItem('imc_vendor_form', JSON.stringify(formData));
-    console.log('[Vendor] Form saved:', JSON.stringify(formData));
-    console.log('[Vendor] Opening payment...');
-
-    IMCPaystack.openPayment({
-      amount:      5000,
-      type:        'vendor_registration',
-      description: 'Vendor Registration — Inside My Campus',
-      email:       currentUser.email,
-      metadata: {
-        userId:     currentUser.id || currentUser._id || '',
-        userEmail:  currentUser.email,
-        bizName:    bizName,
-        vendorForm: formData
-      },
-      onSuccess: function (payRef) {
-        var ref = payRef && payRef.reference ? payRef.reference : String(payRef);
-        console.log('[Vendor] onSuccess ref:', ref);
-        localStorage.setItem('imc_vendor_payref', ref);
-        completeVendorRegistration(formData, ref);
-      },
-      onCancel: function () {
-        localStorage.removeItem('imc_vendor_form');
-        showErr('Payment cancelled.');
-      }
-    });
+    if (!description) { showErr('Please add a business description.'); return false; }
+    return true;
   }
 
   // ================================================
-  //   COMPLETE REGISTRATION
+  //   HANDLE SUBMIT
   // ================================================
 
-  async function completeVendorRegistration(formData, paymentRef) {
-    console.log('[Vendor] completeVendorRegistration ref:', paymentRef);
+  function handleVendorSubmit() {
+    if (!validateProfileStep()) { setStep(1); return; }
+
+    var checkedPlan = document.querySelector('input[name="vendorPlan"]:checked');
+    if (!checkedPlan) {
+      alert('Please select a plan.');
+      return;
+    }
+    var planCard = checkedPlan.closest('.vendor-plan-card');
+    var planKey  = planCard.getAttribute('data-plan');
+    var amount   = parseInt(planCard.getAttribute('data-amount'));
+
+    var refCode = (refInput ? refInput.value.trim() : '') ||
+                  localStorage.getItem('imc_ref_code') || '';
+
+    var formData = {
+      fullName:       getVal('vendorFullName'),
+      phone:          getVal('vendorPhone'),
+      university:     getVal('vendorUniversity'),
+      bizName:        getVal('vendorBizName'),
+      whatsApp:       getVal('vendorWhatsApp'),
+      campusLocation: getVal('vendorCampusLocation'),
+      category:       getVal('vendorCategory') === 'Others' ? getVal('vendorCustomCategory') : getVal('vendorCategory'),
+      description:    getVal('vendorDescription'),
+      profilePicture: UPLOADED_LOGO_URL  || '',
+      coverImage:     UPLOADED_COVER_URL || '',
+      refCode:        refCode,
+      plan:           planKey
+    };
+
+    // Save form BEFORE payment redirect — payment-success.html reads this
+    // back after the user returns from Paystack's hosted checkout.
+    localStorage.setItem('imc_vendor_form', JSON.stringify(formData));
+    console.log('[Vendor] Form saved:', JSON.stringify(formData));
+    console.log('[Vendor] Opening payment for plan:', planKey, '₦' + amount);
 
     var submitBtn = document.getElementById('vendorSubmitBtn');
     var btnText   = document.getElementById('vendorBtnText');
     var spinner   = document.getElementById('vendorSpinner');
-    var errorBox  = document.getElementById('vendorError');
-    var errorMsg  = document.getElementById('vendorErrorMsg');
+    if (btnText)   btnText.style.display = 'none';
+    if (spinner)   spinner.style.display = 'inline';
+    if (submitBtn) submitBtn.disabled    = true;
 
-    if (btnText)   btnText.style.display   = 'none';
-    if (spinner)   spinner.style.display   = 'inline';
-    if (submitBtn) submitBtn.disabled      = true;
-
-    var result = await IMC_API.registerVendor({
-      fullName:    formData.fullName,
-      university:  formData.university,
-      bizName:     formData.bizName,
-      whatsApp:    formData.whatsApp,
-      category:    formData.category,
-      description: formData.description,
-      refCode:     formData.refCode || '',
-      paymentRef:  paymentRef
-    });
-
-    console.log('[Vendor] registerVendor result:', JSON.stringify(result));
-
-    if (result.success) {
-      localStorage.removeItem('imc_vendor_form');
-      localStorage.removeItem('imc_vendor_payref');
-      localStorage.removeItem('imc_ref_code');
-
-      var user = IMC_API.getCurrentUser();
-      if (user) {
-        user.role = 'vendor';
-        localStorage.setItem('imc_user', JSON.stringify(user));
+    IMCPaystack.openPayment({
+      amount:      amount,
+      type:        'vendor_registration',
+      description: 'Vendor Registration (' + (planKey === '12months' ? '12 Months' : '6 Months') + ') — Inside My Campus',
+      email:       currentUser.email,
+      metadata: {
+        userId:     currentUser.id || currentUser._id || '',
+        userEmail:  currentUser.email,
+        bizName:    formData.bizName,
+        plan:       planKey,
+        vendorForm: formData
+      },
+      onCancel: function () {
+        if (btnText)   btnText.style.display = 'inline';
+        if (spinner)   spinner.style.display = 'none';
+        if (submitBtn) submitBtn.disabled    = false;
       }
-
-      window.location.href = 'vendor-dashboard.html';
-
-    } else if (result.message && result.message.includes('already')) {
-      localStorage.removeItem('imc_vendor_form');
-      localStorage.removeItem('imc_vendor_payref');
-      window.location.href = 'vendor-dashboard.html';
-
-    } else {
-      if (errorMsg) errorMsg.textContent   = result.message || 'Registration failed.';
-      if (errorBox) errorBox.style.display = 'flex';
-      if (btnText)  btnText.style.display  = 'inline';
-      if (spinner)  spinner.style.display  = 'none';
-      if (submitBtn) submitBtn.disabled    = false;
-    }
+    });
+    // openPayment redirects the browser to Paystack's hosted checkout on
+    // success — nothing more happens on this page after this call.
+    // Verification + vendor creation happens on payment-success.html.
   }
 
   function showBanner(msg) {

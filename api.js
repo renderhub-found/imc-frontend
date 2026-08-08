@@ -1,4 +1,3 @@
-
 // ================================================
 //   INSIDE MY CAMPUS — api.js
 //   Complete production API client
@@ -371,6 +370,10 @@ var IMC_API = (function () {
     return await request('POST', '/vendors/register', data, true);
   }
 
+  async function uploadVendorImage(formData) {
+    return await request('POST', '/vendors/upload-image', formData, true);
+  }
+
   async function getMyVendorProfile() {
     return await request('GET', '/vendors/my-profile', null, true);
   }
@@ -623,7 +626,7 @@ var IMC_API = (function () {
     // Google
     googleAuth,
     // Vendors
-    getVendors, getVendorById, registerVendor, getMyVendorProfile,
+    getVendors, getVendorById, registerVendor, uploadVendorImage, getMyVendorProfile,
     addProduct, addProductWithFiles, deleteProduct, updateProduct,
 getAllProducts, logProductLead, logProductClick, logWhatsAppClick, rateVendor, uploadVendorProfilePicture, updateVendorProfile,
     // Events

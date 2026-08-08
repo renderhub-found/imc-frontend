@@ -76,8 +76,19 @@
       <!-- THE FORM -->
       <div id="vendorFormBox">
         <div class="auth-icon">🏪</div>
-        <h2 class="auth-title">Vendor Registration</h2>
-        <p class="auth-subtitle">Fill in your business details below</p>
+        <h2 class="auth-title">Become a Vendor</h2>
+        <p class="auth-subtitle">Set up your store — you'll choose a plan and pay at the end</p>
+
+        <!-- Progress indicator -->
+        <div id="vendorProgress" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:18px 0 24px;">
+          <div class="vendor-step-dot active" data-step-dot="1">
+            <span>1</span><small>Profile</small>
+          </div>
+          <div class="vendor-step-line"></div>
+          <div class="vendor-step-dot" data-step-dot="2">
+            <span>2</span><small>Plan</small>
+          </div>
+        </div>
 
         <!-- Error / Success -->
         <div class="auth-error" id="vendorError" style="display:none;">
@@ -85,7 +96,8 @@
           <span id="vendorErrorMsg"></span>
         </div>
 
-        <div class="auth-form">
+        <!-- ============ STEP 1: PROFILE ============ -->
+        <div class="auth-form" id="vendorStep1">
 
           <!-- Full Name -->
           <div class="form-group">
@@ -93,6 +105,15 @@
             <div class="input-wrapper">
               <i class="fas fa-user input-icon"></i>
               <input type="text" id="vendorFullName" placeholder="Your full name" />
+            </div>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div class="input-wrapper">
+              <i class="fas fa-phone input-icon"></i>
+              <input type="tel" id="vendorPhone" placeholder="e.g. 08012345678" />
             </div>
           </div>
 
@@ -120,6 +141,15 @@
             <div class="input-wrapper">
               <i class="fab fa-whatsapp input-icon"></i>
               <input type="tel" id="vendorWhatsApp" placeholder="e.g. 08012345678" />
+            </div>
+          </div>
+
+          <!-- Campus Location -->
+          <div class="form-group">
+            <label>Business Location <span style="color:#aaa;font-weight:400;">(on campus)</span></label>
+            <div class="input-wrapper">
+              <i class="fas fa-map-marker-alt input-icon"></i>
+              <input type="text" id="vendorCampusLocation" placeholder="e.g. Hostel Block C, Room 12" />
             </div>
           </div>
 
@@ -182,10 +212,80 @@
             ></textarea>
           </div>
 
-          <!-- Submit Button -->
+          <!-- Logo Upload -->
+          <div class="form-group">
+            <label>Business Logo <span style="color:#aaa;font-weight:400;">(optional)</span></label>
+            <div class="vendor-upload-box" id="vendorLogoBox" onclick="document.getElementById('vendorLogoFile').click()">
+              <div id="vendorLogoPlaceholder">
+                <i class="fas fa-image" style="font-size:22px;color:#aaa;"></i>
+                <span>Tap to upload logo</span>
+              </div>
+              <img id="vendorLogoPreview" style="display:none;" alt="Logo preview" />
+              <div id="vendorLogoProgress" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Uploading...</div>
+            </div>
+            <input type="file" id="vendorLogoFile" accept="image/*" style="display:none;" />
+          </div>
+
+          <!-- Business Image Upload -->
+          <div class="form-group">
+            <label>Business/Storefront Image <span style="color:#aaa;font-weight:400;">(optional)</span></label>
+            <div class="vendor-upload-box" id="vendorCoverBox" onclick="document.getElementById('vendorCoverFile').click()">
+              <div id="vendorCoverPlaceholder">
+                <i class="fas fa-camera" style="font-size:22px;color:#aaa;"></i>
+                <span>Tap to upload a photo of your business</span>
+              </div>
+              <img id="vendorCoverPreview" style="display:none;" alt="Business image preview" />
+              <div id="vendorCoverProgress" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Uploading...</div>
+            </div>
+            <input type="file" id="vendorCoverFile" accept="image/*" style="display:none;" />
+          </div>
+
+          <!-- Continue Button -->
+          <button class="btn-auth-submit" id="vendorContinueBtn" type="button">
+            Continue to Plan Selection <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- ============ STEP 2: PLAN SELECTION ============ -->
+        <div class="auth-form" id="vendorStep2" style="display:none;">
+          <p style="text-align:center;font-size:14px;color:#555;margin-bottom:18px;">
+            Choose how long you'd like your store to stay active on Inside My Campus.
+          </p>
+
+          <div class="vendor-plan-grid">
+            <label class="vendor-plan-card" for="plan6" data-plan="6months" data-amount="5000">
+              <input type="radio" name="vendorPlan" id="plan6" value="6months" />
+              <div class="vendor-plan-duration">6 Months</div>
+              <div class="vendor-plan-price">₦5,000</div>
+              <ul class="vendor-plan-benefits">
+                <li><i class="fas fa-check"></i> Store live for 6 months</li>
+                <li><i class="fas fa-check"></i> Unlimited product listings</li>
+                <li><i class="fas fa-check"></i> Direct WhatsApp orders</li>
+              </ul>
+            </label>
+
+            <label class="vendor-plan-card recommended" for="plan12" data-plan="12months" data-amount="8000">
+              <div class="vendor-plan-badge">BEST VALUE</div>
+              <input type="radio" name="vendorPlan" id="plan12" value="12months" checked />
+              <div class="vendor-plan-duration">12 Months</div>
+              <div class="vendor-plan-price">₦8,000</div>
+              <ul class="vendor-plan-benefits">
+                <li><i class="fas fa-check"></i> Store live for a full year</li>
+                <li><i class="fas fa-check"></i> Unlimited product listings</li>
+                <li><i class="fas fa-check"></i> Direct WhatsApp orders</li>
+                <li><i class="fas fa-check"></i> Fewer renewals to think about</li>
+              </ul>
+            </label>
+          </div>
+
+          <button class="btn-auth-submit" id="vendorBackBtn" type="button"
+            style="background:#fff;color:#1a3c8f;border:2px solid #e2e8f5;margin-bottom:10px;">
+            <i class="fas fa-arrow-left"></i> Back to Profile
+          </button>
+
           <button class="btn-auth-submit" id="vendorSubmitBtn" style="background:#e85d04;">
             <span id="vendorBtnText">
-              <i class="fas fa-credit-card"></i> Submit & Pay ₦5,000
+              <i class="fas fa-credit-card"></i> Pay ₦8,000 &amp; Activate Store
             </span>
             <span id="vendorSpinner" style="display:none;">
               <i class="fas fa-spinner fa-spin"></i> Processing...
@@ -195,9 +295,42 @@
           <p style="text-align:center;font-size:12px;color:#aaa;margin-top:10px;">
             🔒 Secure payment powered by Paystack
           </p>
-
         </div>
       </div>
+
+      <style>
+        .vendor-step-dot{display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.4;}
+        .vendor-step-dot.active{opacity:1;}
+        .vendor-step-dot span{width:28px;height:28px;border-radius:50%;background:#1a3c8f;color:#fff;
+          display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+        .vendor-step-dot small{font-size:11px;color:#555;font-weight:600;}
+        .vendor-step-line{width:50px;height:2px;background:#e2e8f5;}
+        .vendor-upload-box{border:2px dashed #d7deef;border-radius:12px;padding:18px;text-align:center;
+          cursor:pointer;transition:border-color .15s;min-height:70px;display:flex;align-items:center;justify-content:center;}
+        .vendor-upload-box:hover{border-color:#1a3c8f;}
+        .vendor-upload-box #vendorLogoPlaceholder,
+        .vendor-upload-box #vendorCoverPlaceholder{display:flex;flex-direction:column;align-items:center;gap:6px;
+          color:#888;font-size:13px;}
+        .vendor-upload-box img{max-width:100%;max-height:140px;border-radius:8px;object-fit:cover;}
+        .vendor-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+        @media(max-width:520px){.vendor-plan-grid{grid-template-columns:1fr;}}
+        .vendor-plan-card{position:relative;display:block;border:2px solid #e2e8f5;border-radius:14px;
+          padding:20px 16px;cursor:pointer;transition:border-color .15s,transform .1s;background:#fff;}
+        .vendor-plan-card:hover{border-color:#9fb3e8;}
+        .vendor-plan-card input{position:absolute;opacity:0;pointer-events:none;}
+        .vendor-plan-card:has(input:checked){border-color:#1a3c8f;box-shadow:0 4px 16px rgba(26,60,143,0.15);}
+        .vendor-plan-card.recommended{border-color:#e85d04;}
+        .vendor-plan-card.recommended:has(input:checked){border-color:#e85d04;box-shadow:0 4px 16px rgba(232,93,4,0.18);}
+        .vendor-plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+          background:#e85d04;color:#fff;font-size:11px;font-weight:800;letter-spacing:.4px;
+          padding:4px 12px;border-radius:20px;}
+        .vendor-plan-duration{font-size:16px;font-weight:700;color:#1a1a2e;margin-top:6px;}
+        .vendor-plan-price{font-size:26px;font-weight:800;color:#1a3c8f;margin:4px 0 12px;}
+        .vendor-plan-benefits{list-style:none;padding:0;margin:0;font-size:12.5px;color:#555;
+          display:flex;flex-direction:column;gap:6px;text-align:left;}
+        .vendor-plan-benefits i{color:#2d8653;margin-right:6px;}
+      </style>
+
 
     </div>
   </section>
